@@ -16,20 +16,7 @@ data:
     filter_set:
       - filter_type: 'union'
         node_names:
-          - 'mtn16r11o002'
-          - 'mtn16r11c001'
-          - 'mtn16r11c002'
-          - 'mtn16r11c003'
-          - 'mtn16r12o001'
-          - 'mtn16r12o002'
-          - 'mtn16r12c001'
-          - 'mtn16r12c002'
-          - 'mtn16r12c003'
-          - 'mtn16r13o001'
-          - 'mtn16r13o002'
-          - 'mtn16r13c001'
-          - 'mtn16r11c004'
-          - 'mtn16r11c005'
+          - 'bxx16r11o002'
   # TODO(alanmeadows) move what is global about this document - everything except nodenames to global
   assets:
     - path: /opt/promjoin.sh
@@ -97,7 +84,7 @@ data:
 
         [Service]
         Type=simple
-        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s 135.21.99.208/29
+        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s 111.21.99.208/29
 
         [Install]
         WantedBy=multi-user.target
