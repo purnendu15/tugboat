@@ -1,0 +1,51 @@
+---
+specs:
+    # Source MTN_57_AEC_Design_Specs_v_1.1.xlsx
+    spec1:
+        header_row: 2
+        ipmi_address_header: 'IPMI Address'
+        ipmi_sheet_name: '6.0 Server IP-Profile Info'
+        start_row: 3
+        end_row: 22
+        hostname_col: 1
+        ipmi_address_col: 3
+        host_profile_col: 5
+        ipmi_gateway_col: 4
+        private_ip_sheet: 'Private IPs'
+        net_type_col: 1
+        net_start_row: 2
+        net_end_row: 13
+        subnet_col: 3
+        cidr_per_rack_col: 4
+    # Source MTN52_AEC_Eng_Design_Specs_v1.4.xlsx
+    spec2:
+        header_row: 1
+        ipmi_address_header: 'IPMI Address'
+        ipmi_sheet_name: '4.IPMI-Host Profile'
+        start_row: 2
+        end_row: 13
+        hostname_col: 1
+        ipmi_address_col: 3
+        host_profile_col: 5
+        ipmi_gateway_col: 4
+        ip_type_col: 1
+        ip_start_row: 3
+        ip_end_row: 14
+        subnet_col: 3
+        cidr_per_rack_col: 4
+    # Source MTN54_AEC_Eng_Design_Specs_v1.2.xlsx
+    spec3:
+        header_row: 2
+        ipmi_address_header: 'IPMI Address'
+        ipmi_sheet_name: 'Server IP-Profile Info'
+        start_row: 3
+        end_row: 14
+        hostname_col: 1
+        ipmi_address_col: 3
+        host_profile_col: 5
+        ipmi_gateway_col: 4
+        ip_type_col: 1
+        ip_start_row: 2
+        ip_end_row: 13
+        subnet_col: 3
+        cidr_per_rack_col: 4

@@ -1,0 +1,33 @@
+{% for host in data.keys()%}
+{% if data[host]['type'] != 'genesis' %}
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ host }}
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: {{data[host]['host_profile']}}
+  addressing:
+    - network: oob
+      address: {{ data[host]['ip']['oob'] }}
+    - network: pxe
+      address: {{ data[host]['ip']['pxe'] }}
+    - network: storage
+      address: {{ data[host]['ip']['storage'] }}
+    - network: ksn
+      address: {{ data[host]['ip']['calico'] }}
+  metadata:
+    rack: {{ data[host]['rack']|upper }}
+    tags:
+{% if data[host]['type'] == 'compute' %}
+        - 'workers'
+{% else %}
+        - 'masters'
+{% endif %}
+...
+{%endif%}
+{%endfor%}

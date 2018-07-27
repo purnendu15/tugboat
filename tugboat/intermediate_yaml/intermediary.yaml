@@ -1,0 +1,125 @@
+baremetal:
+  !!python/unicode 'r03':
+    !!python/unicode 'mtn57r03c001':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.14
+        oob: !!python/unicode '32.68.226.135'
+        pxe: 172.30.0.14
+        storage: 172.31.0.14
+      rack: !!python/unicode 'r03'
+      type: compute
+    !!python/unicode 'mtn57r03c002':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.15
+        oob: !!python/unicode '32.68.226.136'
+        pxe: 172.30.0.15
+        storage: 172.31.0.15
+      rack: !!python/unicode 'r03'
+      type: compute
+    !!python/unicode 'mtn57r03c003':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.16
+        oob: !!python/unicode '32.68.226.137'
+        pxe: 172.30.0.16
+        storage: 172.31.0.16
+      rack: !!python/unicode 'r03'
+      type: compute
+    !!python/unicode 'mtn57r03c004':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.17
+        oob: !!python/unicode '32.68.226.138'
+        pxe: 172.30.0.17
+        storage: 172.31.0.17
+      rack: !!python/unicode 'r03'
+      type: compute
+    !!python/unicode 'mtn57r03o001':
+      host_profile: !!python/unicode 'cp'
+      ip:
+        calico: 172.29.0.13
+        oob: !!python/unicode '32.68.226.134'
+        pxe: 172.30.0.13
+        storage: 172.31.0.13
+      rack: !!python/unicode 'r03'
+      type: genesis
+  !!python/unicode 'r04':
+    !!python/unicode 'mtn57r04c001':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.142
+        oob: !!python/unicode '32.68.226.167'
+        pxe: 172.30.0.142
+        storage: 172.31.0.142
+      rack: !!python/unicode 'r04'
+      type: compute
+    !!python/unicode 'mtn57r04c002':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.143
+        oob: !!python/unicode '32.68.226.168'
+        pxe: 172.30.0.143
+        storage: 172.31.0.143
+      rack: !!python/unicode 'r04'
+      type: compute
+    !!python/unicode 'mtn57r04c003':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.144
+        oob: !!python/unicode '32.68.226.169'
+        pxe: 172.30.0.144
+        storage: 172.31.0.144
+      rack: !!python/unicode 'r04'
+      type: compute
+    !!python/unicode 'mtn57r04c004':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.0.145
+        oob: !!python/unicode '32.68.226.170'
+        pxe: 172.30.0.145
+        storage: 172.31.0.145
+      rack: !!python/unicode 'r04'
+      type: compute
+    !!python/unicode 'mtn57r04o001':
+      host_profile: !!python/unicode 'cp'
+      ip:
+        calico: 172.29.0.141
+        oob: !!python/unicode '32.68.226.166'
+        pxe: 172.30.0.141
+        storage: 172.31.0.141
+      rack: !!python/unicode 'r04'
+      type: controller
+  !!python/unicode 'r05':
+    !!python/unicode 'mtn57r05c001':
+      host_profile: !!python/unicode 'nsb'
+      ip:
+        calico: 172.29.1.14
+        oob: !!python/unicode '32.68.226.199'
+        pxe: 172.30.1.14
+        storage: 172.31.1.14
+      rack: !!python/unicode 'r05'
+      type: compute
+    !!python/unicode 'mtn57r05o001':
+      host_profile: !!python/unicode 'cp'
+      ip:
+        calico: 172.29.1.13
+        oob: !!python/unicode '32.68.226.198'
+        pxe: 172.30.1.13
+        storage: 172.31.1.13
+      rack: !!python/unicode 'r05'
+      type: controller
+network:
+  !!python/unicode 'r03':
+    calico: 172.29.0.0/25
+    pxe: 172.30.0.0/25
+    storage: 172.31.0.0/25
+  !!python/unicode 'r04':
+    calico: 172.29.0.128/25
+    pxe: 172.30.0.128/25
+    storage: 172.31.0.128/25
+  !!python/unicode 'r05':
+    calico: 172.29.1.0/25
+    pxe: 172.30.1.0/25
+    storage: 172.31.1.0/25

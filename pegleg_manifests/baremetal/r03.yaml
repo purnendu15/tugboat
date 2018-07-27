@@ -1,0 +1,100 @@
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r03c001
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.135
+    - network: pxe
+      address: 172.30.0.14
+    - network: storage
+      address: 172.31.0.14
+    - network: ksn
+      address: 172.29.0.14
+  metadata:
+    rack: R03
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r03c002
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.136
+    - network: pxe
+      address: 172.30.0.15
+    - network: storage
+      address: 172.31.0.15
+    - network: ksn
+      address: 172.29.0.15
+  metadata:
+    rack: R03
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r03c003
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.137
+    - network: pxe
+      address: 172.30.0.16
+    - network: storage
+      address: 172.31.0.16
+    - network: ksn
+      address: 172.29.0.16
+  metadata:
+    rack: R03
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r03c004
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.138
+    - network: pxe
+      address: 172.30.0.17
+    - network: storage
+      address: 172.31.0.17
+    - network: ksn
+      address: 172.29.0.17
+  metadata:
+    rack: R03
+    tags:
+        - 'workers'
+...

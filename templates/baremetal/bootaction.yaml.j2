@@ -1,0 +1,111 @@
+---
+schema: 'drydock/BootAction/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: promjoin
+  storagePolicy: 'cleartext'
+  layeringDefinition:
+    abstract: false
+    layer: site
+  labels:
+    application: 'drydock'
+data:
+  signaling: false
+  node_filter:
+    filter_set_type: 'union'
+    filter_set:
+      - filter_type: 'union'
+        node_names:
+          - 'mtn16r11o002'
+          - 'mtn16r11c001'
+          - 'mtn16r11c002'
+          - 'mtn16r11c003'
+          - 'mtn16r12o001'
+          - 'mtn16r12o002'
+          - 'mtn16r12c001'
+          - 'mtn16r12c002'
+          - 'mtn16r12c003'
+          - 'mtn16r13o001'
+          - 'mtn16r13o002'
+          - 'mtn16r13c001'
+          - 'mtn16r11c004'
+          - 'mtn16r11c005'
+  # TODO(alanmeadows) move what is global about this document - everything except nodenames to global
+  assets:
+    - path: /opt/promjoin.sh
+      type: file
+      permissions: '555'
+      # TODO(alanmeadows) You must replace the ip= parameter below with the appropriate MaaS network name of the network
+      # you should use to contact kubernetes in the case below, this is cab24_mgmt
+      location: promenade+http://promenade-api.ucp.svc.cluster.local/api/v1.0/join-scripts?design_ref={{ action.design_ref | urlencode }}&hostname={{ node.hostname }}{% if 'rack11_oam' in node.network %}&ip={{ node.network.rack11_oam.ip }}{% elif 'rack12_oam' in node.network %}&ip={{ node.network.rack12_oam.ip }}{% else %}&ip={{ node.network.rack13_oam.ip }}{% endif %}{% for k, v in node.labels.items() %}&labels.dynamic={{ k }}={{ v }}{% endfor %}
+      location_pipeline:
+        - template
+      data_pipeline:
+        - utf8_decode
+    - path: /lib/systemd/system/promjoin.service
+      type: unit
+      permissions: '600'
+      data: |-
+        [Unit]
+        Description=Promenade Initialization Service
+        After=network-online.target local-fs.target cloud-final.service
+        ConditionPathExists=!/var/lib/prom.done
+
+        [Service]
+        Type=simple
+        ExecStart=/opt/promjoin.sh
+
+        [Install]
+        WantedBy=multi-user.target
+      data_pipeline:
+        - utf8_decode
+---
+schema: 'drydock/BootAction/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: calico-ip-rules
+  storagePolicy: 'cleartext'
+  layeringDefinition:
+    abstract: false
+    layer: site
+  labels:
+    application: 'drydock'
+  substitutions:
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .kubernetes.pod_cidr
+      dest:
+        path: .assets[0].data
+        pattern: DH_SUB_POD_CIDR
+    - src:
+        schema: pegleg/Script/v1
+        name: configure-ip-rules
+        path: .
+      dest:
+        path: .assets[1].data
+data:
+  signaling: false
+  assets:
+    - path: /etc/systemd/system/configure-ip-rules.service
+      type: unit
+      permissions: '444'
+      data: |-
+        [Unit]
+        Description=IP Rules Initialization Service
+        After=network-online.target local-fs.target
+
+        [Service]
+        Type=simple
+        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s 135.21.99.208/29
+
+        [Install]
+        WantedBy=multi-user.target
+      data_pipeline:
+        - utf8_decode
+    - path: /opt/configure-ip-rules.sh
+      type: file
+      permissions: '700'
+      data_pipeline:
+        - utf8_decode
+...

@@ -1,0 +1,125 @@
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r05c001
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.199
+    - network: pxe
+      address: 172.30.1.14
+    - network: storage
+      address: 172.31.1.14
+    - network: ksn
+      address: 172.29.1.14
+  metadata:
+    rack: R05
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r05c002
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.200
+    - network: pxe
+      address: 172.30.1.15
+    - network: storage
+      address: 172.31.1.15
+    - network: ksn
+      address: 172.29.1.15
+  metadata:
+    rack: R05
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r05c003
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.201
+    - network: pxe
+      address: 172.30.1.16
+    - network: storage
+      address: 172.31.1.16
+    - network: ksn
+      address: 172.29.1.16
+  metadata:
+    rack: R05
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r05c004
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: nsb
+  addressing:
+    - network: oob
+      address: 32.68.226.202
+    - network: pxe
+      address: 172.30.1.17
+    - network: storage
+      address: 172.31.1.17
+    - network: ksn
+      address: 172.29.1.17
+  metadata:
+    rack: R05
+    tags:
+        - 'workers'
+...
+---
+schema: 'drydock/BaremetalNode/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: mtn57r05o001
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  host_profile: cp
+  addressing:
+    - network: oob
+      address: 32.68.226.198
+    - network: pxe
+      address: 172.30.1.13
+    - network: storage
+      address: 172.31.1.13
+    - network: ksn
+      address: 172.29.1.13
+  metadata:
+    rack: R05
+    tags:
+        - 'masters'
+...
