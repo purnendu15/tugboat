@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from parser_engine.generate_intermediary import GenerateIntermediary
-from site_processors.baremetal_processor import BaremeralProcessor
+from parser_engine.generate_intermediary import GenerateYamlFromExcel
+from site_processors.baremetal_processor import BaremetalProcessor
 
 
 def main():
-    file_name = '{}{}'.format('/root/pk5294/gitrepos/tugboat/tugboat/schemas/',
-                              'MTN_57_AEC_Design_Specs_v_1.1.xlsx')
-    excel_specs = 'excel_parser/config/excel_spec.yaml'
-    ob = GenerateIntermediary(file_name, excel_specs)
+    file_name = '{}{}'.format('/Users/gurpreets/Documents/clcp/Parser excels',
+                              '/MTN_57_AEC_Design_Specs_v_1.1.xlsx')
+    excel_specs = 'parser_engine/config/excel_spec.yaml'
+    ob = GenerateYamlFromExcel(file_name, excel_specs)
     ob.generate_yaml()
-    ob1 = BaremeralProcessor('intermediary.yaml')
+    ob1 = BaremetalProcessor('intermediary.yaml')
     ob1.render_template('rack.yaml.j2')
 
-if __name__== "__main__":
-  main()
 
+if __name__ == "__main__":
+    main()

@@ -1,4 +1,3 @@
-#/usr/bin/python
 # Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -17,9 +16,9 @@ import yaml
 import re
 
 import netaddr
-from base import ParserEngine
-from utils.excel_parser import ExcelParser
-import utils.settings as settings
+from .base import ParserEngine
+from .utils.excel_parser import ExcelParser
+import config.settings as settings
 
 
 class GenerateYamlFromExcel(ParserEngine):

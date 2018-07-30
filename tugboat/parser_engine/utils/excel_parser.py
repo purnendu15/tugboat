@@ -17,7 +17,7 @@ import re
 import yaml
 from openpyxl import load_workbook
 
-from check_exceptions import (
+from ..check_exceptions import (
     NoSpecMatched,
 )
 
@@ -99,7 +99,6 @@ class ExcelParser():
         return [self.ipmi_data, self.hosts]
 
     def get_network_data(self):
-        import pdb;pdb.set_trace()
         sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
         ws = self.wb[sheet_name]
         row = self.excel_specs['specs'][self.spec]['net_start_row']
