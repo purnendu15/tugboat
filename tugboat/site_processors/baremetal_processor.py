@@ -13,6 +13,8 @@
 # limitations under the License.
 
 import yaml
+import os
+
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
@@ -45,7 +47,11 @@ class BaremetalProcessor:
         template = j2_env.get_template(template)
         for rack in self.baremetal_data:
             data = self.baremetal_data[rack]
-            outfile = 'baremetal/{}.yaml'.format(rack)
+            file_path = "pegleg_manifests/baremetal/"
+            directory = os.path.dirname(file_path)
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+            outfile = 'pegleg_manifests/baremetal/{}.yaml'.format(rack)
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member

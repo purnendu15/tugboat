@@ -13,16 +13,35 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import sys
+import getopt
+
 from parser_engine.generate_intermediary import GenerateYamlFromExcel
 from site_processors.baremetal_processor import BaremetalProcessor
 
 
-def main():
-    file_name = '{}{}'.format('/Users/gurpreets/Documents/clcp/Parser excels',
-                              '/MTN_57_AEC_Design_Specs_v_1.1.xlsx')
-    excel_specs = 'parser_engine/config/excel_spec.yaml'
-    ob = GenerateYamlFromExcel(file_name, excel_specs)
+def main(argv=None):
+    if argv is None:
+        argv = sys.argv
+    #parse command line options
+    filename_path = ""
+    excel_spec_path = ""
+    try:
+        opts, args = getopt.getopt(sys.argv[1:], "h", "help")
+    except getopt.GetoptError as msg:
+        #print "fo help use --help"
+    for o, a in opts:
+        if o in ("-h", "--help"):
+            print("Please provide xls and excelspec files as follows: python tugboat.py <spreadsheet> <excelspec>")
+            sys.exit(0)
+    #for arg in args:
+    filename_path = args[0]
+    excel_spec_path = args[1]
+    # Generate YAML from Excel Workbook engine
+    ob = GenerateYamlFromExcel(filename_path, excel_spec_path)
     ob.generate_yaml()
+
+    # Baremetal Processor
     ob1 = BaremetalProcessor('intermediary.yaml')
     ob1.render_template('rack.yaml.j2')
 
