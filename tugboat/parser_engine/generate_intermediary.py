@@ -29,7 +29,12 @@ class GenerateYamlFromExcel(ParserEngine):
         parsed_data = self.get_parsed_data(file_name, excel_specs)
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
-        self.network_data = self.get_network_data(parsed_data['network_data'])
+        self.private_network_data = self.get_private_network_data(
+            parsed_data['network_data']
+            )
+        self.public_network_data = self.get_public_network_data(
+            parsed_data['network_data']
+            )
         self.host_type = {}
         self.data = {
             'network': {},
@@ -41,27 +46,33 @@ class GenerateYamlFromExcel(ParserEngine):
         parser = ExcelParser(file_name, excel_specs)
         return parser.get_data()
 
-    def get_network_data(self, raw_data):
+    def get_private_network_data(self, raw_data):
         network_data = {}
         for net_type in self.PRIVATE_NETWORK_TYPES:
-            for key in raw_data:
+            for key in raw_data['private']:
                 if net_type.lower() in key.lower():
-                    network_data[net_type] = raw_data[key]
+                    network_data[
+                        self.PRIVATE_NETWORK_TYPES[net_type]] = raw_data[
+                            'private'][key]
+        return network_data
+
+    def get_public_network_data(self, raw_data):
+        network_data = raw_data['public']
         return network_data
 
     def format_network_data(self):
-        for net_type in self.network_data:
-            for key in self.network_data[net_type]:
+        for net_type in self.private_network_data:
+            for key in self.private_network_data[net_type]:
                 if key == 'subnet_range':
-                    value = self.network_data[net_type][
+                    value = self.private_network_data[net_type][
                         key].split('-')[0].replace(' ', '')
-                    self.network_data[net_type][key] = value
+                    self.private_network_data[net_type][key] = value
                 else:
                     cidr_pattern = '/\d\d'
                     value = re.findall(cidr_pattern,
-                                       self.network_data[net_type][
+                                       self.private_network_data[net_type][
                                            key])[0]
-                    self.network_data[net_type][key] = value
+                    self.private_network_data[net_type][key] = value
 
     def get_rack(self, host):
         rack_pattern = '\w.*(r\d+)\w.*'
@@ -82,10 +93,11 @@ class GenerateYamlFromExcel(ParserEngine):
         for rack in sorted_racks:
             rackwise_subnets[rack] = {}
         self.format_network_data()
-        for net_type in self.network_data:
+        for net_type in self.private_network_data:
             network_range = netaddr.IPNetwork(
-                self.network_data[net_type]['subnet_range'])
-            cidr_per_rack = self.network_data[net_type]['cidr_per_rack']
+                self.private_network_data[net_type]['subnet_range'])
+            cidr_per_rack = self.private_network_data[net_type][
+                'cidr_per_rack']
             cidr = int(cidr_per_rack.split('/')[1])
             total_racks = len(self.racks)
             subnets = network_range.subnet(cidr, count=total_racks)
@@ -111,12 +123,23 @@ class GenerateYamlFromExcel(ParserEngine):
         rackwise_hosts = self.get_rackwise_hosts()
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in self.racks:
-            for net_type in self.network_data:
+            for net_type in self.private_network_data:
                 subnet = rackwise_subnets[rack][net_type]
                 ips = list(subnet)
                 for i in range(len(rackwise_hosts[rack])):
                     self.ipmi_data[rackwise_hosts[rack][i]][net_type] = str(
                         ips[i + self.IPS_TO_LEAVE + 1])
+
+    def assign_public_ip_to_host(self):
+        rackwise_hosts = self.get_rackwise_hosts()
+        for rack in self.racks:
+            subnet = netaddr.IPNetwork(
+                self.public_network_data['oam'])
+            ips = list(subnet)
+            for i in range(len(rackwise_hosts[rack])):
+                self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
+                    ips[i + self.IPS_TO_LEAVE + 1]
+                )
 
     def get_rack_data(self):
         for host in self.hostnames:
@@ -133,7 +156,8 @@ class GenerateYamlFromExcel(ParserEngine):
                 ip_ = {}
                 tmp_data[rack][host] = {}
                 ip_['oob'] = self.ipmi_data[host]['ipmi_address']
-                for net_type in self.network_data:
+                ip_['oam'] = self.ipmi_data[host]['oam']
+                for net_type in self.private_network_data:
                     ip_[net_type] = self.ipmi_data[host][net_type]
                 tmp_data[rack][host]['ip'] = ip_
                 tmp_data[rack][host]['type'] = self.host_type[host]
@@ -149,11 +173,14 @@ class GenerateYamlFromExcel(ParserEngine):
                 rackwise_subnets[rack][net_type] = str(
                     rackwise_subnets[rack][net_type])
         self.data['network'] = rackwise_subnets
+        for net_type in self.public_network_data:
+            self.data['network'][net_type] = self.public_network_data[net_type]
 
     def generate_intermediary_yaml(self):
         self.get_rack_data()
         self.get_rackwise_subnet()
         self.assign_private_ip_to_hosts()
+        self.assign_public_ip_to_host()
         self.assign_ip()
         self.assign_network_data()
 

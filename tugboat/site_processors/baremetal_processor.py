@@ -18,15 +18,15 @@ import os
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
+from config import settings
+
 
 class BaremetalProcessor:
     def __init__(self, file_name):
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.baremetal_data = yaml_data['baremetal']
-
-    def constructor(loader, node):
-        return node.value
+        self.ingress = yaml_data['network']['ingress']
 
     @staticmethod
     def read_file(file_name):
@@ -39,24 +39,49 @@ class BaremetalProcessor:
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
-    def render_template(self, template):
-        j2_env = Environment(
-                autoescape=False,
-                loader=FileSystemLoader('templates/baremetal'),
-                trim_blocks=True)
-        template = j2_env.get_template(template)
-        for rack in self.baremetal_data:
-            data = self.baremetal_data[rack]
-            file_path = "pegleg_manifests/baremetal/"
+    def render_template(self):
+        for template in settings.BAREMETAL_TEMPLATES:
+            j2_env = Environment(
+                    autoescape=False,
+                    loader=FileSystemLoader('templates/baremetal'),
+                    trim_blocks=True)
+            file_path = "pegleg_manifests/baremetal"
             directory = os.path.dirname(file_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            outfile = 'pegleg_manifests/baremetal/{}.yaml'.format(rack)
-            try:
-                out = open(outfile, "w")
-                # pylint: disable=maybe-no-member
-                template.stream(data=data).dump(out)
-                out.close()
-            except IOError as ioe:
-                raise SystemExit("Error when generating {:s}:\n{:s}"
-                                 .format(outfile, ioe.strerror))
+            if template == 'rack':
+                template_name = j2_env.get_template(
+                    '{}.yaml.j2'.format(template))
+                for rack in self.baremetal_data:
+                    data = self.baremetal_data[rack]
+                    outfile = '{}/{}.yaml'.format(file_path, rack)
+                    print('Rendering data for {}'.format(outfile))
+                    try:
+                        out = open(outfile, "w")
+                        # pylint: disable=maybe-no-member
+                        template_name.stream(data=data).dump(out)
+                        out.close()
+                    except IOError as ioe:
+                        raise SystemExit("Error when generating {:s}:\n{:s}"
+                                         .format(outfile, ioe.strerror))
+            elif template == 'bootaction':
+                data = {
+                    'hosts': [],
+                    'ingress': self.ingress,
+                    }
+                for rack in self.baremetal_data:
+                    for host in self.baremetal_data[rack]:
+                        if self.baremetal_data[rack][host][
+                                'type'] != 'genesis':
+                            data['hosts'].append(host)
+                template_name = j2_env.get_template(
+                    '{}.yaml.j2'.format(template))
+                outfile = '{}/{}.yaml'.format(file_path, template)
+                print('Rendering data for {}'.format(outfile))
+                try:
+                    out = open(outfile, "w")
+                    template_name.stream(data=data).dump(out)
+                    out.close()
+                except IOError as ioe:
+                    raise SystemExit("Error when generating {:s}:\n{:s}"
+                                     .format(outfile, ioe.strerror))

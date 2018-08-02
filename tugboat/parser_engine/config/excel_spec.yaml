@@ -32,6 +32,10 @@ specs:
         net_end_row: 13
         subnet_col: 3
         cidr_per_rack_col: 4
+        public_ip_sheet: 'Public IPs'
+        oam_ip_row: 3
+        oam_ip_col: 2
+        ingress_ip_row: 5
     # Source MTN52_AEC_Eng_Design_Specs_v1.4.xlsx
     spec2:
         header_row: 1
@@ -48,6 +52,10 @@ specs:
         ip_end_row: 14
         subnet_col: 3
         cidr_per_rack_col: 4
+        public_ip_sheet: 'Public IPs'
+        oam_ip_row: 4
+        oam_ip_col: 2
+        ingress_ip_row: 6
     # Source MTN54_AEC_Eng_Design_Specs_v1.2.xlsx
     spec3:
         header_row: 2
@@ -64,3 +72,7 @@ specs:
         ip_end_row: 13
         subnet_col: 3
         cidr_per_rack_col: 4
+        public_ip_sheet: 'Public IPs'
+        oam_ip_row: 3
+        oam_ip_col: 2
+        ingress_ip_row: 5

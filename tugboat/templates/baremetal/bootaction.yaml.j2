@@ -16,7 +16,9 @@ data:
     filter_set:
       - filter_type: 'union'
         node_names:
-          - 'bxx16r11o002'
+{% for host in data['hosts'] %}
+          - '{{ host }}'
+{% endfor %}
   # TODO(alanmeadows) move what is global about this document - everything except nodenames to global
   assets:
     - path: /opt/promjoin.sh
@@ -24,7 +26,9 @@ data:
       permissions: '555'
       # TODO(alanmeadows) You must replace the ip= parameter below with the appropriate MaaS network name of the network
       # you should use to contact kubernetes in the case below, this is cab24_mgmt
-      location: promenade+http://promenade-api.ucp.svc.cluster.local/api/v1.0/join-scripts?design_ref={{ action.design_ref | urlencode }}&hostname={{ node.hostname }}{% if 'rack11_oam' in node.network %}&ip={{ node.network.rack11_oam.ip }}{% elif 'rack12_oam' in node.network %}&ip={{ node.network.rack12_oam.ip }}{% else %}&ip={{ node.network.rack13_oam.ip }}{% endif %}{% for k, v in node.labels.items() %}&labels.dynamic={{ k }}={{ v }}{% endfor %}
+{% raw %}
+      location: promenade+http://promenade-api.ucp.svc.cluster.local/api/v1.0/join-scripts?design_ref={{ action.design_ref | urlencode }}&hostname={{ node.hostname }}{% if 'oam' in node.network %}&ip={{ node.network.oam.ip }}{% endif %}{% for k, v in node.labels.items() %}&labels.dynamic={{ k }}={{ v }}{% endfor %}
+{% endraw %}
       location_pipeline:
         - template
       data_pipeline:
@@ -84,7 +88,7 @@ data:
 
         [Service]
         Type=simple
-        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s 111.21.99.208/29
+        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s {{ data['ingress'] }}
 
         [Install]
         WantedBy=multi-user.target

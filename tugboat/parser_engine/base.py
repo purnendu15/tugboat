@@ -1,4 +1,3 @@
-#/usr/bin/python
 # Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import yaml
+
 
 class ParserEngine:
 
@@ -23,10 +24,10 @@ class ParserEngine:
         self.specs = yaml.safe_load(spec_raw_data)
 
     def get_parsed_data(self, file_name, excel_specs):
-      pass
+        pass
 
     def get_network_data(self, raw_data):
-      pass
+        pass
 
     def get_rack(self, host):
-      pass
+        pass

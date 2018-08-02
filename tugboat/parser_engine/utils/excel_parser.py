@@ -1,4 +1,3 @@
-#/usr/bin/python
 # Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -33,7 +32,6 @@ class ExcelParser():
         self.ipmi_data = {}
         self.hosts = []
         self.spec = None
-        self.network_data = {}
 
     @staticmethod
     def sanitize(string):
@@ -98,7 +96,8 @@ class ExcelParser():
             row += 1
         return [self.ipmi_data, self.hosts]
 
-    def get_network_data(self):
+    def get_private_network_data(self):
+        network_data = {}
         sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
         ws = self.wb[sheet_name]
         row = self.excel_specs['specs'][self.spec]['net_start_row']
@@ -113,17 +112,34 @@ class ExcelParser():
                 subnet_range = ws.cell(row=row, column=subnet_col).value
                 cidr_per_rack = ws.cell(row=row,
                                         column=cidr_per_rack_col).value
-                self.network_data[cell_value] = {
+                network_data[cell_value] = {
                     'subnet_range': subnet_range,
                     'cidr_per_rack': cidr_per_rack,
                 }
             row += 1
-        return self.network_data
+        return network_data
+
+    def get_public_network_data(self):
+        network_data = {}
+        sheet_name = self.excel_specs['specs'][self.spec]['public_ip_sheet']
+        ws = self.wb[sheet_name]
+        oam_row = self.excel_specs['specs'][self.spec]['oam_ip_row']
+        oam_col = self.excel_specs['specs'][self.spec]['oam_ip_col']
+        ingress_row = self.excel_specs['specs'][self.spec]['ingress_ip_row']
+        network_data = {
+            'oam': ws.cell(row=oam_row, column=oam_col).value,
+            'ingress': ws.cell(row=ingress_row, column=oam_col).value
+        }
+        return network_data
 
     def get_data(self):
         ipmi_data = self.get_ipmi_data()
-        network_data = self.get_network_data()
+        network_data = self.get_private_network_data()
+        public_network_data = self.get_public_network_data()
         return {
             'ipmi_data': ipmi_data,
-            'network_data': network_data,
+            'network_data': {
+                'private': network_data,
+                'public': public_network_data,
+                }
             }

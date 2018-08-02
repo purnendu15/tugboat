@@ -14,12 +14,16 @@ data:
   addressing:
     - network: oob
       address: {{ data[host]['ip']['oob'] }}
+    - network: oam
+      address: {{ data[host]['ip']['oam'] }}
     - network: pxe
       address: {{ data[host]['ip']['pxe'] }}
     - network: storage
       address: {{ data[host]['ip']['storage'] }}
     - network: ksn
       address: {{ data[host]['ip']['calico'] }}
+    - network: overlay
+      address: {{ data[host]['ip']['overlay'] }}
   metadata:
     rack: {{ data[host]['rack']|upper }}
     tags:
