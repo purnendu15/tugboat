@@ -17,6 +17,7 @@ import getopt
 
 from parser_engine.generate_intermediary import GenerateYamlFromExcel
 from site_processors.baremetal_processor import BaremetalProcessor
+from site_processors.pki_processor import PkiProcessor
 
 
 def main(argv=None):
@@ -45,6 +46,9 @@ def main(argv=None):
     ob1 = BaremetalProcessor('intermediary.yaml')
     ob1.render_template()
 
+    # Pki Processor
+    ob2 = PkiProcessor('intermediary.yaml')
+    ob2.render_template()
 
 if __name__ == '__main__':
     main()

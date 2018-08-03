@@ -24,3 +24,4 @@ PRIVATE_NETWORK_TYPES = {
     }
 IPS_TO_LEAVE = 12
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
+PKI_TEMPLATES = ['pki-catalogue']
