@@ -13,12 +13,13 @@
 # limitations under the License.
 
 import yaml
+import pkg_resources
 import os
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
-from config import settings
+from tugboat.config import settings
 
 
 class BaremetalProcessor:
@@ -41,14 +42,16 @@ class BaremetalProcessor:
 
     def render_template(self):
         for template in settings.BAREMETAL_TEMPLATES:
+            template_file = pkg_resources.resource_filename(
+                'tugboat', 'templates/baremetal/rack.yaml.j2')
+            template_dir = os.path.dirname(template_file)
             j2_env = Environment(
-                    autoescape=False,
-                    loader=FileSystemLoader('templates/baremetal'),
-                    trim_blocks=True)
+                autoescape=False,
+                loader=FileSystemLoader(template_dir),
+                trim_blocks=True)
             file_path = "pegleg_manifests/baremetal"
-            directory = os.path.dirname(file_path)
-            if not os.path.exists(directory):
-                os.makedirs(directory)
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
             if template == 'rack':
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
@@ -68,11 +71,10 @@ class BaremetalProcessor:
                 data = {
                     'hosts': [],
                     'ingress': self.ingress,
-                    }
+                }
                 for rack in self.baremetal_data:
                     for host in self.baremetal_data[rack]:
-                        if self.baremetal_data[rack][host][
-                                'type'] != 'genesis':
+                        if self.baremetal_data[rack][host]['type'] != 'genesis':
                             data['hosts'].append(host)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))

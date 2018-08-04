@@ -16,7 +16,6 @@ import yaml
 
 
 class BaseProcessor:
-
     def __init__(self, file_name):
         raw_data = self.read_file(file_name)
         self.yaml_data = self.get_yaml_data(raw_data)

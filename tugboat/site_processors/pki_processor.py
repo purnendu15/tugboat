@@ -18,7 +18,7 @@ import os
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
-from config import settings
+from tugboat.config import settings
 
 
 class PkiProcessor:
@@ -42,20 +42,19 @@ class PkiProcessor:
     def render_template(self):
         for template in settings.PKI_TEMPLATES:
             j2_env = Environment(
-                    autoescape=False,
-                    loader=FileSystemLoader('templates/pki'),
-                    trim_blocks=True)
+                autoescape=False,
+                loader=FileSystemLoader('templates/pki'),
+                trim_blocks=True)
             file_path = "pegleg_manifests/pki"
             directory = os.path.dirname(file_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
-            template_name = j2_env.get_template(
-                '{}.yaml.j2'.format(template))
+            template_name = j2_env.get_template('{}.yaml.j2'.format(template))
             for rack in self.baremetal_data:
                 data = self.baremetal_data[rack]
                 outfile = '{}/{}.yaml'.format(file_path, rack)
                 print('Rendering data for {}'.format(outfile))
-            #data = self.baremetal_data[rack]
+            # data = self.baremetal_data[rack]
             outfile = '{}/{}.yaml'.format(file_path, "pki-catalogue")
             print('Rendering data for {}'.format(outfile))
             try:
@@ -64,5 +63,5 @@ class PkiProcessor:
                 template_name.stream(data=data).dump(out)
                 out.close()
             except IOError as ioe:
-                raise SystemExit("Error when generating {:s}:\n{:s}"
-                                 .format(outfile, ioe.strerror))
+                raise SystemExit("Error when generating {:s}:\n{:s}".format(
+                    outfile, ioe.strerror))

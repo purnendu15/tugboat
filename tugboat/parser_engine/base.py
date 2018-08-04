@@ -16,7 +16,6 @@ import yaml
 
 
 class ParserEngine:
-
     def __init__(self, file_name, specs):
         self.file_name = file_name
         with open(specs, 'r') as f:

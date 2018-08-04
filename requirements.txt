@@ -1,2 +1,5 @@
+jinja2==2.9.6
+netaddr
 openpyxl==2.5.4
+pyyaml==3.12
 
