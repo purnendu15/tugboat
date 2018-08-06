@@ -49,7 +49,7 @@ class BaremetalProcessor:
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
                 trim_blocks=True)
-            file_path = "pegleg_manifests/baremetal"
+            file_path = "pegleg_manifests/baremetal/"
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             if template == 'rack':
@@ -57,7 +57,7 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 for rack in self.baremetal_data:
                     data = self.baremetal_data[rack]
-                    outfile = '{}/{}.yaml'.format(file_path, rack)
+                    outfile = '{}{}.yaml'.format(file_path, rack)
                     print('Rendering data for {}'.format(outfile))
                     try:
                         out = open(outfile, "w")
@@ -74,11 +74,12 @@ class BaremetalProcessor:
                 }
                 for rack in self.baremetal_data:
                     for host in self.baremetal_data[rack]:
-                        if self.baremetal_data[rack][host]['type'] != 'genesis':
+                        if self.baremetal_data[
+                                rack][host]['type'] != 'genesis':
                             data['hosts'].append(host)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
-                outfile = '{}/{}.yaml'.format(file_path, template)
+                outfile = '{}{}.yaml'.format(file_path, template)
                 print('Rendering data for {}'.format(outfile))
                 try:
                     out = open(outfile, "w")

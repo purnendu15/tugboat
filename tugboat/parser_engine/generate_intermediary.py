@@ -76,11 +76,14 @@ class GenerateYamlFromExcel(ParserEngine):
         return re.findall(rack_pattern, host)[0]
 
     def categorize_hosts(self):
-        self.host_type[self.hostnames[0]] = 'genesis'
+        is_genesis = False
         controller_pattern = '\w.*r\d+o\d+'
-        for host in self.hostnames[1:]:
+        for host in self.hostnames:
             if re.search(controller_pattern, host):
-                self.host_type[host] = 'controller'
+                if not is_genesis:
+                    self.host_type[host] = 'genesis'
+                else:
+                    self.host_type[host] = 'controller'
             else:
                 self.host_type[host] = 'compute'
 

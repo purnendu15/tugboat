@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import yaml
+import pkg_resources
 import os
 
 from jinja2 import Environment
@@ -41,21 +42,22 @@ class PkiProcessor:
 
     def render_template(self):
         for template in settings.PKI_TEMPLATES:
+            template_file = pkg_resources.resource_filename(
+                'tugboat', 'templates/pki/pki-catalogue.yaml.j2')
+            template_dir = os.path.dirname(template_file)
             j2_env = Environment(
                 autoescape=False,
-                loader=FileSystemLoader('templates/pki'),
+                loader=FileSystemLoader(template_dir),
                 trim_blocks=True)
-            file_path = "pegleg_manifests/pki"
+            file_path = "pegleg_manifests/pki/"
             directory = os.path.dirname(file_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
             template_name = j2_env.get_template('{}.yaml.j2'.format(template))
             for rack in self.baremetal_data:
                 data = self.baremetal_data[rack]
-                outfile = '{}/{}.yaml'.format(file_path, rack)
-                print('Rendering data for {}'.format(outfile))
             # data = self.baremetal_data[rack]
-            outfile = '{}/{}.yaml'.format(file_path, "pki-catalogue")
+            outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
             print('Rendering data for {}'.format(outfile))
             try:
                 out = open(outfile, "w")

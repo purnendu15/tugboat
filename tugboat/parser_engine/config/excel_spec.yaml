@@ -47,9 +47,10 @@ specs:
         ipmi_address_col: 3
         host_profile_col: 5
         ipmi_gateway_col: 4
-        ip_type_col: 1
-        ip_start_row: 3
-        ip_end_row: 14
+        private_ip_sheet: 'Private IPs'
+        net_type_col: 1
+        net_start_row: 3
+        net_end_row: 14
         subnet_col: 3
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
@@ -67,9 +68,10 @@ specs:
         ipmi_address_col: 3
         host_profile_col: 5
         ipmi_gateway_col: 4
-        ip_type_col: 1
-        ip_start_row: 2
-        ip_end_row: 13
+        private_ip_sheet: 'Private IPs'
+        net_type_col: 1
+        net_start_row: 2
+        net_end_row: 13
         subnet_col: 3
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
