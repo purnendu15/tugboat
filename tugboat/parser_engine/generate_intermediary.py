@@ -18,7 +18,7 @@ import re
 import netaddr
 from .base import ParserEngine
 from .utils.excel_parser import ExcelParser
-import config.settings as settings
+import tugboat.config.settings as settings
 
 
 class GenerateYamlFromExcel(ParserEngine):
@@ -30,11 +30,9 @@ class GenerateYamlFromExcel(ParserEngine):
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
         self.private_network_data = self.get_private_network_data(
-            parsed_data['network_data']
-            )
+            parsed_data['network_data'])
         self.public_network_data = self.get_public_network_data(
-            parsed_data['network_data']
-            )
+            parsed_data['network_data'])
         self.host_type = {}
         self.data = {
             'network': {},
@@ -51,9 +49,8 @@ class GenerateYamlFromExcel(ParserEngine):
         for net_type in self.PRIVATE_NETWORK_TYPES:
             for key in raw_data['private']:
                 if net_type.lower() in key.lower():
-                    network_data[
-                        self.PRIVATE_NETWORK_TYPES[net_type]] = raw_data[
-                            'private'][key]
+                    network_data[self.PRIVATE_NETWORK_TYPES[
+                        net_type]] = raw_data['private'][key]
         return network_data
 
     def get_public_network_data(self, raw_data):
@@ -64,14 +61,14 @@ class GenerateYamlFromExcel(ParserEngine):
         for net_type in self.private_network_data:
             for key in self.private_network_data[net_type]:
                 if key == 'subnet_range':
-                    value = self.private_network_data[net_type][
-                        key].split('-')[0].replace(' ', '')
+                    value = self.private_network_data[net_type][key].split(
+                        '-')[0].replace(' ', '')
                     self.private_network_data[net_type][key] = value
                 else:
                     cidr_pattern = '/\d\d'
-                    value = re.findall(cidr_pattern,
-                                       self.private_network_data[net_type][
-                                           key])[0]
+                    value = re.findall(
+                        cidr_pattern,
+                        self.private_network_data[net_type][key])[0]
                     self.private_network_data[net_type][key] = value
 
     def get_rack(self, host):
@@ -133,13 +130,11 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()
         for rack in self.racks:
-            subnet = netaddr.IPNetwork(
-                self.public_network_data['oam'])
+            subnet = netaddr.IPNetwork(self.public_network_data['oam'])
             ips = list(subnet)
             for i in range(len(rackwise_hosts[rack])):
                 self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
-                    ips[i + self.IPS_TO_LEAVE + 1]
-                )
+                    ips[i + self.IPS_TO_LEAVE + 1])
 
     def get_rack_data(self):
         for host in self.hostnames:

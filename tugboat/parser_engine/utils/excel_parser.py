@@ -17,12 +17,10 @@ import yaml
 from openpyxl import load_workbook
 
 from ..check_exceptions import (
-    NoSpecMatched,
-)
+    NoSpecMatched, )
 
 
 class ExcelParser():
-
     def __init__(self, file_name, excel_specs):
         self.file_name = file_name
         with open(excel_specs, 'r') as f:
@@ -38,11 +36,7 @@ class ExcelParser():
         return string.replace(' ', '').lower()
 
     def compare(self, string1, string2):
-        return bool(
-            re.search(
-                self.sanitize(string1),
-                self.sanitize(string2)
-            ))
+        return bool(re.search(self.sanitize(string1), self.sanitize(string2)))
 
     def validate_sheet(self, spec, sheet):
         ws = self.wb[sheet]
@@ -50,10 +44,7 @@ class ExcelParser():
         ipmi_header = self.excel_specs['specs'][spec]['ipmi_address_header']
         ipmi_column = self.excel_specs['specs'][spec]['ipmi_address_col']
         header_value = ws.cell(row=header_row, column=ipmi_column).value
-        return bool(
-            self.compare(ipmi_header,
-                         header_value)
-            )
+        return bool(self.compare(ipmi_header, header_value))
 
     def find_correct_spec(self):
         for spec in self.excel_specs['specs']:
@@ -110,8 +101,8 @@ class ExcelParser():
             cell_value = ws.cell(row=row, column=type_col).value
             if cell_value:
                 subnet_range = ws.cell(row=row, column=subnet_col).value
-                cidr_per_rack = ws.cell(row=row,
-                                        column=cidr_per_rack_col).value
+                cidr_per_rack = ws.cell(
+                    row=row, column=cidr_per_rack_col).value
                 network_data[cell_value] = {
                     'subnet_range': subnet_range,
                     'cidr_per_rack': cidr_per_rack,
@@ -141,5 +132,5 @@ class ExcelParser():
             'network_data': {
                 'private': network_data,
                 'public': public_network_data,
-                }
             }
+        }
