@@ -54,8 +54,10 @@ class PkiProcessor:
             if not os.path.exists(directory):
                 os.makedirs(directory)
             template_name = j2_env.get_template('{}.yaml.j2'.format(template))
+            data = {}
             for rack in self.baremetal_data:
-                data = self.baremetal_data[rack]
+                for host in self.baremetal_data[rack]:
+                    data[host] = self.baremetal_data[rack][host]
             # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
             print('Rendering data for {}'.format(outfile))

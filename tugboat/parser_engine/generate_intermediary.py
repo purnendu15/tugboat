@@ -82,6 +82,7 @@ class GenerateYamlFromExcel(ParserEngine):
             if re.search(controller_pattern, host):
                 if not is_genesis:
                     self.host_type[host] = 'genesis'
+                    is_genesis = True
                 else:
                     self.host_type[host] = 'controller'
             else:
