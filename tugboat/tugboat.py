@@ -19,6 +19,7 @@ from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
 from tugboat.site_processors.baremetal_processor import BaremetalProcessor
 
 from tugboat.site_processors.pki_processor import PkiProcessor
+from tugboat.site_processors.deployment_processor import DeploymentProcessor
 
 
 def main(argv=None):
@@ -50,6 +51,9 @@ def main(argv=None):
     # Pki Processor
     ob2 = PkiProcessor('intermediary.yaml')
     ob2.render_template()
+
+    ob3 = DeploymentProcessor()
+    ob3.render_template()
 
 
 if __name__ == '__main__':
