@@ -29,3 +29,8 @@ PRIVATE_NETWORK_TYPES = {
 IPS_TO_LEAVE = 12
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
 PKI_TEMPLATES = ['pki-catalogue']
+PROXY = {
+    'http': 'http://one.proxy.att.com:8080',
+    'https': 'http://one.proxy.att.com:8080',
+}
+GATEWAY_OFFSET = 3
