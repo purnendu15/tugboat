@@ -71,7 +71,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_oob
+  name: {{ data['rack'] }}_oob
   layeringDefinition:
     abstract: false
     layer: site
@@ -91,7 +91,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_pxe
+  name: {{ data['rack'] }}_pxe
   layeringDefinition:
     abstract: false
     layer: site
@@ -125,7 +125,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_oam
+  name: {{ data['rack'] }}_oam
   layeringDefinition:
     abstract: false
     layer: 'site'
@@ -152,7 +152,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_storage
+  name: {{ data['rack'] }}_storage
   layeringDefinition:
     abstract: false
     layer: site
@@ -176,7 +176,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_overlay
+  name: {{ data['rack'] }}_overlay
   layeringDefinition:
     abstract: false
     layer: site
@@ -200,7 +200,7 @@ data:
 schema: 'drydock/Network/v1'
 metadata:
   schema: 'metadata/Document/v1'
-  name: data['rack']_ksn
+  name: {{ data['rack'] }}_ksn
   layeringDefinition:
     abstract: false
     layer: site
