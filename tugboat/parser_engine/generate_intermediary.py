@@ -33,10 +33,19 @@ class GenerateYamlFromExcel(ParserEngine):
             parsed_data['network_data'])
         self.public_network_data = self.get_public_network_data(
             parsed_data['network_data'])
+        self.dns_ntp_data = self.get_dns_ntp_data(
+            parsed_data['network_data']
+        )
         self.host_type = {}
         self.data = {
             'network': {},
             'baremetal': {},
+        }
+        self.no_proxy = []
+        self.dhcp_relay = ''
+        self.genesis_rack = ''
+        self.network_data = {
+            'assigned_subnets': {},
         }
         self.racks = set()
 
@@ -57,19 +66,43 @@ class GenerateYamlFromExcel(ParserEngine):
         network_data = raw_data['public']
         return network_data
 
+    def get_dns_ntp_data(self, raw_data):
+        network_data = raw_data['dns_ntp']
+        return network_data
+
     def format_network_data(self):
+        vlan_pattern = '\d+'
+        public_vlan = self.public_network_data['oam']['vlan']
+        value = re.findall(vlan_pattern, public_vlan)
+        self.public_network_data['oam']['vlan'] = value[0]
         for net_type in self.private_network_data:
+            value = ''
             for key in self.private_network_data[net_type]:
                 if key == 'subnet_range':
                     value = self.private_network_data[net_type][key].split(
                         '-')[0].replace(' ', '')
-                    self.private_network_data[net_type][key] = value
+                elif 'vlan' in key.lower():
+                    tmp_value = re.findall(
+                        vlan_pattern,
+                        self.private_network_data[net_type][key])
+                    if not tmp_value:
+                        continue
+                    else:
+                        value = tmp_value[0]
                 else:
                     cidr_pattern = '/\d\d'
                     value = re.findall(
                         cidr_pattern,
                         self.private_network_data[net_type][key])[0]
-                    self.private_network_data[net_type][key] = value
+                self.private_network_data[net_type][key] = value
+        for type_ in self.dns_ntp_data:
+            raw_list = self.dns_ntp_data[type_].split()
+            data_list = []
+            for data in raw_list:
+                if '(' not in data:
+                    data_list.append(data)
+            data_string = ' '.join(data_list)
+            self.dns_ntp_data[type_] = data_string
 
     def get_rack(self, host):
         rack_pattern = '\w.*(r\d+)\w.*'
@@ -95,6 +128,7 @@ class GenerateYamlFromExcel(ParserEngine):
             rackwise_subnets[rack] = {}
         self.format_network_data()
         for net_type in self.private_network_data:
+            assigned_subnets = []
             network_range = netaddr.IPNetwork(
                 self.private_network_data[net_type]['subnet_range'])
             cidr_per_rack = self.private_network_data[net_type][
@@ -108,6 +142,8 @@ class GenerateYamlFromExcel(ParserEngine):
                     rackwise_subnets[sorted_racks[i]][net_type] = ''
                 rackwise_subnets[sorted_racks[i]][net_type] = subnet
                 i += 1
+                assigned_subnets.append(str(subnet))
+            self.network_data['assigned_subnets'][net_type] = assigned_subnets
         return rackwise_subnets
 
     def get_rackwise_hosts(self):
@@ -124,9 +160,24 @@ class GenerateYamlFromExcel(ParserEngine):
         rackwise_hosts = self.get_rackwise_hosts()
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in self.racks:
+            self.network_data[rack] = {}
             for net_type in self.private_network_data:
                 subnet = rackwise_subnets[rack][net_type]
                 ips = list(subnet)
+                mid = len(ips) // 2
+                static_start = str(ips[self.IPS_TO_LEAVE + 1])
+                static_end = str(ips[mid - 1])
+                self.network_data[rack][net_type] = {
+                    'static_start': static_start,
+                    'static_end': static_end
+                }
+                if net_type == 'pxe':
+                    dhcp_start = str(ips[mid])
+                    dhcp_end = str(ips[-2])
+                    self.network_data[rack][net_type][
+                        'dhcp_start'] = dhcp_start
+                    self.network_data[rack][net_type][
+                        'dhcp_end'] = dhcp_end
                 for i in range(len(rackwise_hosts[rack])):
                     self.ipmi_data[rackwise_hosts[rack][i]][net_type] = str(
                         ips[i + self.IPS_TO_LEAVE + 1])
@@ -134,9 +185,10 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()
         for rack in self.racks:
-            subnet = netaddr.IPNetwork(self.public_network_data['oam'])
+            subnet = netaddr.IPNetwork(self.public_network_data['oam']['ip'])
             ips = list(subnet)
             for i in range(len(rackwise_hosts[rack])):
+                self.no_proxy.append(str(ips[i + self.IPS_TO_LEAVE + 1]))
                 self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
                     ips[i + self.IPS_TO_LEAVE + 1])
 
@@ -160,6 +212,9 @@ class GenerateYamlFromExcel(ParserEngine):
                     ip_[net_type] = self.ipmi_data[host][net_type]
                 tmp_data[rack][host]['ip'] = ip_
                 tmp_data[rack][host]['type'] = self.host_type[host]
+                if self.host_type[host] == 'genesis':
+                    self.dhcp_relay = tmp_data[rack][host]['ip']['pxe']
+                    self.genesis_rack = rack
                 tmp_data[rack][host]['host_profile'] = self.ipmi_data[host][
                     'host_profile']
                 tmp_data[rack][host]['rack'] = rack
@@ -169,11 +224,47 @@ class GenerateYamlFromExcel(ParserEngine):
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in rackwise_subnets:
             for net_type in rackwise_subnets[rack]:
-                rackwise_subnets[rack][net_type] = str(
-                    rackwise_subnets[rack][net_type])
+                ips = list(rackwise_subnets[rack][net_type])
+                nw = str(rackwise_subnets[rack][net_type])
+                gw = str(ips[settings.GATEWAY_OFFSET])
+                routes = [
+                    subnet for subnet in self.network_data['assigned_subnets'][
+                        net_type] if subnet != nw
+                ]
+                rackwise_subnets[rack][net_type] = {
+                    'nw': nw,
+                    'gw': gw,
+                    'routes': routes,
+                    'static_start': self.network_data[rack][net_type][
+                        'static_start'],
+                    'static_end': self.network_data[rack][net_type][
+                        'static_end'],
+                }
+                if net_type == 'pxe':
+                    rackwise_subnets[rack][net_type][
+                        'dhcp_start'] = self.network_data[rack][net_type][
+                            'dhcp_start']
+                    rackwise_subnets[rack][net_type][
+                        'dhcp_end'] = self.network_data[rack][net_type][
+                            'dhcp_end']
+                if 'vlan' in self.private_network_data[net_type]:
+                    rackwise_subnets[rack][net_type][
+                        'vlan'] = self.private_network_data[net_type]['vlan']
+            if rack == self.genesis_rack:
+                rackwise_subnets[rack]['is_genesis'] = True
         self.data['network'] = rackwise_subnets
         for net_type in self.public_network_data:
             self.data['network'][net_type] = self.public_network_data[net_type]
+        self.data['network']['proxy'] = settings.PROXY
+        self.data['network']['proxy']['no_proxy'] = ' '.join(self.no_proxy)
+        self.data['network']['ntp'] = {
+            'servers': self.dns_ntp_data['ntp'],
+        }
+        self.data['network']['dns'] = {
+            'domain': self.dns_ntp_data['domain'],
+            'servers': self.dns_ntp_data['dns'],
+            'dhcp_relay': self.dhcp_relay,
+        }
 
     def generate_intermediary_yaml(self):
         self.get_rack_data()

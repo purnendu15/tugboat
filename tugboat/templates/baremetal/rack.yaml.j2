@@ -9,20 +9,21 @@ metadata:
     abstract: false
     layer: site
   storagePolicy: cleartext
+{% set rack = data[host]['rack'] %}
 data:
   host_profile: {{data[host]['host_profile']}}
   addressing:
-    - network: oob
+    - network: {{ rack }}_oob
       address: {{ data[host]['ip']['oob'] }}
-    - network: oam
+    - network: {{ rack }}_oam
       address: {{ data[host]['ip']['oam'] }}
-    - network: pxe
+    - network: {{ rack }}_pxe
       address: {{ data[host]['ip']['pxe'] }}
-    - network: storage
+    - network: {{ rack }}_storage
       address: {{ data[host]['ip']['storage'] }}
-    - network: ksn
+    - network: {{ rack }}_ksn
       address: {{ data[host]['ip']['calico'] }}
-    - network: overlay
+    - network: {{ rack }}_overlay
       address: {{ data[host]['ip']['overlay'] }}
   metadata:
     rack: {{ data[host]['rack']|upper }}

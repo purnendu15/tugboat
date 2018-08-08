@@ -97,15 +97,18 @@ class ExcelParser():
         subnet_col = self.excel_specs['specs'][self.spec]['subnet_col']
         cidr_per_rack_col = self.excel_specs['specs'][self.spec][
             'cidr_per_rack_col']
+        vlan_col = self.excel_specs['specs'][self.spec]['net_vlan_col']
         while row <= end_row:
             cell_value = ws.cell(row=row, column=type_col).value
             if cell_value:
                 subnet_range = ws.cell(row=row, column=subnet_col).value
                 cidr_per_rack = ws.cell(
                     row=row, column=cidr_per_rack_col).value
+                vlan = ws.cell(row=row, column=vlan_col).value
                 network_data[cell_value] = {
                     'subnet_range': subnet_range,
                     'cidr_per_rack': cidr_per_rack,
+                    'vlan': vlan,
                 }
             row += 1
         return network_data
@@ -116,21 +119,44 @@ class ExcelParser():
         ws = self.wb[sheet_name]
         oam_row = self.excel_specs['specs'][self.spec]['oam_ip_row']
         oam_col = self.excel_specs['specs'][self.spec]['oam_ip_col']
+        oam_vlan_col = self.excel_specs['specs'][self.spec]['oam_vlan_col']
         ingress_row = self.excel_specs['specs'][self.spec]['ingress_ip_row']
         network_data = {
-            'oam': ws.cell(row=oam_row, column=oam_col).value,
-            'ingress': ws.cell(row=ingress_row, column=oam_col).value
+            'oam': {
+                'ip': ws.cell(row=oam_row, column=oam_col).value,
+                'vlan': ws.cell(row=oam_row, column=oam_vlan_col).value,
+            },
+            'ingress': ws.cell(row=ingress_row, column=oam_col).value,
         }
         return network_data
+
+    def get_dns_ntp_data(self):
+        dns_ntp_data = {}
+        sheet_name = self.excel_specs['specs'][self.spec]['dns_ntp_sheet']
+        ws = self.wb[sheet_name]
+        dns_row = self.excel_specs['specs'][self.spec]['dns_row']
+        dns_col = self.excel_specs['specs'][self.spec]['dns_col']
+        ntp_row = self.excel_specs['specs'][self.spec]['ntp_row']
+        ntp_col = self.excel_specs['specs'][self.spec]['ntp_col']
+        domain_row = self.excel_specs['specs'][self.spec]['domain_row']
+        domain_col = self.excel_specs['specs'][self.spec]['domain_col']
+        dns_ntp_data = {
+            'dns': ws.cell(row=dns_row, column=dns_col).value,
+            'ntp': ws.cell(row=ntp_row, column=ntp_col).value,
+            'domain': ws.cell(row=domain_row, column=domain_col).value,
+        }
+        return dns_ntp_data
 
     def get_data(self):
         ipmi_data = self.get_ipmi_data()
         network_data = self.get_private_network_data()
         public_network_data = self.get_public_network_data()
+        dns_ntp_data = self.get_dns_ntp_data()
         return {
             'ipmi_data': ipmi_data,
             'network_data': {
                 'private': network_data,
                 'public': public_network_data,
+                'dns_ntp': dns_ntp_data,
             }
         }

@@ -28,14 +28,23 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
+        net_vlan_col: 2
         net_start_row: 2
         net_end_row: 13
         subnet_col: 3
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
+        oam_vlan_col: 1
         oam_ip_row: 3
         oam_ip_col: 2
         ingress_ip_row: 5
+        dns_ntp_sheet: '7.0 Build notes'
+        ntp_row: 13
+        ntp_col: 2
+        dns_row: 14
+        dns_col: 2
+        domain_row: 2
+        domain_col: 2
     # Source MTN52_AEC_Eng_Design_Specs_v1.4.xlsx
     spec2:
         header_row: 1
@@ -49,14 +58,23 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
+        net_vlan_col: 2
         net_start_row: 3
         net_end_row: 14
         subnet_col: 3
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
+        oam_vlan_col: 1
         oam_ip_row: 4
         oam_ip_col: 2
         ingress_ip_row: 6
+        dns_ntp_sheet: '5.0 Build notes'
+        ntp_row: 12
+        ntp_col: 2
+        dns_row: 13
+        dns_col: 2
+        domain_row: 1
+        domain_col: 2
     # Source MTN54_AEC_Eng_Design_Specs_v1.2.xlsx
     spec3:
         header_row: 2
@@ -70,11 +88,20 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
+        net_vlan_col: 2
         net_start_row: 2
         net_end_row: 13
         subnet_col: 3
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
+        oam_vlan_col: 1
         oam_ip_row: 3
         oam_ip_col: 2
         ingress_ip_row: 5
+        dns_ntp_sheet: '8.0 Build notes'
+        ntp_row: 13
+        ntp_col: 2
+        dns_row: 14
+        dns_col: 2
+        domain_row: 2
+        domain_col: 2
