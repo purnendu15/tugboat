@@ -1,0 +1,22 @@
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: ingress-kube-system
+  layeringDefinition:
+    abstract: false
+    layer: site
+    parentSelector:
+      ingress: kube-system
+    actions:
+      - method: merge
+        path: .
+  storagePolicy: cleartext
+data:
+  values:
+    network:
+      vip:
+        manage: true
+        interface: ingress0
+        addr: {{ data['network']['ingress'] }}
+...
