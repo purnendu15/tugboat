@@ -34,3 +34,4 @@ PROXY = {
     'https': 'http://one.proxy.att.com:8080',
 }
 GATEWAY_OFFSET = 3
+DEPLOYMENT_MANIFEST = 'full-site'
