@@ -16,11 +16,17 @@ import sys
 import getopt
 
 from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
-from tugboat.site_processors.baremetal_processor import BaremetalProcessor
 
-from tugboat.site_processors.pki_processor import PkiProcessor
+from tugboat.site_processors.baremetal_processor import BaremetalProcessor
 from tugboat.site_processors.deployment_processor import DeploymentProcessor
 from tugboat.site_processors.network_processor import NetworkProcessor
+from tugboat.site_processors.pki_processor import PkiProcessor
+from tugboat.site_processors.profile_processor import ProfileProcessor
+from tugboat.site_processors.site_definition_processor import (
+    SiteDeifinitionProcessor
+)
+from tugboat.site_processors.software_processor import SoftwareProcessor
+
 
 
 def main(argv=None):
@@ -44,20 +50,33 @@ def main(argv=None):
     # Generate YAML from Excel Workbook engine
     ob = GenerateYamlFromExcel(filename_path, excel_spec_path)
     ob.generate_yaml()
-
     # Baremetal Processor
     ob1 = BaremetalProcessor('intermediary.yaml')
     ob1.render_template()
 
-    # Pki Processor
-    ob2 = PkiProcessor('intermediary.yaml')
+    # Deployment Processor
+    ob2 = DeploymentProcessor()
     ob2.render_template()
 
-    ob3 = DeploymentProcessor()
+    # Network Processor
+    ob3 = NetworkProcessor('intermediary.yaml')
     ob3.render_template()
 
-    ob4 = NetworkProcessor('intermediary.yaml')
+    # Pki Processor
+    ob4 = PkiProcessor('intermediary.yaml')
     ob4.render_template()
+
+    # Profile PROCESSOR
+    ob5 = ProfileProcessor('intermediary.yaml')
+    ob5.render_template()
+
+    # Site Definition Processor
+    ob6 = SiteDeifinitionProcessor('intermediary.yaml')
+    ob6.render_template()
+
+    # Software Processor
+    ob7 = SoftwareProcessor('intermediary.yaml')
+    ob7.render_template()
 
 
 if __name__ == '__main__':
