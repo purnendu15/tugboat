@@ -40,7 +40,13 @@ class GenerateYamlFromExcel(ParserEngine):
         self.data = {
             'network': {},
             'baremetal': {},
+            'profiles': {},
+            'region_name': '',
+            'ldap': {},
+            'conf': {},
+            'ceph': {},
         }
+        self.region_name = ''
         self.no_proxy = []
         self.dhcp_relay = ''
         self.genesis_rack = ''
@@ -106,7 +112,10 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def get_rack(self, host):
         rack_pattern = '\w.*(r\d+)\w.*'
-        return re.findall(rack_pattern, host)[0]
+        rack = re.findall(rack_pattern, host)[0]
+        if not self.region_name:
+            self.region_name = host.split(rack)[0]
+        return rack
 
     def categorize_hosts(self):
         is_genesis = False
@@ -220,7 +229,13 @@ class GenerateYamlFromExcel(ParserEngine):
                 tmp_data[rack][host]['rack'] = rack
         self.data['baremetal'] = tmp_data
 
+    def assign_region_name(self):
+        self.data['region_name'] = self.region_name
+
     def assign_network_data(self):
+        rack_data = {
+            'racks': {}
+        }
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in rackwise_subnets:
             for net_type in rackwise_subnets[rack]:
@@ -250,9 +265,14 @@ class GenerateYamlFromExcel(ParserEngine):
                 if 'vlan' in self.private_network_data[net_type]:
                     rackwise_subnets[rack][net_type][
                         'vlan'] = self.private_network_data[net_type]['vlan']
+            rackwise_subnets[rack]['oam'] = settings.OAM
+            rackwise_subnets[rack]['oob'] = settings.OOB
             if rack == self.genesis_rack:
                 rackwise_subnets[rack]['is_genesis'] = True
-        self.data['network'] = rackwise_subnets
+            else:
+                rackwise_subnets[rack]['is_genesis'] = False
+        rack_data['rack'] = rackwise_subnets
+        self.data['network'] = rack_data
         for net_type in self.public_network_data:
             self.data['network'][net_type] = self.public_network_data[net_type]
         self.data['network']['proxy'] = settings.PROXY
@@ -265,6 +285,45 @@ class GenerateYamlFromExcel(ParserEngine):
             'servers': self.dns_ntp_data['dns'],
             'dhcp_relay': self.dhcp_relay,
         }
+        self.data['network']['bgp'] = settings.BGP
+
+    def get_deployment_configuration(self):
+        self.data['deployment_manifest'] = settings.DEPLOYMENT_MANIFEST
+
+    def get_host_profile_wise_racks(self):
+        host_profile_wise_racks = {}
+        rackwise_host_data = self.data['baremetal']
+        for rack in rackwise_host_data:
+            for host in rackwise_host_data[rack]:
+                host_data = rackwise_host_data[rack][host]
+                host_profile = host_data['host_profile']
+                if host_profile not in host_profile_wise_racks:
+                    host_profile_wise_racks[host_profile] = {
+                        'racks': set(),
+                    }
+                host_profile_wise_racks[host_profile]['racks'].add(rack)
+                host_profile_wise_racks[host_profile][
+                    'type'] = rackwise_host_data[rack][host]['type']
+        return host_profile_wise_racks
+
+    def assign_racks_to_host_profile(self):
+        host_profile_wise_racks = self.get_host_profile_wise_racks()
+        for host_profile in host_profile_wise_racks:
+            rack_list = list(host_profile_wise_racks[host_profile]['racks'])
+            host_profile_wise_racks[host_profile]['racks'] = rack_list
+            for key in settings.HOSTPROFILE_INTERFACES[host_profile]:
+                host_profile_wise_racks[host_profile][
+                    key] = settings.HOSTPROFILE_INTERFACES[host_profile][key]
+        self.data['profiles'] = host_profile_wise_racks
+
+    def assign_ldap_data(self):
+        self.data['ldap'] = settings.LDAP
+
+    def assign_ceph_data(self):
+        self.data['ceph'] = settings.CEPH
+
+    def assign_conf_data(self):
+        self.data['conf'] = settings.CONF
 
     def generate_intermediary_yaml(self):
         self.get_rack_data()
@@ -273,6 +332,12 @@ class GenerateYamlFromExcel(ParserEngine):
         self.assign_public_ip_to_host()
         self.assign_ip()
         self.assign_network_data()
+        self.get_deployment_configuration()
+        self.assign_racks_to_host_profile()
+        self.assign_region_name()
+        self.assign_ldap_data()
+        self.assign_ceph_data()
+        self.assign_conf_data()
 
     def generate_yaml(self):
         self.generate_intermediary_yaml()
