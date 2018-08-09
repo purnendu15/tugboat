@@ -1,0 +1,30 @@
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: nova
+  labels:
+    component: nova
+  layeringDefinition:
+    abstract: false
+    layer: site
+    parentSelector:
+      name: nova-5ec
+    actions:
+      - method: merge
+        path: .
+      - method: replace
+        path: .values.conf.nova.libvirt.virt_type
+  storagePolicy: cleartext
+data:
+  values:
+    conf:
+      nova:
+        libvirt:
+          virt_type: kvm
+        DEFAULT:
+          vcpu_pin_set: "{{ data['conf']['nova']['vcpu_pin_set'] }}"
+        pci:
+          alias: '{"name": "numa0", "capability_type": "pci", "product_id": "154c", "vendor_id": "8086", "device_type": "type-PCI", "numa_policy": "required"}'
+          passthrough_whitelist: | {{ data['conf']['nova']['passthrough_whitelist'] }}
+...

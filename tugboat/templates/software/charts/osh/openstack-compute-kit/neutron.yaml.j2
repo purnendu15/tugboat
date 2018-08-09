@@ -1,0 +1,43 @@
+---
+schema: armada/Chart/v1
+metadata:
+  schema: metadata/Document/v1
+  name: neutron
+  labels:
+    component: neutron
+  layeringDefinition:
+    abstract: false
+    layer: site
+    parentSelector:
+      name: neutron-5ec
+    actions:
+      - method: merge
+        path: .
+  storagePolicy: cleartext
+data:
+  values:
+    network:
+      auto_bridge_add:
+        br-bond1: bond1
+      interface:
+        sriov:
+          - device: enp59s0f0
+            num_vfs: 32
+            promisc: false
+          - device: enp216s0f1
+            num_vfs: 32
+            promisc: false
+    conf:
+      plugins:
+        openvswitch_agent:
+          ovs:
+            bridge_mappings: oam:br-bond1
+        sriov_agent:
+          sriov_nic:
+            physical_device_mappings: sriovnet1:enp59s0f0,sriovnet2:enp216s0f1
+{% if data['conf']['neutron']['network_vlan_ranges'] %}
+        ml2_conf:
+          ml2_type_vlan:
+            network_vlan_ranges: {{ data['conf']['neutron']['network_vlan_ranges'] }}
+{% endif %}
+...
