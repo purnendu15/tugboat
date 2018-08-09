@@ -84,8 +84,8 @@ data:
       metric: 100
   ranges:
     - type: static
-      start: {{ data['oob']['static']['start'] }}
-      end: {{ data['oob']['static']['end'] }}
+      start: {{ data['oob']['static_start'] }}
+      end: {{ data['oob']['static_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -98,28 +98,28 @@ metadata:
   storagePolicy: cleartext
 data:
   cidr: {{ data['pxe']['nw'] }}
-{% if data['is_genesis'] != 'True' %}
+{% if not data['is_genesis'] %}
   dhcp_relay:
-    upstream_target: {{ data['dhcp_relay'] }}
+    upstream_target: {{ data['dns']['dhcp_relay'] }}
 {% endif %}
   routes:
-{% if data['is_genesis'] != 'True' %}
+{% if not data['is_genesis'] %}
     - subnet: 0.0.0.0/0
       gateway: {{ data['pxe']['gw'] }}
       metric: 100
 {% endif %}
-{% for other_subnet in data['pxe']['routes'].keys() %}
+{% for other_subnet in data['pxe']['routes'] %}
     - subnet: {{ other_subnet }}
       gateway: {{ data['pxe']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: 'static'
-      start: {{ data['pxe']['static']['start'] }}
-      end: {{ data['pxe']['static']['end'] }}
+      start: {{ data['pxe']['static_start'] }}
+      end: {{ data['pxe']['static_end'] }}
     - type: dhcp
-      start: {{ data['pxe']['dhcp']['start'] }}
-      end: {{ data['pxe']['dhcp']['end'] }}
+      start: {{ data['pxe']['dhcp_start'] }}
+      end: {{ data['pxe']['dhcp_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -135,15 +135,15 @@ data:
   mtu: 9100
   cidr: {{ data['oam']['nw'] }}
   routes:
-{% for route in data['oam']['routes'].keys() %}
+{% for route in data['oam']['routes'] %}
     - subnet: {{ route }}
       gateway: {{ data['oam']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: static
-      start: {{ data['oam']['static']['start'] }}
-      end: {{ data['oam']['static']['end'] }}
+      start: {{ data['oam']['static_start'] }}
+      end: {{ data['oam']['static_end'] }}
   dns:
     domain: {{ data['dns']['domain'] }}
     servers: {{ data['dns']['servers'] }}
@@ -162,15 +162,15 @@ data:
   mtu: 9100
   cidr: {{ data['storage']['nw'] }}
   routes:
-{% for route in data['storage']['routes'].keys() %}
+{% for route in data['storage']['routes'] %}
     - subnet: {{ route }}
       gateway: {{ data['storage']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: static
-      start: {{ data['storage']['static']['start'] }}
-      end: {{ data['storage']['static']['end'] }}
+      start: {{ data['storage']['static_start'] }}
+      end: {{ data['storage']['static_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -186,15 +186,15 @@ data:
   mtu: 9100
   cidr: {{ data['overlay']['nw'] }}
   routes:
-{% for route in data['overlay']['routes'].keys() %}
+{% for route in data['overlay']['routes'] %}
     - subnet: {{ route }}
       gateway: {{ data['overlay']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: static
-      start: {{ data['overlay']['static']['start'] }}
-      end: {{ data['overlay']['static']['end'] }}
+      start: {{ data['overlay']['static_start'] }}
+      end: {{ data['overlay']['static_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -210,13 +210,13 @@ data:
   mtu: 9100
   cidr: {{ data['calico']['nw'] }}
   routes:
-{% for route in data['calico']['routes'].keys() %}
+{% for route in data['calico']['routes'] %}
     - subnet: {{ route }}
       gateway: {{ data['calico']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: static
-      start: {{ data['calico']['static']['start'] }}
-      end: {{ data['calico']['static']['end'] }}
+      start: {{ data['calico']['static_start'] }}
+      end: {{ data['calico']['static_end'] }}
 ...

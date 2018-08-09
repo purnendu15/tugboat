@@ -20,6 +20,7 @@ from tugboat.site_processors.baremetal_processor import BaremetalProcessor
 
 from tugboat.site_processors.pki_processor import PkiProcessor
 from tugboat.site_processors.deployment_processor import DeploymentProcessor
+from tugboat.site_processors.network_processor import NetworkProcessor
 
 
 def main(argv=None):
@@ -54,6 +55,9 @@ def main(argv=None):
 
     ob3 = DeploymentProcessor()
     ob3.render_template()
+
+    ob4 = NetworkProcessor('intermediary.yaml')
+    ob4.render_template()
 
 
 if __name__ == '__main__':
