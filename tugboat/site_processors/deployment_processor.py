@@ -15,6 +15,7 @@
 
 import pkg_resources
 import os
+import yaml
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -23,8 +24,22 @@ from tugboat.config import settings
 
 
 class DeploymentProcessor:
-    def __init__(self):
+    def __init__(self, file_name):
         self.deployment_manifest = settings.DEPLOYMENT_MANIFEST
+        raw_data = self.read_file(file_name)
+        yaml_data = self.get_yaml_data(raw_data)
+        self.dir_name = yaml_data['region_name']
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name, 'r') as f:
+            raw_data = f.read()
+        return raw_data
+
+    @staticmethod
+    def get_yaml_data(data):
+        yaml_data = yaml.safe_load(data)
+        return yaml_data
 
     def render_template(self):
         template_file = pkg_resources.resource_filename(
@@ -35,7 +50,8 @@ class DeploymentProcessor:
             autoescape=False,
             loader=FileSystemLoader(template_dir),
             trim_blocks=True)
-        file_path = "pegleg_manifests/deployment/"
+        file_path = 'pegleg_manifests/site/{}/deployment/'.format(
+            self.dir_name)
         if not os.path.exists(file_path):
             os.makedirs(file_path)
         template_name = j2_env.get_template(

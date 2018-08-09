@@ -24,13 +24,14 @@ PRIVATE_NETWORK_TYPES = {
     'pxe': 'pxe',
     'storage': 'storage',
     'calico': 'calico',
-    'cni': 'overlay'
+    'cni': 'overlay',
 }
 IPS_TO_LEAVE = 12
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
 PKI_TEMPLATES = ['pki-catalogue']
 SITE_DEFINITION_TEMPLATES = ['site_definition']
 HOSTPROFILE_TEMPLATES = ['profile']
+NETWORK_TEMPLATES = ['common_addresses, physical/rack']
 PROXY = {
     'http': 'http://one.proxy.att.com:8080',
     'https': 'http://one.proxy.att.com:8080',

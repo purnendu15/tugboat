@@ -27,6 +27,7 @@ class ProfileProcessor:
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
+        self.dir_name = yaml_data['region_name']
 
     @staticmethod
     def read_file(file_name):
@@ -43,7 +44,8 @@ class ProfileProcessor:
         template_software_dir = pkg_resources.resource_filename(
             'tugboat', 'templates/profiles/')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        outfile_path = "pegleg_manifests/profiles"
+        outfile_path = 'pegleg_manifests/site/{}/profiles'.format(
+            self.dir_name)
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:

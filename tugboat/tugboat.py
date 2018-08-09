@@ -55,7 +55,7 @@ def main(argv=None):
     ob1.render_template()
 
     # Deployment Processor
-    ob2 = DeploymentProcessor()
+    ob2 = DeploymentProcessor('intermediary.yaml')
     ob2.render_template()
 
     # Network Processor

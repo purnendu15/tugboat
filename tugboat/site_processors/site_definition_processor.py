@@ -50,7 +50,7 @@ class SiteDeifinitionProcessor:
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
                 trim_blocks=True)
-            file_path = "pegleg_manifests/"
+            file_path = 'pegleg_manifests/site/{}/'.format(self.region_name)
             directory = os.path.dirname(file_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)

@@ -82,7 +82,7 @@ specs:
         ipmi_sheet_name: 'Server IP-Profile Info'
         start_row: 3
         end_row: 14
-        hostname_col: 1
+        hostname_col: 2
         ipmi_address_col: 3
         host_profile_col: 5
         ipmi_gateway_col: 4
@@ -95,10 +95,10 @@ specs:
         cidr_per_rack_col: 4
         public_ip_sheet: 'Public IPs'
         oam_vlan_col: 1
-        oam_ip_row: 3
+        oam_ip_row: 4
         oam_ip_col: 2
-        ingress_ip_row: 5
-        dns_ntp_sheet: '8.0 Build notes'
+        ingress_ip_row: 6
+        dns_ntp_sheet: 'Build notes'
         ntp_row: 13
         ntp_col: 2
         dns_row: 14
