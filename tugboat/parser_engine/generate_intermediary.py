@@ -46,6 +46,7 @@ class GenerateYamlFromExcel(ParserEngine):
             'conf': {},
             'ceph': {},
         }
+        self.service_ip = ''
         self.region_name = ''
         self.no_proxy = []
         self.dhcp_relay = ''
@@ -53,7 +54,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.network_data = {
             'assigned_subnets': {},
         }
-        self.racks = set()
+        self.racks = {}
 
     def get_parsed_data(self, file_name, excel_specs):
         parser = ExcelParser(file_name, excel_specs)
@@ -66,6 +67,9 @@ class GenerateYamlFromExcel(ParserEngine):
                 if net_type.lower() in key.lower():
                     network_data[self.PRIVATE_NETWORK_TYPES[
                         net_type]] = raw_data['private'][key]
+                if 'service' in key.lower():
+                    self.service_cidr = raw_data['private'][key][
+                        'subnet_range']
         return network_data
 
     def get_public_network_data(self, raw_data):
@@ -107,7 +111,7 @@ class GenerateYamlFromExcel(ParserEngine):
             for data in raw_list:
                 if '(' not in data:
                     data_list.append(data)
-            data_string = ' '.join(data_list)
+            data_string = ','.join(data_list)
             self.dns_ntp_data[type_] = data_string
 
     def get_rack(self, host):
@@ -132,7 +136,8 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def get_rackwise_subnet(self):
         rackwise_subnets = {}
-        sorted_racks = sorted(self.racks)
+        racks = [self.racks[rack] for rack in self.racks]
+        sorted_racks = sorted(racks)
         for rack in sorted_racks:
             rackwise_subnets[rack] = {}
         self.format_network_data()
@@ -159,16 +164,17 @@ class GenerateYamlFromExcel(ParserEngine):
         rackwise_hosts = {}
         for rack in self.racks:
             if rack not in rackwise_hosts:
-                rackwise_hosts[rack] = []
+                rackwise_hosts[self.racks[rack]] = []
             for host in self.hostnames:
                 if rack in host:
-                    rackwise_hosts[rack].append(host)
+                    rackwise_hosts[self.racks[rack]].append(host)
         return rackwise_hosts
 
     def assign_private_ip_to_hosts(self):
         rackwise_hosts = self.get_rackwise_hosts()
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in self.racks:
+            rack = self.racks[rack]
             self.network_data[rack] = {}
             for net_type in self.private_network_data:
                 subnet = rackwise_subnets[rack][net_type]
@@ -194,6 +200,7 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()
         for rack in self.racks:
+            rack = self.racks[rack]
             subnet = netaddr.IPNetwork(self.public_network_data['oam']['ip'])
             ips = list(subnet)
             for i in range(len(rackwise_hosts[rack])):
@@ -204,13 +211,14 @@ class GenerateYamlFromExcel(ParserEngine):
     def get_rack_data(self):
         for host in self.hostnames:
             rack = self.get_rack(host)
-            self.racks.add(rack)
+            self.racks[rack] = rack.replace('r', 'rack')
 
     def assign_ip(self):
         self.categorize_hosts()
         rackwise_hosts = self.get_rackwise_hosts()
         tmp_data = {}
         for rack in self.racks:
+            rack = self.racks[rack]
             tmp_data[rack] = {}
             for host in rackwise_hosts[rack]:
                 ip_ = {}
@@ -233,9 +241,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.data['region_name'] = self.region_name
 
     def assign_network_data(self):
-        rack_data = {
-            'racks': {}
-        }
+        rack_data = {}
         rackwise_subnets = self.get_rackwise_subnet()
         for rack in rackwise_subnets:
             for net_type in rackwise_subnets[rack]:
@@ -276,7 +282,7 @@ class GenerateYamlFromExcel(ParserEngine):
         for net_type in self.public_network_data:
             self.data['network'][net_type] = self.public_network_data[net_type]
         self.data['network']['proxy'] = settings.PROXY
-        self.data['network']['proxy']['no_proxy'] = ' '.join(self.no_proxy)
+        self.data['network']['proxy']['no_proxy'] = ','.join(self.no_proxy)
         self.data['network']['ntp'] = {
             'servers': self.dns_ntp_data['ntp'],
         }

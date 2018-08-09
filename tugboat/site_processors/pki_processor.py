@@ -28,6 +28,7 @@ class PkiProcessor:
         yaml_data = self.get_yaml_data(raw_data)
         self.baremetal_data = yaml_data['baremetal']
         self.ingress = yaml_data['network']['ingress']
+        self.dir_name = yaml_data['region_name']
 
     @staticmethod
     def read_file(file_name):
@@ -49,7 +50,7 @@ class PkiProcessor:
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
                 trim_blocks=True)
-            file_path = "pegleg_manifests/pki/"
+            file_path = 'pegleg_manifests/site/{}/pki/'.format(self.dir_name)
             directory = os.path.dirname(file_path)
             if not os.path.exists(directory):
                 os.makedirs(directory)
