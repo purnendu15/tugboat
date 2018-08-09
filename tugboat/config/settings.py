@@ -30,6 +30,7 @@ IPS_TO_LEAVE = 12
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
 PKI_TEMPLATES = ['pki-catalogue']
 SITE_DEFINITION_TEMPLATES = ['site_definition']
+HOSTPROFILE_TEMPLATES = ['profile']
 PROXY = {
     'http': 'http://one.proxy.att.com:8080',
     'https': 'http://one.proxy.att.com:8080',
