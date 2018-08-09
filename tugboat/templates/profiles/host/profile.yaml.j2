@@ -1,0 +1,115 @@
+---
+schema: drydock/HostProfile/v1
+metadata:
+  schema: metadata/Document/v1
+  name: {{ data['profile_name'] }}
+  storagePolicy: cleartext
+  layeringDefinition:
+    abstract: false
+    layer: site
+    parentSelector:
+      hosttype: 5ec-{{ data['profile_name'] }}-type
+    actions:
+      - method: replace
+        path: .interfaces
+      - method: replace
+        path: .storage
+      - method: merge
+        path: .
+data:
+  hardware_profile: dell_r640_purley_5ec
+  oob:
+    network: {{ data['rack'] }}_oob
+    account: tier4
+  storage:
+    physical_devices:
+      bootdisk:
+        labels:
+          bootdrive: 'true'
+        partitions:
+          - name: 'root'
+            size: '30g'
+            bootable: true
+            filesystem:
+              mountpoint: '/'
+              fstype: 'ext4'
+              mount_options: 'defaults'
+          - name: 'boot'
+            size: '1g'
+            filesystem:
+              mountpoint: '/boot'
+              fstype: 'ext4'
+              mount_options: 'defaults'
+          - name: 'var_log'
+            size: '100g'
+            filesystem:
+              mountpoint: '/var/log'
+              fstype: 'ext4'
+              mount_options: 'defaults'
+          - name: 'var'
+            size: '>300g'
+            filesystem:
+              mountpoint: '/var'
+              fstype: 'ext4'
+              mount_options: 'defaults'
+{% if data['profile']['type'] == 'master' %}
+      cephjournal:
+        partitions:
+          - name: 'cephj'
+            size: '120g'
+            filesystem:
+              mountpoint: '/var/lib/ceph/journal'
+              fstype: 'xfs'
+              mount_options: 'defaults'
+{% elif data['profile']['type'] == 'compute' %}
+      ephemeral:
+        partitions:
+          - name: 'nova'
+            size: '99%'
+            filesystem:
+              mountpoint: '/var/lib/nova'
+              fstype: 'ext4'
+              mount_options: 'defaults'
+{% endif %}
+  primary_network: {{ data['rack'] }}_oam
+  interfaces:
+{% for interface in data['profile']['networks'] %}
+    {{ interface }}:
+      device_link: {{ interface }}
+      slaves:
+{% for slave in data['profile']['networks'][interface] %}
+        - {{ slave }}
+{% endfor %}
+{% if data['profile']['networks'][interface]['type'] == 'pxe' %}
+      networks:
+      - {{ data['rack'] }}_pxe
+{% elif data['profile']['networks'][interface]['type'] == 'bond' %}
+      networks:
+      - {{ data['rack'] }}_oam
+      - {{ data['rack'] }}_overlay
+      - {{ data['rack'] }}_storage
+      - {{ data['rack'] }}_ksn
+{% elif data['profile']['networks'][interface]['type'] == 'sriov' %}
+      sriov:
+        vf_count: 32
+        trustedmode: false
+{% endif %}
+{% endfor %}
+  metadata:
+    owner_data:
+      openstack-l3-agent: enabled
+{% if data['profile']['type'] == 'compute' %}
+  platform:
+    kernel: 'hwe-16.04'
+    kernel_params:
+#      console: 'ttyS1,115200n8'
+      intel_iommu: 'on'
+      iommu: 'pt'
+      amd_iommu: 'on'
+      transparent_hugepage: 'never'
+      hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+      hugepages: 'hardwareprofile:hugepages.dpdk.count'
+      default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+      isolcpus: 'hardwareprofile:cpuset.kvm'
+{% endif %}
+...
