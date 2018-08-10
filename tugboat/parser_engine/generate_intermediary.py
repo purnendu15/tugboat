@@ -33,9 +33,7 @@ class GenerateYamlFromExcel(ParserEngine):
             parsed_data['network_data'])
         self.public_network_data = self.get_public_network_data(
             parsed_data['network_data'])
-        self.dns_ntp_data = self.get_dns_ntp_data(
-            parsed_data['network_data']
-        )
+        self.dns_ntp_data = self.get_dns_ntp_data(parsed_data['network_data'])
         self.host_type = {}
         self.data = {
             'network': {},
@@ -93,8 +91,7 @@ class GenerateYamlFromExcel(ParserEngine):
                         '-')[0].replace(' ', '')
                 elif 'vlan' in key.lower():
                     tmp_value = re.findall(
-                        vlan_pattern,
-                        self.private_network_data[net_type][key])
+                        vlan_pattern, self.private_network_data[net_type][key])
                     if not tmp_value:
                         continue
                     else:
@@ -191,8 +188,7 @@ class GenerateYamlFromExcel(ParserEngine):
                     dhcp_end = str(ips[-2])
                     self.network_data[rack][net_type][
                         'dhcp_start'] = dhcp_start
-                    self.network_data[rack][net_type][
-                        'dhcp_end'] = dhcp_end
+                    self.network_data[rack][net_type]['dhcp_end'] = dhcp_end
                 for i in range(len(rackwise_hosts[rack])):
                     self.ipmi_data[rackwise_hosts[rack][i]][net_type] = str(
                         ips[i + self.IPS_TO_LEAVE + 1])
@@ -253,13 +249,16 @@ class GenerateYamlFromExcel(ParserEngine):
                         net_type] if subnet != nw
                 ]
                 rackwise_subnets[rack][net_type] = {
-                    'nw': nw,
-                    'gw': gw,
-                    'routes': routes,
-                    'static_start': self.network_data[rack][net_type][
-                        'static_start'],
-                    'static_end': self.network_data[rack][net_type][
-                        'static_end'],
+                    'nw':
+                    nw,
+                    'gw':
+                    gw,
+                    'routes':
+                    routes,
+                    'static_start':
+                    self.network_data[rack][net_type]['static_start'],
+                    'static_end':
+                    self.network_data[rack][net_type]['static_end'],
                 }
                 if net_type == 'pxe':
                     rackwise_subnets[rack][net_type][
@@ -348,5 +347,7 @@ class GenerateYamlFromExcel(ParserEngine):
     def generate_yaml(self):
         self.generate_intermediary_yaml()
         yaml_data = yaml.dump(self.data, default_flow_style=False)
-        with open('intermediary.yaml', 'w') as f:
+        intermediary_file = "{}_intermediary.yaml".format(self.region_name)
+        with open(intermediary_file, 'w') as f:
             f.write(yaml_data)
+        return intermediary_file

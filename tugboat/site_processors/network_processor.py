@@ -47,16 +47,17 @@ class NetworkProcessor:
         for rack in self.yaml_data['baremetal']:
             for host in self.yaml_data['baremetal'][rack]:
                 if self.yaml_data['baremetal'][rack][host][
-                    'type'] == 'genesis':
+                        'type'] == 'genesis':
                     hosts['genesis'] = {
-                        'name': host,
-                        'pxe': self.yaml_data['baremetal'][rack][host][
-                            'ip']['pxe'],
-                        'oam': self.yaml_data['baremetal'][rack][host][
-                            'ip']['oam'],
+                        'name':
+                        host,
+                        'pxe':
+                        self.yaml_data['baremetal'][rack][host]['ip']['pxe'],
+                        'oam':
+                        self.yaml_data['baremetal'][rack][host]['ip']['oam'],
                     }
                 elif self.yaml_data['baremetal'][rack][host][
-                    'type'] == 'controller':
+                        'type'] == 'controller':
                     hosts['masters'].append(host)
                 else:
                     hosts['workers'].append(host)
@@ -98,19 +99,17 @@ class NetworkProcessor:
             'hosts': self.get_role_wise_nodes(),
             'network': self.get_network_data(),
         }
-        template_name = j2_env.get_template(
-            '{}.yaml.j2'.format(template))
+        template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
         try:
             print('Rendering data for {}'.format(outfile))
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member
-            template_name.stream(data=data).dump(
-                out)
+            template_name.stream(data=data).dump(out)
             out.close()
         except IOError as ioe:
-            raise SystemExit("Error when generating {:s}:\n{:s}"
-                             .format(outfile, ioe.strerror))
+            raise SystemExit("Error when generating {:s}:\n{:s}".format(
+                outfile, ioe.strerror))
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
@@ -135,13 +134,13 @@ class NetworkProcessor:
                     self.network_data[key]['dns'] = self.yaml_data['network'][
                         'dns']
                     try:
-                        outfile = '{}{}.yaml'.format(
-                            outfile_dir, '/{}'.format(key))
+                        outfile = '{}{}.yaml'.format(outfile_dir,
+                                                     '/{}'.format(key))
                         print('Rendering data for {}'.format(outfile))
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
-                        template_j2.stream(data=self.network_data[key]).dump(
-                            out)
+                        template_j2.stream(
+                            data=self.network_data[key]).dump(out)
                         out.close()
                     except IOError as ioe:
                         raise SystemExit("Error when generating {:s}:\n{:s}"

@@ -76,8 +76,7 @@ class BaremetalProcessor:
                 }
                 for rack in self.baremetal_data:
                     for host in self.baremetal_data[rack]:
-                        if self.baremetal_data[
-                                rack][host]['type'] != 'genesis':
+                        if self.baremetal_data[rack][host]['type'] != 'genesis':
                             data['hosts'].append(host)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
