@@ -23,10 +23,13 @@ from tugboat.site_processors.network_processor import NetworkProcessor
 from tugboat.site_processors.pki_processor import PkiProcessor
 from tugboat.site_processors.profile_processor import ProfileProcessor
 from tugboat.site_processors.site_definition_processor import (
-    SiteDeifinitionProcessor
-)
+    SiteDeifinitionProcessor)
 from tugboat.site_processors.software_processor import SoftwareProcessor
 
+processors = [
+    BaremetalProcessor, DeploymentProcessor, NetworkProcessor, PkiProcessor,
+    ProfileProcessor, SiteDeifinitionProcessor, SoftwareProcessor
+]
 
 
 def main(argv=None):
@@ -35,6 +38,7 @@ def main(argv=None):
     # parse command line options
     filename_path = ''
     excel_spec_path = ''
+
     try:
         opts, args = getopt.getopt(sys.argv[1:], 'h', 'help')
     except getopt.GetoptError as msg:
@@ -44,39 +48,18 @@ def main(argv=None):
             print('Please provide xls and excelspec files as follows: python '
                   'tugboat.py <spreadsheet> <excelspec>')
             sys.exit(0)
+
     # for arg in args:
     filename_path = args[0]
     excel_spec_path = args[1]
+
     # Generate YAML from Excel Workbook engine
-    ob = GenerateYamlFromExcel(filename_path, excel_spec_path)
-    ob.generate_yaml()
-    # Baremetal Processor
-    ob1 = BaremetalProcessor('intermediary.yaml')
-    ob1.render_template()
+    parser = GenerateYamlFromExcel(filename_path, excel_spec_path)
+    intermediary = parser.generate_yaml()
 
-    # Deployment Processor
-    ob2 = DeploymentProcessor('intermediary.yaml')
-    ob2.render_template()
-
-    # Network Processor
-    ob3 = NetworkProcessor('intermediary.yaml')
-    ob3.render_template()
-
-    # Pki Processor
-    ob4 = PkiProcessor('intermediary.yaml')
-    ob4.render_template()
-
-    # Profile PROCESSOR
-    ob5 = ProfileProcessor('intermediary.yaml')
-    ob5.render_template()
-
-    # Site Definition Processor
-    ob6 = SiteDeifinitionProcessor('intermediary.yaml')
-    ob6.render_template()
-
-    # Software Processor
-    ob7 = SoftwareProcessor('intermediary.yaml')
-    ob7.render_template()
+    for processor in processors:
+        processor_engine = processor(intermediary)
+        processor_engine.render_template()
 
 
 if __name__ == '__main__':

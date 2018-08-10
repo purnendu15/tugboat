@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 import pkg_resources
 import os
 import yaml
@@ -54,8 +53,7 @@ class DeploymentProcessor:
             self.dir_name)
         if not os.path.exists(file_path):
             os.makedirs(file_path)
-        template_name = j2_env.get_template(
-            '{}.yaml.j2'.format(template))
+        template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(file_path, 'deployment-configuration')
         print('Rendering data for {}'.format(outfile))
         try:
@@ -64,5 +62,5 @@ class DeploymentProcessor:
             template_name.stream(data=self.deployment_manifest).dump(out)
             out.close()
         except IOError as ioe:
-            raise SystemExit("Error when generating {:s}:\n{:s}"
-                             .format(outfile, ioe.strerror))
+            raise SystemExit("Error when generating {:s}:\n{:s}".format(
+                outfile, ioe.strerror))

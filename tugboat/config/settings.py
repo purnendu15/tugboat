@@ -40,10 +40,7 @@ GATEWAY_OFFSET = 3
 DEPLOYMENT_MANIFEST = 'full-site'
 
 BGP = {
-    'peers': [
-        '172.29.0.2',
-        '172.29.0.3'
-    ],
+    'peers': ['172.29.0.2', '172.29.0.3'],
     'asnumber': 64671,
     'peer_asnumber': 64688,
 }
@@ -51,19 +48,13 @@ BGP = {
 HOSTPROFILE_INTERFACES = {
     'cp': {
         'networks': {
-            'pxe': [
-                'eno3'
-            ],
+            'pxe': ['eno3'],
             'bond1': [
                 'gp_nic01',
                 'gp_nic02',
             ],
-            'p1p1': [
-                'sriov_nic01'
-            ],
-            'p3p2': [
-                'sriov_nic02'
-            ],
+            'p1p1': ['sriov_nic01'],
+            'p3p2': ['sriov_nic02'],
         },
     },
     'gv': {
@@ -89,9 +80,7 @@ HOSTPROFILE_INTERFACES = {
         },
     }
 }
-LDAP = {
-    'admin': 'xyz@ldapservices.test.com'
-}
+LDAP = {'admin': 'xyz@ldapservices.test.com'}
 
 CEPH = {
     'osd_count': 6,
@@ -101,12 +90,15 @@ CEPH = {
 
 CONF = {
     'nova': {
-        'vcpu_pin_set': '4-10',
-        'passthrough_whitelist': '[{"address": "0000:d8:0a.0", '
+        'vcpu_pin_set':
+        '4-10',
+        'passthrough_whitelist':
+        '[{"address": "0000:d8:0a.0", '
         '"physical_network": "sriovnet1", "trusted": "true"}]',
     },
     'neutron': {
-        'network_vlan_ranges': 'oam:100:1000,sriovnet1:105:109,'
+        'network_vlan_ranges':
+        'oam:100:1000,sriovnet1:105:109,'
         'sriovnet2:121:124',
     },
 }
