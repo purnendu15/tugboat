@@ -331,6 +331,9 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def assign_conf_data(self):
         self.data['conf'] = settings.CONF
+        ingress_subnet = netaddr.IPNetwork(self.data['network']['ingress'])
+        ips = list(ingress_subnet)
+        self.data['conf']['ingress'] = '{}/32'.format(str(ips[1]))
 
     def generate_intermediary_yaml(self):
         self.get_rack_data()
