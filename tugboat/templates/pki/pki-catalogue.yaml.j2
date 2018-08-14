@@ -29,6 +29,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
           groups:
             - system:nodes
 {% endif %}
@@ -39,6 +40,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
           groups:
             - system:nodes
 {%endfor%}
@@ -73,22 +75,24 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
-            - 10.96.0.2
 {% endif %}
 {%endfor%}
 {% for host in data.keys()%}
+{% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis'%}
         - document_name: kubernetes-etcd-{{ host }}
           common_name: kubernetes-etcd-{{ host }}
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
-            - 10.96.0.2
+{% endif %}
 {%endfor%}
 {% for host in data.keys()%}
 {% if data[host]['type'] == 'genesis' %}
@@ -99,6 +103,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
@@ -106,15 +111,17 @@ data:
 {% endif %}
 {%endfor%}
 {% for host in data.keys()%}
+{% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis' %}
         - document_name: kubernetes-etcd-{{ host }}-peer
           common_name: kubernetes-etcd-{{ host }}-peer
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
-            - 10.96.0.2
+{% endif %}
 {%endfor%}
     calico-etcd:
       description: Certificates for Calico etcd client traffic
@@ -123,14 +130,17 @@ data:
           description: anchor
           common_name: anchor
 {% for host in data.keys()%}
+{% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis' %}
         - document_name: calico-etcd-{{ host }}
           common_name: calico-etcd-{{ host }}
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - 10.96.232.136
+{% endif %}
 {%endfor%}
         - document_name: calico-node
           common_name: calcico-node
@@ -138,14 +148,17 @@ data:
       description: Certificates for Calico etcd clients
       certificates:
 {% for host in data.keys()%}
+{% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis' %}
         - document_name: calico-etcd-{{ host }}-peer
           common_name: calico-etcd-{{ host }}-peer
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
+            - {{ data[host]['ip']['calico']}}
             - 127.0.0.1
             - localhost
             - 10.96.232.136
+{% endif %}
 {%endfor%}
         - document_name: calico-node-peer
           common_name: calcico-node-peer
