@@ -195,14 +195,16 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()
+        subnet = netaddr.IPNetwork(self.public_network_data['oam']['ip'])
+        ips = list(subnet)
+        j = 0
         for rack in self.racks:
             rack = self.racks[rack]
-            subnet = netaddr.IPNetwork(self.public_network_data['oam']['ip'])
-            ips = list(subnet)
             for i in range(len(rackwise_hosts[rack])):
-                self.no_proxy.append(str(ips[i + self.IPS_TO_LEAVE + 1]))
+                self.no_proxy.append(str(ips[j + self.IPS_TO_LEAVE + 1]))
                 self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
-                    ips[i + self.IPS_TO_LEAVE + 1])
+                    ips[j + self.IPS_TO_LEAVE + 1])
+                j += 1
 
     def get_rack_data(self):
         for host in self.hostnames:
