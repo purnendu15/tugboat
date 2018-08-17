@@ -65,10 +65,24 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
+        path: .calico.ip_rule.interface
+      dest:
+        path: .assets[0].data
+        pattern: DH_SUB_KSN_INTERFACE
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
         path: .kubernetes.pod_cidr
       dest:
         path: .assets[0].data
         pattern: DH_SUB_POD_CIDR
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .calico.bgp.ipv4.public_service_cidr
+      dest:
+        path: .assets[0].data
+        pattern: DH_SUB_INGRESS_CIDR
     - src:
         schema: pegleg/Script/v1
         name: configure-ip-rules
@@ -88,7 +102,7 @@ data:
 
         [Service]
         Type=simple
-        ExecStart=/opt/configure-ip-rules.sh -i bond1.2006 -c DH_SUB_POD_CIDR -o 10.96.0.0/15 -s {{ data['ingress'] }}
+        ExecStart=/opt/configure-ip-rules.sh -i DH_SUB_KSN_INTERFACE -c DH_SUB_POD_CIDR -s DH_SUB_INGRESS_CIDR
 
         [Install]
         WantedBy=multi-user.target
@@ -99,4 +113,26 @@ data:
       permissions: '700'
       data_pipeline:
         - utf8_decode
+...
+---
+schema: 'drydock/BootAction/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: i40evf_blacklist
+  storagePolicy: 'cleartext'
+  layeringDefinition:
+    abstract: false
+    layer: site
+  labels:
+    application: 'drydock'
+data:
+  signaling: false
+  assets:
+    - path: /etc/modprobe.d/sriov_blacklist.conf
+      type: file
+      permissions: '644'
+      data_pipeline:
+        - utf8_decode
+      data: |
+        blacklist i40evf
 ...

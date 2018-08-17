@@ -72,19 +72,26 @@ class NetworkProcessor:
         for rack in network_data['rack']:
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
         calico_vlan = network_data['rack'][rack]['calico']['vlan']
+        bgp_data = network_data['bgp']
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
             'proxy': proxy,
             'ceph_cidr': ' '.join(ceph_cidr),
             'calico_vlan': calico_vlan,
+            'bgp': bgp_data,
+            'dns': network_data['dns']
         }
+
+    def get_conf_data(self):
+        conf_data = self.yaml_data['conf']
+        return { 'conf': conf_data }
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(
-            'tugboat', 'templates/network')
+            'tugboat', 'templates/networks')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        outfile_path = 'pegleg_manifests/site/{}/network/'.format(
+        outfile_path = 'pegleg_manifests/site/{}/networks/'.format(
             self.dir_name)
         outfile_dir = os.path.dirname(outfile_path)
         if not os.path.exists(outfile_dir):
@@ -98,6 +105,7 @@ class NetworkProcessor:
         data = {
             'hosts': self.get_role_wise_nodes(),
             'network': self.get_network_data(),
+            'conf': self.get_conf_data()
         }
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
@@ -118,9 +126,9 @@ class NetworkProcessor:
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
                 templatefile = os.path.join(dirpath, filename)
-                if not outfile_j2 and 'network/physical' in templatefile:
+                if not outfile_j2 and 'networks/physical' in templatefile:
                     outfile_j2 = outfile_path + templatefile.split(
-                        'templates/network/physical', 1)[1]
+                        'templates/networks/physical', 1)[1]
                 else:
                     continue
                 outfile = outfile_j2.split('.j2')[0]

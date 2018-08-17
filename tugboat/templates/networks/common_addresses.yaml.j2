@@ -12,7 +12,15 @@ data:
     ip_autodetection_method: interface=bond1.{{ data['network']['calico_vlan']}}
     etcd:
       service_ip: 10.96.232.136
-
+    ip_rule:
+      interface: bond1.{{ data['network']['calico_vlan']}}
+    bgp:
+      ipv4:
+        public_service_cidr: {{ data['conf']['ingress'] }}
+        peers:
+{% for peer in data['network']['bgp']['peers'] %}
+          - {{ peer }}
+{% endfor %}
   dns:
     cluster_domain: cluster.local
     service_ip: 10.96.0.10
@@ -21,6 +29,7 @@ data:
       - {{ server }}
 {% endfor %}
     upstream_servers_joined: {{ data['network']['dns_servers']|join(',')}}
+    ingress_domain: {{ data['network']['dns']['domain'] }}
 
   genesis:
     hostname: {{ data['hosts']['genesis']['name'] }}
@@ -67,6 +76,9 @@ data:
   ntp:
     servers_joined: {{ data['network']['ntp_servers']|join(',') }}
 
+  domain:
+    url: {{ data['network']['dns']['domain'] }}
+
   storage:
     ceph:
       public_cidr: {{ data['network']['ceph_cidr'] }}
@@ -74,7 +86,7 @@ data:
 
   neutron:
     tunnel_device: 'bond1.91'
-    external_iface: 'bond1.48'
+    external_iface: 'bond1'
 
   openvswitch:
-    external_iface: 'bond1.48'
+    external_iface: 'bond1'
