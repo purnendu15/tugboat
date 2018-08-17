@@ -26,7 +26,7 @@ class ExcelParser():
         with open(excel_specs, 'r') as f:
             spec_raw_data = f.read()
         self.excel_specs = yaml.safe_load(spec_raw_data)
-        self.wb = load_workbook(file_name)
+        self.wb = load_workbook(file_name, data_only=True)
         self.ipmi_data = {}
         self.hosts = []
         self.spec = None
