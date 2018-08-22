@@ -173,7 +173,7 @@ class NetworkProcessor:
                         'dns']
                     try:
                         outfile = '{}{}.yaml'.format(outfile_dir,
-                                                     '/{}'.format(key))
+                                                     '{}'.format(key))
                         print('Rendering data for {}'.format(outfile))
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
