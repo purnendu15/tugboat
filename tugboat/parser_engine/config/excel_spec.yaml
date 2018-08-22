@@ -43,7 +43,11 @@ specs:
         oam_ip_row: 3
         oam_ip_col: 2
         ingress_ip_row: 5
-        dns_ntp_sheet: '7.0 Build notes'
+        dns_ntp_ldap_sheet: '7.0 Build notes'
+        ldap_subdomain_row: 4
+        ldap_col: 2
+        ldap_group_row: 5
+        ldap_url_row: 6
         ntp_row: 13
         ntp_col: 2
         dns_row: 14
@@ -78,7 +82,11 @@ specs:
         oob_net_start_col: 2
         oob_net_end_col: 5
         ingress_ip_row: 6
-        dns_ntp_sheet: '5.0 Build notes'
+        dns_ntp_ldap_sheet: '5.0 Build notes'
+        ldap_subdomain_row: 4
+        ldap_col: 2
+        ldap_group_row: 5
+        ldap_url_row: 6
         ntp_row: 12
         ntp_col: 2
         dns_row: 13
@@ -113,7 +121,11 @@ specs:
         oob_net_start_col: 2
         oob_net_end_col: 5
         ingress_ip_row: 6
-        dns_ntp_sheet: 'Build notes'
+        dns_ntp_ldap_sheet: 'Build notes'
+        ldap_subdomain_row: 4
+        ldap_col: 2
+        ldap_group_row: 5
+        ldap_url_row: 6
         ntp_row: 13
         ntp_col: 2
         dns_row: 14
