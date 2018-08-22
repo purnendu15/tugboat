@@ -34,14 +34,14 @@ class GenerateYamlFromExcel(ParserEngine):
             parsed_data['network_data'])
         self.public_network_data = self.get_public_network_data(
             parsed_data['network_data'])
-        self.dns_ntp_data = self.get_dns_ntp_data(parsed_data['network_data'])
+        self.dns_ntp_ldap_data = self.get_dns_ntp_ldap_data(
+            parsed_data['network_data'])
         self.host_type = {}
         self.data = {
             'network': {},
             'baremetal': {},
             'profiles': {},
             'region_name': '',
-            'ldap': {},
             'conf': {},
             'ceph': {},
         }
@@ -72,8 +72,8 @@ class GenerateYamlFromExcel(ParserEngine):
         network_data = raw_data['public']
         return network_data
 
-    def get_dns_ntp_data(self, raw_data):
-        network_data = raw_data['dns_ntp']
+    def get_dns_ntp_ldap_data(self, raw_data):
+        network_data = raw_data['dns_ntp_ldap']
         return network_data
 
     def format_network_data(self):
@@ -89,14 +89,21 @@ class GenerateYamlFromExcel(ParserEngine):
                         vlan_pattern, self.private_network_data[net_type][key])
                     value = tmp_value[0]
                     self.private_network_data[net_type][key] = value
-        for type_ in self.dns_ntp_data:
-            raw_list = self.dns_ntp_data[type_].split()
-            data_list = []
-            for data in raw_list:
-                if '(' not in data:
-                    data_list.append(data)
-            data_string = ','.join(data_list)
-            self.dns_ntp_data[type_] = data_string
+        for type_ in self.dns_ntp_ldap_data:
+            if type_ != 'ldap':
+                raw_list = self.dns_ntp_ldap_data[type_].split()
+                data_list = []
+                for data in raw_list:
+                    if '(' not in data:
+                        data_list.append(data)
+                data_string = ','.join(data_list)
+                self.dns_ntp_ldap_data[type_] = data_string
+            else:
+                url = self.dns_ntp_ldap_data[type_]['url']
+                base_url = url.split('//')[1]
+                url = '{}://{}'.format(settings.LDAP_PROTOCOL, base_url)
+                self.dns_ntp_ldap_data[type_]['base_url'] = base_url
+                self.dns_ntp_ldap_data[type_]['url'] = url
 
     def get_rack(self, host):
         rack_pattern = '\w.*(r\d+)\w.*'
@@ -380,13 +387,14 @@ class GenerateYamlFromExcel(ParserEngine):
         self.data['network']['proxy'] = settings.PROXY
         self.data['network']['proxy']['no_proxy'] = ','.join(self.no_proxy)
         self.data['network']['ntp'] = {
-            'servers': self.dns_ntp_data['ntp'],
+            'servers': self.dns_ntp_ldap_data['ntp'],
         }
         self.data['network']['dns'] = {
-            'domain': self.dns_ntp_data['domain'],
-            'servers': self.dns_ntp_data['dns'],
+            'domain': self.dns_ntp_ldap_data['domain'],
+            'servers': self.dns_ntp_ldap_data['dns'],
             'dhcp_relay': self.dhcp_relay,
         }
+        self.data['network']['ldap'] = self.dns_ntp_ldap_data['ldap']
         self.data['network']['bgp'] = settings.BGP
 
     def get_deployment_configuration(self):
@@ -418,9 +426,6 @@ class GenerateYamlFromExcel(ParserEngine):
                     key] = settings.HOSTPROFILE_INTERFACES[host_profile][key]
         self.data['profiles'] = host_profile_wise_racks
 
-    def assign_ldap_data(self):
-        self.data['ldap'] = settings.LDAP
-
     def assign_ceph_data(self):
         self.data['ceph'] = settings.CEPH
 
@@ -440,7 +445,6 @@ class GenerateYamlFromExcel(ParserEngine):
         self.get_deployment_configuration()
         self.assign_racks_to_host_profile()
         self.assign_region_name()
-        self.assign_ldap_data()
         self.assign_ceph_data()
         self.assign_conf_data()
 

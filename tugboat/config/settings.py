@@ -81,7 +81,7 @@ HOSTPROFILE_INTERFACES = {
         },
     }
 }
-LDAP = {'admin': 'xyz@ldapservices.test.com'}
+LDAP_PROTOCOL = 'ldap'
 
 CEPH = {
     'osd_count': 6,

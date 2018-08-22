@@ -165,9 +165,9 @@ class ExcelParser():
             col += 1
         return network_data
 
-    def get_dns_ntp_data(self):
-        dns_ntp_data = {}
-        sheet_name = self.excel_specs['specs'][self.spec]['dns_ntp_sheet']
+    def get_dns_ntp_ldap_data(self):
+        dns_ntp_ldap_data = {}
+        sheet_name = self.excel_specs['specs'][self.spec]['dns_ntp_ldap_sheet']
         ws = self.wb[sheet_name]
         dns_row = self.excel_specs['specs'][self.spec]['dns_row']
         dns_col = self.excel_specs['specs'][self.spec]['dns_col']
@@ -175,23 +175,35 @@ class ExcelParser():
         ntp_col = self.excel_specs['specs'][self.spec]['ntp_col']
         domain_row = self.excel_specs['specs'][self.spec]['domain_row']
         domain_col = self.excel_specs['specs'][self.spec]['domain_col']
-        dns_ntp_data = {
+        ldap_subdomain_row = self.excel_specs['specs'][self.spec][
+            'ldap_subdomain_row']
+        ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
+        ldap_group_row = self.excel_specs['specs'][self.spec]['ldap_group_row']
+        ldap_url_row = self.excel_specs['specs'][self.spec]['ldap_url_row']
+        dns_ntp_ldap_data = {
             'dns': ws.cell(row=dns_row, column=dns_col).value,
             'ntp': ws.cell(row=ntp_row, column=ntp_col).value,
             'domain': ws.cell(row=domain_row, column=domain_col).value,
+            'ldap': {
+                'subdomain': ws.cell(
+                    row=ldap_subdomain_row, column=ldap_col).value,
+                'common_name': ws.cell(
+                    row=ldap_group_row, column=ldap_col).value,
+                'url': ws.cell(row=ldap_url_row, column=ldap_col).value,
+            }
         }
-        return dns_ntp_data
+        return dns_ntp_ldap_data
 
     def get_data(self):
         ipmi_data = self.get_ipmi_data()
         network_data = self.get_private_network_data()
         public_network_data = self.get_public_network_data()
-        dns_ntp_data = self.get_dns_ntp_data()
+        dns_ntp_ldap_data = self.get_dns_ntp_ldap_data()
         return {
             'ipmi_data': ipmi_data,
             'network_data': {
                 'private': network_data,
                 'public': public_network_data,
-                'dns_ntp': dns_ntp_data,
+                'dns_ntp_ldap': dns_ntp_ldap_data,
             }
         }
