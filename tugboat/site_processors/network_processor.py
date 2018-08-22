@@ -48,7 +48,7 @@ class NetworkProcessor(BaseProcessor):
             for host in self.yaml_data['baremetal'][rack]:
                 if self.yaml_data['baremetal'][rack][host][
                         'type'] == 'genesis':
-                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip']['calico']
+                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip']['ksn']
 
         return genesis_ip
 
@@ -62,8 +62,8 @@ class NetworkProcessor(BaseProcessor):
         for rack in network_data['rack']:
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
         """
-        ceph_cidr.append(network_data['storage']['nw'])
-        calico_vlan = network_data['rack'][rack]['calico']['vlan']
+        ceph_cidr.append(network_data['common']['storage']['nw'])
+        calico_vlan = network_data['common']['ksn']['vlan']
         bgp_data = network_data['bgp']
 
         """ 
@@ -155,7 +155,6 @@ class NetworkProcessor(BaseProcessor):
 
                 self.network_data['region_name'] = self.yaml_data['region_name']
                 yaml_filename = filename.split('.j2')[0]
-                """ Temporary commented out will open after fixes to xl parser
                 try:
                     outfile = '{}{}'.format(outfile_dir,yaml_filename)
 
@@ -167,6 +166,5 @@ class NetworkProcessor(BaseProcessor):
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
-                """ 
 
 
