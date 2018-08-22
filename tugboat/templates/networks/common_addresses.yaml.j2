@@ -13,10 +13,10 @@ data:
     etcd:
       service_ip: 10.96.232.136
     ip_rule:
-      interface: bond1.{{ data['network']['calico_vlan']}}
+      interface: {{ data['network']['calico_gw']}}
     bgp:
       ipv4:
-        public_service_cidr: {{ data['conf']['ingress'] }}
+        public_service_cidr: {{ data['conf']['conf']['ingress'] }}
         peers:
 {% for peer in data['network']['bgp']['peers'] %}
           - {{ peer }}

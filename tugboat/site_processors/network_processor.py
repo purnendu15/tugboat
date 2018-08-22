@@ -83,6 +83,10 @@ class NetworkProcessor(BaseProcessor):
             'ntp_servers': ntp_servers,
             'proxy': proxy,
             'ceph_cidr': ' '.join(ceph_cidr),
+
+            """ calico gw is suppressed, will be opened after xl parser
+            'calico_gw': network_data['common']['calico']['gw'],
+            """
             'calico_vlan': calico_vlan,
             'bgp': bgp_data,
             'dns': network_data['dns'],
