@@ -28,12 +28,17 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
-        net_vlan_col: 2
-        net_start_row: 2
-        net_end_row: 13
-        subnet_col: 3
-        cidr_per_rack_col: 4
+        vlan_col: 2
+        vlan_start_row: 2
+        vlan_end_row: 13
+        net_start_row: 17
+        net_end_row: 24
+        net_col: 4
+        net_vlan_col: 1
         public_ip_sheet: 'Public IPs'
+        oob_net_row: 9
+        oob_net_start_col: 2
+        oob_net_end_col: 5
         oam_vlan_col: 1
         oam_ip_row: 3
         oam_ip_col: 2
@@ -58,15 +63,20 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
-        net_vlan_col: 2
-        net_start_row: 3
-        net_end_row: 14
-        subnet_col: 3
-        cidr_per_rack_col: 4
+        vlan_col: 2
+        vlan_start_row: 3
+        vlan_end_row: 14
+        net_start_row: 17
+        net_end_row: 24
+        net_col: 4
+        net_vlan_col: 1
         public_ip_sheet: 'Public IPs'
         oam_vlan_col: 1
         oam_ip_row: 4
         oam_ip_col: 2
+        oob_net_row: 9
+        oob_net_start_col: 2
+        oob_net_end_col: 5
         ingress_ip_row: 6
         dns_ntp_sheet: '5.0 Build notes'
         ntp_row: 12
@@ -88,15 +98,20 @@ specs:
         ipmi_gateway_col: 4
         private_ip_sheet: 'Private IPs'
         net_type_col: 1
-        net_vlan_col: 2
-        net_start_row: 2
-        net_end_row: 13
-        subnet_col: 3
-        cidr_per_rack_col: 4
+        vlan_col: 2
+        vlan_start_row: 2
+        vlan_end_row: 13
+        net_start_row: 17
+        net_end_row: 24
+        net_col: 4
+        net_vlan_col: 1
         public_ip_sheet: 'Public IPs'
         oam_vlan_col: 1
         oam_ip_row: 4
         oam_ip_col: 2
+        oob_net_row: 9
+        oob_net_start_col: 2
+        oob_net_end_col: 5
         ingress_ip_row: 6
         dns_ntp_sheet: 'Build notes'
         ntp_row: 13

@@ -22,7 +22,7 @@ data:
     - network: {{ rack }}_storage
       address: {{ data[host]['ip']['storage'] }}
     - network: {{ rack }}_ksn
-      address: {{ data[host]['ip']['calico'] }}
+      address: {{ data[host]['ip']['ksn'] }}
     - network: {{ rack }}_overlay
       address: {{ data[host]['ip']['overlay'] }}
   metadata:
