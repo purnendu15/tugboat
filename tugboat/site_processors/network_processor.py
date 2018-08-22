@@ -15,16 +15,19 @@
 import yaml
 import pkg_resources
 import os
+from os.path import basename
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from tugboat.site_processors.base import BaseProcessor
 
 
-class NetworkProcessor:
+
+class NetworkProcessor(BaseProcessor):
     def __init__(self, file_name):
         raw_data = self.read_file(file_name)
         self.yaml_data = self.get_yaml_data(raw_data)
-        self.network_data = self.yaml_data['network']['rack']
+        self.network_data = self.yaml_data['network']
         self.dir_name = self.yaml_data['region_name']
 
     @staticmethod
@@ -38,30 +41,16 @@ class NetworkProcessor:
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
-    def get_role_wise_nodes(self):
-        hosts = {
-            'genesis': {},
-            'masters': [],
-            'workers': [],
-        }
+    """ To get genesis ip we take the calico ip of the genesis node"""
+    def get_genesis_ip(self):
+        genesis_ip = '0.0.0.0'
         for rack in self.yaml_data['baremetal']:
             for host in self.yaml_data['baremetal'][rack]:
                 if self.yaml_data['baremetal'][rack][host][
                         'type'] == 'genesis':
-                    hosts['genesis'] = {
-                        'name':
-                        host,
-                        'pxe':
-                        self.yaml_data['baremetal'][rack][host]['ip']['pxe'],
-                        'oam':
-                        self.yaml_data['baremetal'][rack][host]['ip']['oam'],
-                    }
-                elif self.yaml_data['baremetal'][rack][host][
-                        'type'] == 'controller':
-                    hosts['masters'].append(host)
-                else:
-                    hosts['workers'].append(host)
-        return hosts
+                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip']['calico']
+
+        return genesis_ip
 
     def get_network_data(self):
         network_data = self.yaml_data['network']
@@ -69,23 +58,49 @@ class NetworkProcessor:
         ntp_servers = network_data['ntp']['servers'].split(',')
         proxy = network_data['proxy']
         ceph_cidr = []
+        """
         for rack in network_data['rack']:
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
+        """
+        ceph_cidr.append(network_data['storage']['nw'])
         calico_vlan = network_data['rack'][rack]['calico']['vlan']
         bgp_data = network_data['bgp']
+
+        """ 
+		Dummy data to fill ldap details 
+        Code to added after xl parser fixes
+
+        """
+
+        ldap_fix = {
+           'base_url': 'dummy',
+           'url': 'dummy',
+           'auth_path': 'dummy',
+           'common_name': 'dummy',
+           'subdomain': 'dummy',
+           'domain': 'dummy'
+       }
+
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
             'proxy': proxy,
             'ceph_cidr': ' '.join(ceph_cidr),
+
+            """ calico gw is suppressed, will be opened after xl parser
+            'calico_gw': network_data['common']['calico']['gw'],
+            """
             'calico_vlan': calico_vlan,
             'bgp': bgp_data,
-            'dns': network_data['dns']
+            'dns': network_data['dns'],
+            'genesis_ip':self.get_genesis_ip(),
+            'ldap': ldap_fix
         }
 
     def get_conf_data(self):
         conf_data = self.yaml_data['conf']
         return { 'conf': conf_data }
+
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(
@@ -103,7 +118,7 @@ class NetworkProcessor:
             loader=FileSystemLoader(template_software_dir),
             trim_blocks=True)
         data = {
-            'hosts': self.get_role_wise_nodes(),
+            'hosts': self.get_role_wise_nodes(self.yaml_data),
             'network': self.get_network_data(),
             'conf': self.get_conf_data()
         }
@@ -126,6 +141,7 @@ class NetworkProcessor:
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
                 templatefile = os.path.join(dirpath, filename)
+                outfile_j2 = ''
                 if not outfile_j2 and 'networks/physical' in templatefile:
                     outfile_j2 = outfile_path + templatefile.split(
                         'templates/networks/physical', 1)[1]
@@ -137,19 +153,20 @@ class NetworkProcessor:
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
 
-                for key in self.network_data:
-                    self.network_data[key]['rack'] = key
-                    self.network_data[key]['dns'] = self.yaml_data['network'][
-                        'dns']
-                    try:
-                        outfile = '{}{}.yaml'.format(outfile_dir,
-                                                     '/{}'.format(key))
-                        print('Rendering data for {}'.format(outfile))
-                        out = open(outfile, "w")
-                        # pylint: disable=maybe-no-member
-                        template_j2.stream(
-                            data=self.network_data[key]).dump(out)
-                        out.close()
-                    except IOError as ioe:
-                        raise SystemExit("Error when generating {:s}:\n{:s}"
-                                         .format(outfile, ioe.strerror))
+                self.network_data['region_name'] = self.yaml_data['region_name']
+                yaml_filename = filename.split('.j2')[0]
+                """ Temporary commented out will open after fixes to xl parser
+                try:
+                    outfile = '{}{}'.format(outfile_dir,yaml_filename)
+
+                    print('Rendering data for {}'.format(outfile))
+                    out = open(outfile, "w")
+                    template_j2.stream(
+                        data=self.yaml_data['network']).dump(out)
+                    out.close()
+                except IOError as ioe:
+                    raise SystemExit("Error when generating {:s}:\n{:s}"
+                                     .format(outfile, ioe.strerror))
+                """ 
+
+

@@ -1,0 +1,126 @@
+---
+schema: 'drydock/NetworkLink/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ data['region_name'] }}_bond1
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  bonding:
+    mode: 802.3ad
+    hash: layer3+4
+    peer_rate: fast
+    mon_rate: 100
+    up_delay: 1000
+    down_delay: 3000
+  mtu: 9100
+  linkspeed: auto
+  trunking:
+    mode: 802.1q
+  allowed_networks:
+    - {{ data['region_name'] }}_oam
+    - {{ data['region_name'] }}_storage
+    - {{ data['region_name'] }}_overlay
+    - {{ data['region_name'] }}_ksn
+...
+---
+schema: 'drydock/Network/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ data['region_name'] }}_oam
+  layeringDefinition:
+    abstract: false
+    layer: 'site'
+  storagePolicy: cleartext
+data:
+  vlan: {{ data['common']['oam']['vlan'] }}
+  mtu: 9100
+  cidr: {{ data['common']['oam']['nw'] }}
+  routes:
+{% for route in data['common']['oam']['routes'] %}
+    - subnet: {{ route }}
+      gateway: {{ data['common']['oam']['gw'] }}
+      metric: 100
+{% endfor %}
+  ranges:
+    - type: static
+      start: {{ data['common']['oam']['static_start'] }}
+      end: {{ data['common']['oam']['static_end'] }}
+  dns:
+    domain: {{ data['common']['dns']['domain'] }}
+    servers: {{ data['common']['dns']['servers'] }}
+...
+---
+schema: 'drydock/Network/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ data['region_name'] }}_storage
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  vlan: {{ data['common']['storage']['vlan'] }}
+  mtu: 9100
+  cidr: {{ data['common']['storage']['nw'] }}
+  routes:
+{% for route in data['common']['storage']['routes'] %}
+    - subnet: {{ route }}
+      gateway: {{ data['common']['storage']['gw'] }}
+      metric: 100
+{% endfor %}
+  ranges:
+    - type: static
+      start: {{ data['common']['storage']['static_start'] }}
+      end: {{ data['common']['storage']['static_end'] }}
+...
+---
+schema: 'drydock/Network/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ data['region_name'] }}_overlay
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  vlan: {{ data['common']['overlay']['vlan'] }}
+  mtu: 9100
+  cidr: {{ data['common']['overlay']['nw'] }}
+  routes:
+{% for route in data['common']['overlay']['routes'] %}
+    - subnet: {{ route }}
+      gateway: {{ data['common']['overlay']['gw'] }}
+      metric: 100
+{% endfor %}
+  ranges:
+    - type: static
+      start: {{ data['common']['overlay']['static_start'] }}
+      end: {{ data['common']['overlay']['static_end'] }}
+...
+---
+schema: 'drydock/Network/v1'
+metadata:
+  schema: 'metadata/Document/v1'
+  name: {{ data['region_name'] }}_ksn
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+data:
+  vlan: {{ data['common']['calico']['vlan'] }}
+  mtu: 9100
+  cidr: {{ data['common']['calico']['nw'] }}
+  routes:
+{% for route in data['common']['calico']['routes'] %}
+    - subnet: {{ route }}
+      gateway: {{ data['common']['calico']['gw'] }}
+      metric: 100
+{% endfor %}
+  ranges:
+    - type: static
+      start: {{ data['common']['calico']['static_start'] }}
+      end: {{ data['common']['calico']['static_end'] }}
+...

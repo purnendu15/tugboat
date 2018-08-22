@@ -13,10 +13,10 @@ data:
     etcd:
       service_ip: 10.96.232.136
     ip_rule:
-      interface: bond1.{{ data['network']['calico_vlan']}}
+      interface: {{ data['network']['calico_gw']}}
     bgp:
       ipv4:
-        public_service_cidr: {{ data['conf']['ingress'] }}
+        public_service_cidr: {{ data['conf']['conf']['ingress'] }}
         peers:
 {% for peer in data['network']['bgp']['peers'] %}
           - {{ peer }}
@@ -33,7 +33,7 @@ data:
 
   genesis:
     hostname: {{ data['hosts']['genesis']['name'] }}
-    ip: {{ data['hosts']['genesis']['oam'] }}
+    ip: {{ data['network']['genesis_ip'] }}
 
   bootstrap:
     ip: {{ data['hosts']['genesis']['pxe'] }}
@@ -75,6 +75,14 @@ data:
 
   ntp:
     servers_joined: {{ data['network']['ntp_servers']|join(',') }}
+
+  ldap:
+    base_url: {{ data['network']['ldap']['base_url'] }}
+    url: {{ data['network']['ldap']['url'] }}
+    auth_path: {{ data['network']['ldap']['auth_path'] }}
+    common_name: {{ data['network']['ldap']['common_name'] }}
+    subdomain: {{ data['network']['ldap']['subdomain'] }}
+    domain: {{ data['network']['ldap']['domain'] }}
 
   domain:
     url: {{ data['network']['dns']['domain'] }}

@@ -65,10 +65,10 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .calico.ip_rule.interface
+        path: .calico.ip_rule.gateway
       dest:
         path: .assets[0].data
-        pattern: DH_SUB_KSN_INTERFACE
+        pattern: DH_SUB_GATEWAY_IP
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
@@ -102,7 +102,7 @@ data:
 
         [Service]
         Type=simple
-        ExecStart=/opt/configure-ip-rules.sh -i DH_SUB_KSN_INTERFACE -c DH_SUB_POD_CIDR -s DH_SUB_INGRESS_CIDR
+        ExecStart=/opt/configure-ip-rules.sh -g DH_SUB_GATEWAY_IP -c DH_SUB_POD_CIDR -s DH_SUB_INGRESS_CIDR
 
         [Install]
         WantedBy=multi-user.target
