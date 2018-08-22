@@ -26,6 +26,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.HOST_TYPES = settings.HOST_TYPES
         self.PRIVATE_NETWORK_TYPES = settings.PRIVATE_NETWORK_TYPES
         self.IPS_TO_LEAVE = settings.IPS_TO_LEAVE
+        self.OOB_IPS_TO_LEAVE = settings.OOB_IPS_TO_LEAVE
         parsed_data = self.get_parsed_data(file_name, excel_specs)
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
@@ -65,9 +66,6 @@ class GenerateYamlFromExcel(ParserEngine):
                 if net_type.lower() in key.lower():
                     network_data[self.PRIVATE_NETWORK_TYPES[
                         net_type]] = raw_data['private'][key]
-                if 'service' in key.lower():
-                    self.service_cidr = raw_data['private'][key][
-                        'subnet_range']
         return network_data
 
     def get_public_network_data(self, raw_data):
@@ -86,22 +84,11 @@ class GenerateYamlFromExcel(ParserEngine):
         for net_type in self.private_network_data:
             value = ''
             for key in self.private_network_data[net_type]:
-                if key == 'subnet_range':
-                    value = self.private_network_data[net_type][key].split(
-                        '-')[0].replace(' ', '')
-                elif 'vlan' in key.lower():
+                if 'vlan' in key.lower():
                     tmp_value = re.findall(
                         vlan_pattern, self.private_network_data[net_type][key])
-                    if not tmp_value:
-                        continue
-                    else:
-                        value = tmp_value[0]
-                else:
-                    cidr_pattern = '/\d\d'
-                    value = re.findall(
-                        cidr_pattern,
-                        self.private_network_data[net_type][key])[0]
-                self.private_network_data[net_type][key] = value
+                    value = tmp_value[0]
+                    self.private_network_data[net_type][key] = value
         for type_ in self.dns_ntp_data:
             raw_list = self.dns_ntp_data[type_].split()
             data_list = []
@@ -138,23 +125,23 @@ class GenerateYamlFromExcel(ParserEngine):
         for rack in sorted_racks:
             rackwise_subnets[rack] = {}
         self.format_network_data()
+        rackwise_subnets['common'] = {}
         for net_type in self.private_network_data:
-            assigned_subnets = []
-            network_range = netaddr.IPNetwork(
-                self.private_network_data[net_type]['subnet_range'])
-            cidr_per_rack = self.private_network_data[net_type][
-                'cidr_per_rack']
-            cidr = int(cidr_per_rack.split('/')[1])
-            total_racks = len(self.racks)
-            subnets = network_range.subnet(cidr, count=total_racks)
-            i = 0
-            for subnet in subnets:
-                if net_type not in rackwise_subnets[sorted_racks[i]]:
-                    rackwise_subnets[sorted_racks[i]][net_type] = ''
-                rackwise_subnets[sorted_racks[i]][net_type] = subnet
-                i += 1
-                assigned_subnets.append(str(subnet))
-            self.network_data['assigned_subnets'][net_type] = assigned_subnets
+            if not self.private_network_data[net_type]['is_common']:
+                i = 0
+                subnets = self.private_network_data[net_type]['subnet']
+                for subnet in subnets:
+                    subnet = netaddr.IPNetwork(subnet)
+                    if net_type not in rackwise_subnets[sorted_racks[i]]:
+                        rackwise_subnets[sorted_racks[i]][net_type] = ''
+                    rackwise_subnets[sorted_racks[i]][net_type] = subnet
+                    i += 1
+                    if i >= len(sorted_racks):
+                        break
+            else:
+                rackwise_subnets['common'][
+                    net_type] = netaddr.IPNetwork(
+                        self.private_network_data[net_type]['subnet'][0])
         return rackwise_subnets
 
     def get_rackwise_hosts(self):
@@ -170,28 +157,53 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_private_ip_to_hosts(self):
         rackwise_hosts = self.get_rackwise_hosts()
         rackwise_subnets = self.get_rackwise_subnet()
-        for rack in self.racks:
+        sorted_racks = sorted(self.racks)
+        j = 0
+        for rack in sorted_racks:
             rack = self.racks[rack]
             self.network_data[rack] = {}
             for net_type in self.private_network_data:
-                subnet = rackwise_subnets[rack][net_type]
-                ips = list(subnet)
-                mid = len(ips) // 2
+                if not self.private_network_data[net_type]['is_common']:
+                    subnet = rackwise_subnets[rack][net_type]
+                    ips = list(subnet)
+                    for i in range(len(rackwise_hosts[rack])):
+                        self.ipmi_data[rackwise_hosts[rack][i]][
+                            net_type] = str(ips[i + self.IPS_TO_LEAVE + 1])
+                    mid = len(ips) // 2
+                    if net_type not in self.network_data['assigned_subnets']:
+                        self.network_data['assigned_subnets'][net_type] = []
+                    self.network_data['assigned_subnets'][net_type].append(
+                        str(subnet)
+                    )
+                else:
+                    subnet = rackwise_subnets['common'][net_type]
+                    ips = list(subnet)
+                    for i in range(len(rackwise_hosts[rack])):
+                        self.ipmi_data[rackwise_hosts[rack][i]][
+                            net_type] = str(ips[i + self.IPS_TO_LEAVE + 1 + j])
+                    mid = len(ips) // 2
                 static_start = str(ips[self.IPS_TO_LEAVE + 1])
-                static_end = str(ips[mid - 1])
-                self.network_data[rack][net_type] = {
-                    'static_start': static_start,
-                    'static_end': static_end
-                }
+                reserved_start = str(ips[1])
+                reserved_end = str(ips[self.IPS_TO_LEAVE])
+                static_end = str(ips[-2])
+                self.network_data[rack][net_type] = {}
                 if net_type == 'pxe':
+                    static_end = str(ips[mid - 1])
                     dhcp_start = str(ips[mid])
                     dhcp_end = str(ips[-2])
-                    self.network_data[rack][net_type][
-                        'dhcp_start'] = dhcp_start
-                    self.network_data[rack][net_type]['dhcp_end'] = dhcp_end
-                for i in range(len(rackwise_hosts[rack])):
-                    self.ipmi_data[rackwise_hosts[rack][i]][net_type] = str(
-                        ips[i + self.IPS_TO_LEAVE + 1])
+                    self.network_data[rack][
+                        net_type]['dhcp_start'] = dhcp_start
+                    self.network_data[rack][
+                        net_type]['dhcp_end'] = dhcp_end
+                self.network_data[rack][
+                    net_type]['static_start'] = static_start
+                self.network_data[rack][
+                    net_type]['static_end'] = static_end
+                self.network_data[rack][
+                    net_type]['reserved_start'] = reserved_start
+                self.network_data[rack][
+                    net_type]['reserved_end'] = reserved_end
+            j = i + 1
 
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()
@@ -238,30 +250,114 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_region_name(self):
         self.data['region_name'] = self.region_name
 
+    def get_oam_network_data(self):
+        nw = self.public_network_data['oam']['ip']
+        vlan = self.public_network_data['oam']['vlan']
+        subnet = netaddr.IPNetwork(nw)
+        ips = list(subnet)
+        gw = str(ips[settings.GATEWAY_OFFSET])
+        static_start = str(ips[self.IPS_TO_LEAVE + 1])
+        static_end = str(ips[-1])
+        reserved_start = str(ips[1])
+        reserved_end = str(ips[self.IPS_TO_LEAVE])
+        return {
+            'nw': nw,
+            'gw': gw,
+            'vlan': vlan,
+            'routes': ['0.0.0.0/0'],
+            'static_start': static_start,
+            'static_end': static_end,
+            'reserved_start': reserved_start,
+            'reserved_end': reserved_end,
+        }
+
+    def get_rackwise_oob_data(self):
+        oob_data = self.public_network_data['oob']
+        oob_network_data = {}
+        oob_all_subnets = [
+            netaddr.IPNetwork(subnet) for subnet in oob_data['subnets']
+        ]
+        assigned_subnets = []
+        rackwise_hosts = self.get_rackwise_hosts()
+        rackwise_oob_subnets = {}
+        for rack in rackwise_hosts:
+            host = rackwise_hosts[rack][0]
+            host_oob_ip = self.ipmi_data[host]['ipmi_address']
+            for subnet in oob_all_subnets:
+                if host_oob_ip in subnet:
+                    rackwise_oob_subnets[rack] = subnet
+                    assigned_subnets.append(subnet)
+                    break
+        for rack in rackwise_oob_subnets:
+            nw = rackwise_oob_subnets[rack]
+            ips = list(nw)
+            gw = str(ips[settings.GATEWAY_OFFSET])
+            routes = [
+                str(subnet) for subnet in assigned_subnets if subnet != nw
+            ]
+            static_start = str(ips[self.OOB_IPS_TO_LEAVE])
+            static_end = str(ips[-1])
+            reserved_start = str(ips[1])
+            reserved_end = str(ips[self.OOB_IPS_TO_LEAVE - 1])
+            oob_network_data[rack] = {
+                'nw': str(nw),
+                'gw': gw,
+                'routes': routes,
+                'static_start': static_start,
+                'static_end': static_end,
+                'reserved_start': reserved_start,
+                'reserved_end': reserved_end,
+            }
+        return oob_network_data
+
     def assign_network_data(self):
         rack_data = {}
         rackwise_subnets = self.get_rackwise_subnet()
+        common_subnets = {}
+        rackwise_oob_data = self.get_rackwise_oob_data()
         for rack in rackwise_subnets:
             for net_type in rackwise_subnets[rack]:
-                ips = list(rackwise_subnets[rack][net_type])
-                nw = str(rackwise_subnets[rack][net_type])
-                gw = str(ips[settings.GATEWAY_OFFSET])
-                routes = [
-                    subnet for subnet in self.network_data['assigned_subnets'][
-                        net_type] if subnet != nw
-                ]
-                rackwise_subnets[rack][net_type] = {
-                    'nw':
-                    nw,
-                    'gw':
-                    gw,
-                    'routes':
-                    routes,
-                    'static_start':
-                    self.network_data[rack][net_type]['static_start'],
-                    'static_end':
-                    self.network_data[rack][net_type]['static_end'],
-                }
+                if not self.private_network_data[net_type]['is_common']:
+                    ips = list(rackwise_subnets[rack][net_type])
+                    nw = str(rackwise_subnets[rack][net_type])
+                    gw = str(ips[settings.GATEWAY_OFFSET])
+                    routes = [
+                        subnet for subnet in self.network_data[
+                            'assigned_subnets'][net_type] if subnet != nw
+                    ]
+                    rackwise_subnets[rack][net_type] = {
+                        'nw': nw,
+                        'gw': gw,
+                        'vlan': self.private_network_data[net_type]['vlan'],
+                        'routes': routes,
+                        'static_start': self.network_data[rack][net_type][
+                            'static_start'],
+                        'static_end': self.network_data[rack][net_type][
+                            'static_end'],
+                        'reserved_start': self.network_data[rack][net_type][
+                            'reserved_start'],
+                        'reserved_end': self.network_data[rack][net_type][
+                            'reserved_end'],
+                    }
+                else:
+                    ips = list(rackwise_subnets['common'][net_type])
+                    nw = str(rackwise_subnets['common'][net_type])
+                    gw = str(ips[settings.GATEWAY_OFFSET])
+                    racks = list(self.racks.keys())
+                    rack = self.racks[racks[0]]
+                    common_subnets[net_type] = {
+                        'nw': nw,
+                        'gw': gw,
+                        'vlan': self.private_network_data[net_type]['vlan'],
+                        'static_start': self.network_data[rack][net_type][
+                            'static_start'],
+                        'static_end': self.network_data[rack][net_type][
+                            'static_end'],
+                        'reserved_start': self.network_data[rack][net_type][
+                            'reserved_start'],
+                        'reserved_end': self.network_data[rack][net_type][
+                            'reserved_end'],
+                    }
                 if net_type == 'pxe':
                     rackwise_subnets[rack][net_type][
                         'dhcp_start'] = self.network_data[rack][net_type][
@@ -269,19 +365,17 @@ class GenerateYamlFromExcel(ParserEngine):
                     rackwise_subnets[rack][net_type][
                         'dhcp_end'] = self.network_data[rack][net_type][
                             'dhcp_end']
-                if 'vlan' in self.private_network_data[net_type]:
-                    rackwise_subnets[rack][net_type][
-                        'vlan'] = self.private_network_data[net_type]['vlan']
-            rackwise_subnets[rack]['oam'] = settings.OAM
-            rackwise_subnets[rack]['oob'] = settings.OOB
-            if rack == self.genesis_rack:
-                rackwise_subnets[rack]['is_genesis'] = True
-            else:
-                rackwise_subnets[rack]['is_genesis'] = False
+            rackwise_subnets[rack]['oob'] = rackwise_oob_data[rack]
+        common_subnets['oam'] = self.get_oam_network_data()
+        if rack == self.genesis_rack:
+            rackwise_subnets[rack]['is_genesis'] = True
+        else:
+            rackwise_subnets[rack]['is_genesis'] = False
+        rackwise_subnets.pop('common')
         rack_data['rack'] = rackwise_subnets
+        rack_data['common'] = common_subnets
         self.data['network'] = rack_data
-        for net_type in self.public_network_data:
-            self.data['network'][net_type] = self.public_network_data[net_type]
+        self.data['network']['ingress'] = self.public_network_data['ingress']
         self.data['network']['proxy'] = settings.PROXY
         self.data['network']['proxy']['no_proxy'] = ','.join(self.no_proxy)
         self.data['network']['ntp'] = {

@@ -23,10 +23,11 @@ PROCESSORS_DIR = ['baremetal']
 PRIVATE_NETWORK_TYPES = {
     'pxe': 'pxe',
     'storage': 'storage',
-    'calico': 'calico',
-    'cni': 'overlay',
+    'calico': 'ksn',
+    'overlay': 'overlay',
 }
 IPS_TO_LEAVE = 12
+OOB_IPS_TO_LEAVE = 10
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
 PKI_TEMPLATES = ['pki-catalogue']
 SITE_DEFINITION_TEMPLATES = ['site_definition']
@@ -36,7 +37,7 @@ PROXY = {
     'http': 'http://one.proxy.att.com:8080',
     'https': 'http://one.proxy.att.com:8080',
 }
-GATEWAY_OFFSET = 3
+GATEWAY_OFFSET = 1
 DEPLOYMENT_MANIFEST = 'full-site'
 
 BGP = {
@@ -101,20 +102,4 @@ CONF = {
         'oam:100:1000,sriovnet1:105:109,'
         'sriovnet2:121:124',
     },
-}
-
-OAM = {
-    'gw': '172.29.0.3',
-    'nw': '172.29.0.0/25',
-    'routes': ['172.29.0.128/25', '172.29.1.0/25', '172.29.1.128/25'],
-    'static_end': '172.29.0.63',
-    'static_start': '172.29.0.13',
-    'vlan': '41'
-}
-
-OOB = {
-    'gw': '172.29.0.3',
-    'nw': '172.29.0.0/25',
-    'static_end': '172.29.0.63',
-    'static_start': '172.29.0.13',
 }

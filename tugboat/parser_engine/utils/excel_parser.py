@@ -87,30 +87,53 @@ class ExcelParser():
             row += 1
         return [self.ipmi_data, self.hosts]
 
-    def get_private_network_data(self):
-        network_data = {}
-        sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
-        ws = self.wb[sheet_name]
-        row = self.excel_specs['specs'][self.spec]['net_start_row']
-        end_row = self.excel_specs['specs'][self.spec]['net_end_row']
+    def get_private_vlan_data(self, ws):
+        vlan_data = {}
+        row = self.excel_specs['specs'][self.spec]['vlan_start_row']
+        end_row = self.excel_specs['specs'][self.spec]['vlan_end_row']
         type_col = self.excel_specs['specs'][self.spec]['net_type_col']
-        subnet_col = self.excel_specs['specs'][self.spec]['subnet_col']
-        cidr_per_rack_col = self.excel_specs['specs'][self.spec][
-            'cidr_per_rack_col']
-        vlan_col = self.excel_specs['specs'][self.spec]['net_vlan_col']
+        vlan_col = self.excel_specs['specs'][self.spec]['vlan_col']
         while row <= end_row:
             cell_value = ws.cell(row=row, column=type_col).value
             if cell_value:
-                subnet_range = ws.cell(row=row, column=subnet_col).value
-                cidr_per_rack = ws.cell(
-                    row=row, column=cidr_per_rack_col).value
                 vlan = ws.cell(row=row, column=vlan_col).value
-                network_data[cell_value] = {
-                    'subnet_range': subnet_range,
-                    'cidr_per_rack': cidr_per_rack,
-                    'vlan': vlan,
-                }
+                vlan_data[vlan] = cell_value
             row += 1
+        return vlan_data
+
+    def get_private_network_data(self):
+        sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
+        ws = self.wb[sheet_name]
+        vlan_data = self.get_private_vlan_data(ws)
+        network_data = {}
+        row = self.excel_specs['specs'][self.spec]['net_start_row']
+        end_row = self.excel_specs['specs'][self.spec]['net_end_row']
+        col = self.excel_specs['specs'][self.spec]['net_col']
+        vlan_col = self.excel_specs['specs'][self.spec]['net_vlan_col']
+        old_vlan = ''
+        while row <= end_row:
+            vlan = ws.cell(row=row, column=vlan_col).value
+            network = ws.cell(row=row, column=col).value
+            if vlan and network:
+                net_type = vlan_data[vlan]
+                if 'vlan' not in network_data:
+                    network_data[net_type] = {
+                        'vlan': vlan,
+                        'subnet': [],
+                    }
+            elif not vlan and network:
+                vlan = old_vlan
+            else:
+                row += 1
+                continue
+            network_data[vlan_data[vlan]]['subnet'].append(network)
+            old_vlan = vlan
+            row += 1
+        for network in network_data:
+            if len(network_data[network]['subnet']) > 1:
+                network_data[network]['is_common'] = False
+            else:
+                network_data[network]['is_common'] = True
         return network_data
 
     def get_public_network_data(self):
@@ -121,6 +144,9 @@ class ExcelParser():
         oam_col = self.excel_specs['specs'][self.spec]['oam_ip_col']
         oam_vlan_col = self.excel_specs['specs'][self.spec]['oam_vlan_col']
         ingress_row = self.excel_specs['specs'][self.spec]['ingress_ip_row']
+        oob_row = self.excel_specs['specs'][self.spec]['oob_net_row']
+        col = self.excel_specs['specs'][self.spec]['oob_net_start_col']
+        end_col = self.excel_specs['specs'][self.spec]['oob_net_end_col']
         network_data = {
             'oam': {
                 'ip': ws.cell(row=oam_row, column=oam_col).value,
@@ -128,6 +154,15 @@ class ExcelParser():
             },
             'ingress': ws.cell(row=ingress_row, column=oam_col).value,
         }
+        network_data['oob'] = {
+            'subnets': [],
+        }
+        while col <= end_col:
+            cell_value = ws.cell(row=oob_row, column=col).value
+            if cell_value:
+                network_data['oob']['subnets'].append(
+                    self.sanitize(cell_value))
+            col += 1
         return network_data
 
     def get_dns_ntp_data(self):
