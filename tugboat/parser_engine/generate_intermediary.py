@@ -365,13 +365,14 @@ class GenerateYamlFromExcel(ParserEngine):
                     rackwise_subnets[rack][net_type][
                         'dhcp_end'] = self.network_data[rack][net_type][
                             'dhcp_end']
+        rackwise_subnets.pop('common')
+        for rack in rackwise_subnets:
             rackwise_subnets[rack]['oob'] = rackwise_oob_data[rack]
-        common_subnets['oam'] = self.get_oam_network_data()
+            common_subnets['oam'] = self.get_oam_network_data()
         if rack == self.genesis_rack:
             rackwise_subnets[rack]['is_genesis'] = True
         else:
             rackwise_subnets[rack]['is_genesis'] = False
-        rackwise_subnets.pop('common')
         rack_data['rack'] = rackwise_subnets
         rack_data['common'] = common_subnets
         self.data['network'] = rack_data
