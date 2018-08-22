@@ -63,6 +63,17 @@ class NetworkProcessor:
                     hosts['workers'].append(host)
         return hosts
 
+    """ To get genesis ip we take the calico ip of the genesis node"""
+    def get_genesis_ip(self):
+        genesis_ip = '0.0.0.0'
+        for rack in self.yaml_data['baremetal']:
+            for host in self.yaml_data['baremetal'][rack]:
+                if self.yaml_data['baremetal'][rack][host][
+                        'type'] == 'genesis':
+                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip']['calico']
+
+        return genesis_ip
+
     def get_network_data(self):
         network_data = self.yaml_data['network']
         dns_servers = network_data['dns']['servers'].split(',')
@@ -89,7 +100,6 @@ class NetworkProcessor:
            'domain': 'dummy'
        }
 
-
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
@@ -98,12 +108,14 @@ class NetworkProcessor:
             'calico_vlan': calico_vlan,
             'bgp': bgp_data,
             'dns': network_data['dns'],
+            'genesis_ip':self.get_genesis_ip(),
             'ldap': ldap_fix
         }
 
     def get_conf_data(self):
         conf_data = self.yaml_data['conf']
         return { 'conf': conf_data }
+
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(

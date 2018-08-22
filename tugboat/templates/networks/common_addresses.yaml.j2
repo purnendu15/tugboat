@@ -33,7 +33,7 @@ data:
 
   genesis:
     hostname: {{ data['hosts']['genesis']['name'] }}
-    ip: {{ data['hosts']['genesis']['oam'] }}
+    ip: {{ data['network']['genesis_ip'] }}
 
   bootstrap:
     ip: {{ data['hosts']['genesis']['pxe'] }}
