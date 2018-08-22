@@ -49,8 +49,8 @@ data:
       start: {{ data['common']['oam']['static_start'] }}
       end: {{ data['common']['oam']['static_end'] }}
   dns:
-    domain: {{ data['common']['dns']['domain'] }}
-    servers: {{ data['common']['dns']['servers'] }}
+    domain: {{ data['dns']['domain'] }}
+    servers: {{ data['dns']['servers'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -110,17 +110,17 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  vlan: {{ data['common']['calico']['vlan'] }}
+  vlan: {{ data['common']['ksn']['vlan'] }}
   mtu: 9100
-  cidr: {{ data['common']['calico']['nw'] }}
+  cidr: {{ data['common']['ksn']['nw'] }}
   routes:
-{% for route in data['common']['calico']['routes'] %}
+{% for route in data['common']['ksn']['routes'] %}
     - subnet: {{ route }}
-      gateway: {{ data['common']['calico']['gw'] }}
+      gateway: {{ data['common']['ksn']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: static
-      start: {{ data['common']['calico']['static_start'] }}
-      end: {{ data['common']['calico']['static_end'] }}
+      start: {{ data['common']['ksn']['static_start'] }}
+      end: {{ data['common']['ksn']['static_end'] }}
 ...
