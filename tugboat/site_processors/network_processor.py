@@ -58,8 +58,11 @@ class NetworkProcessor(BaseProcessor):
         ntp_servers = network_data['ntp']['servers'].split(',')
         proxy = network_data['proxy']
         ceph_cidr = []
+        """
         for rack in network_data['rack']:
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
+        """
+        ceph_cidr.append(network_data['storage']['nw'])
         calico_vlan = network_data['rack'][rack]['calico']['vlan']
         bgp_data = network_data['bgp']
 
