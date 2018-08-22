@@ -84,6 +84,13 @@ metadata:
         path: .assets[0].data
         pattern: DH_SUB_INGRESS_CIDR
     - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .calico.ip_rule.overlap_cidr
+      dest:
+        path: .assets[0].data
+        pattern: DH_SUB_OVERLAP_CIDR
+    - src:
         schema: pegleg/Script/v1
         name: configure-ip-rules
         path: .
@@ -102,7 +109,7 @@ data:
 
         [Service]
         Type=simple
-        ExecStart=/opt/configure-ip-rules.sh -g DH_SUB_GATEWAY_IP -c DH_SUB_POD_CIDR -s DH_SUB_INGRESS_CIDR
+        ExecStart=/opt/configure-ip-rules.sh -g DH_SUB_GATEWAY_IP -c DH_SUB_POD_CIDR -s DH_SUB_INGRESS_CIDR -o DH_SUB_OVERLAP_CIDR
 
         [Install]
         WantedBy=multi-user.target
