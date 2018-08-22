@@ -73,6 +73,23 @@ class NetworkProcessor:
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
         calico_vlan = network_data['rack'][rack]['calico']['vlan']
         bgp_data = network_data['bgp']
+
+        """ 
+		Dummy data to fill ldap details 
+        Code to added after xl parser fixes
+
+        """
+
+        ldap_fix = {
+           'base_url': 'dummy',
+           'url': 'dummy',
+           'auth_path': 'dummy',
+           'common_name': 'dummy',
+           'subdomain': 'dummy',
+           'domain': 'dummy'
+       }
+
+
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
@@ -80,7 +97,8 @@ class NetworkProcessor:
             'ceph_cidr': ' '.join(ceph_cidr),
             'calico_vlan': calico_vlan,
             'bgp': bgp_data,
-            'dns': network_data['dns']
+            'dns': network_data['dns'],
+            'ldap': ldap_fix
         }
 
     def get_conf_data(self):

@@ -76,6 +76,14 @@ data:
   ntp:
     servers_joined: {{ data['network']['ntp_servers']|join(',') }}
 
+  ldap:
+    base_url: {{ data['network']['ldap']['base_url'] }}
+    url: {{ data['network']['ldap']['url'] }}
+    auth_path: {{ data['network']['ldap']['auth_path'] }}
+    common_name: {{ data['network']['ldap']['common_name'] }}
+    subdomain: {{ data['network']['ldap']['subdomain'] }}
+    domain: {{ data['network']['ldap']['domain'] }}
+
   domain:
     url: {{ data['network']['dns']['domain'] }}
 
