@@ -33,3 +33,34 @@ class BaseProcessor:
 
     def render_template(self, template):
         pass
+
+    @staticmethod
+    def get_role_wise_nodes(yaml_data):
+        hosts = {
+            'genesis': {},
+            'masters': [],
+            'workers': [],
+        }
+        """
+        if self.hosts['masters'] is not None:
+            return self.hosts
+        """
+        for rack in yaml_data['baremetal']:
+            for host in yaml_data['baremetal'][rack]:
+                if yaml_data['baremetal'][rack][host][
+                        'type'] == 'genesis':
+                    hosts['genesis'] = {
+                        'name':
+                        host,
+                        'pxe':
+                        yaml_data['baremetal'][rack][host]['ip']['pxe'],
+                        'oam':
+                        yaml_data['baremetal'][rack][host]['ip']['oam'],
+                    }
+                elif yaml_data['baremetal'][rack][host][
+                        'type'] == 'controller':
+                    hosts['masters'].append(host)
+                else:
+                    hosts['workers'].append(host)
+        return hosts
+ 
