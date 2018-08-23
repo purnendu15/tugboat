@@ -8,7 +8,12 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      hosttype: nc-cp
+{% if data['profile_name'] == 'nsb'  %}
+      hosttype: nc-{{ data['profile_name'][0:2] }}-r740
+{% else %}
+      hosttype: nc-{{ data['profile_name'] }}
+{% endif %}
+
     actions:
       - method: replace
         path: .interfaces
