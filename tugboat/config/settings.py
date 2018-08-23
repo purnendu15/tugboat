@@ -55,7 +55,6 @@ BGP = {
 HOSTPROFILE_INTERFACES = {
     'cp': {
         'networks': {
-            'pxe': ['eno3'],
             'bond1': [
                 'gp_nic01',
                 'gp_nic02',
@@ -66,7 +65,6 @@ HOSTPROFILE_INTERFACES = {
     },
     'gv': {
         'networks': {
-            'pxe': ['eno3'],
             'bond1': [
                 'gp_nic01',
                 'gp_nic02',
@@ -100,11 +98,90 @@ CONF = {
         'vcpu_pin_set':
         '4-10',
         'passthrough_whitelist':
-        '[{"address": "0000:d8:0a.0", '
-        '"physical_network": "sriovnet1", "trusted": "true"}]',
+        '[{"address": "0000:d8:0a.0", "physical_network": "sriovnet2",'
+        '"trusted": "true"},{"address": "0000:d8:0a.1", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0b.2", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0b.3", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0b.4", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0b.5", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0b.6", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0b.7", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0c.0", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0c.1", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0c.2", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0c.3", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0a.2", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0c.4", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0c.5", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0c.6", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0c.7", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0d.0", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0d.1", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0d.2", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0d.3", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0d.4", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0d.5", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0a.3", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0d.6", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0d.7", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0a.4", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0a.5", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:d8:0a.6", "physical_network": "sriovnet2", '
+        '"trusted": "true"},{"address": "0000:d8:0a.7", "physical_network": '
+        '"sriovnet2", "trusted": "true"},{"address": "0000:d8:0b.0", '
+        '"physical_network": "sriovnet2", "trusted": "true"},{"address": '
+        '"0000:d8:0b.1", "physical_network": "sriovnet2", "trusted": "true"},'
+        '{"address": "0000:3b:02.0", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:02.1", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:03.2", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:03.3", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:03.4", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:03.5", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:03.6", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:03.7", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:04.0", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:04.1", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:04.2", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:04.3", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:02.2", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:04.4", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:04.5", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:04.6", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:04.7", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:05.0", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:05.1", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:05.2", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:05.3", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:05.4", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:05.5", '
+        '"physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:02.3", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:05.6", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:05.7", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:02.4", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:02.5", "physical_network": '
+        '"sriovnet1", "trusted": "true"},{"address": "0000:3b:02.6", '
+        '"physical_network": "sriovnet1", "trusted": "true"},{"address": '
+        '"0000:3b:02.7", "physical_network": "sriovnet1", "trusted": "true"},'
+        '{"address": "0000:3b:03.0", "physical_network": "sriovnet1", '
+        '"trusted": "true"},{"address": "0000:3b:03.1", "physical_network": '
+        '"sriovnet1", "trusted": "true"}]',
     },
     'neutron': {
         'network_vlan_ranges':
-        'oam:100:4000,sriovnet1:100:4000,sriovnet2:100:4000'
+        ' oam:100:1000,sriovnet1:105:109,sriovnet2:121:124'
     },
 }

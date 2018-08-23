@@ -2,13 +2,13 @@
 schema: drydock/HostProfile/v1
 metadata:
   schema: metadata/Document/v1
-  name: {{ data['profile_name'] }}
+  name: {{ data['profile_name'] }}_{{ data['rack'] }}
   storagePolicy: cleartext
   layeringDefinition:
     abstract: false
     layer: site
     parentSelector:
-      hosttype: nc-cp 
+      hosttype: nc-cp
     actions:
       - method: replace
         path: .interfaces
@@ -17,10 +17,10 @@ metadata:
       - method: merge
         path: .
 data:
-  hardware_profile: dell_r740_purley_5ec
+  hardware_profile: dell_r740_purley_nc
   oob:
     network: {{ data['rack'] }}_oob
-    account: tier4
+    account: root
   storage:
     physical_devices:
       bootdisk:
@@ -71,30 +71,30 @@ data:
               fstype: 'ext4'
               mount_options: 'defaults'
 {% endif %}
-  primary_network: {{ data['profile'] }}_oam
+  primary_network: {{ data['region'] }}_oam
   interfaces:
-{% for interface in data['profile']['networks'] %}
-    {{ interface }}:
-      device_link: {{ interface }}
+    eno4:
+      device_link: {{data['rack']}}_pxe
       slaves:
-{% for slave in data['profile']['networks'][interface] %}
-        - {{ slave }}
-{% endfor %}
-{% if data['profile']['networks'][interface]['type'] == 'pxe' %}
+        - eno4
       networks:
-      - {{ data['rack'] }}_pxe
-{% elif data['profile']['networks'][interface]['type'] == 'bond' %}
+        - {{data['rack']}}_pxe
+    bond1:
+      device_link: bond1
+      slaves:
+        - enp135s0f0
+        - enp94s0f1
       networks:
-      - {{ data['rack'] }}_oam
-      - {{ data['rack'] }}_overlay
-      - {{ data['rack'] }}_storage
-      - {{ data['rack'] }}_ksn
-{% elif data['profile']['networks'][interface]['type'] == 'sriov' %}
-      sriov:
-        vf_count: 32
-        trustedmode: false
-{% endif %}
-{% endfor %}
+      - {{ data['region'] }}_oam
+      - {{ data['rack'] }}_oob
+      - {{ data['region'] }}_overlay
+      - {{ data['region'] }}_storage
+      - {{ data['region'] }}_ksn
+  platform:
+    image: 'xenial'
+    kernel: 'hwe-16.04'
+    kernel_params:
+      console: 'ttyS1,115200n8'
   metadata:
     owner_data:
       openstack-l3-agent: enabled
