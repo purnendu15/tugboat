@@ -26,6 +26,9 @@ PRIVATE_NETWORK_TYPES = {
     'calico': 'ksn',
     'overlay': 'overlay',
 }
+STATE_CODES = {
+    'New Jersey': 'NJ',
+}
 IPS_TO_LEAVE = 12
 OOB_IPS_TO_LEAVE = 10
 BAREMETAL_TEMPLATES = ['rack', 'bootaction']
@@ -37,6 +40,9 @@ PROXY = {
     'http': 'http://one.proxy.att.com:8080',
     'https': 'http://one.proxy.att.com:8080',
 }
+NO_PROXY = 'artifacts-nc.mtn29.cci.att.com,docker-nc.mtn29.cci.att.com,' \
+    'docker-open-nc.mtn29.cci.att.com,10.96.0.1,cluster.local,' \
+    'svc.cluster.local'
 GATEWAY_OFFSET = 1
 DEPLOYMENT_MANIFEST = 'full-site'
 
@@ -99,7 +105,6 @@ CONF = {
     },
     'neutron': {
         'network_vlan_ranges':
-        'oam:100:1000,sriovnet1:105:109,'
-        'sriovnet2:121:124',
+        'oam:100:4000,sriovnet1:100:4000,sriovnet2:100:4000'
     },
 }

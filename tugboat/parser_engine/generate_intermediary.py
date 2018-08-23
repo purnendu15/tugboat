@@ -36,6 +36,8 @@ class GenerateYamlFromExcel(ParserEngine):
             parsed_data['network_data'])
         self.dns_ntp_ldap_data = self.get_dns_ntp_ldap_data(
             parsed_data['network_data'])
+        self.location_data = self.get_location_data(
+            parsed_data['location_data'])
         self.host_type = {}
         self.data = {
             'network': {},
@@ -44,10 +46,10 @@ class GenerateYamlFromExcel(ParserEngine):
             'region_name': '',
             'conf': {},
             'ceph': {},
+            'location': {},
         }
         self.service_ip = ''
         self.region_name = ''
-        self.no_proxy = []
         self.dhcp_relay = ''
         self.genesis_rack = ''
         self.network_data = {
@@ -75,6 +77,24 @@ class GenerateYamlFromExcel(ParserEngine):
     def get_dns_ntp_ldap_data(self, raw_data):
         network_data = raw_data['dns_ntp_ldap']
         return network_data
+
+    def get_location_data(self, raw_data):
+        corridor_pattern = '\d+'
+        corridor_number = re.findall(corridor_pattern, raw_data['corridor'])[0]
+        name = raw_data['name']
+        state = settings.STATE_CODES[raw_data['state']]
+        country = raw_data['country']
+        physical_location_id = raw_data['physical_location_id']
+        return {
+            'corridor': 'c{}'.format(corridor_number),
+            'name': name,
+            'state': state,
+            'country': country,
+            'physical_location_id': physical_location_id,
+        }
+
+    def assign_location_data(self):
+        self.data['location'] = self.location_data
 
     def format_network_data(self):
         vlan_pattern = '\d+'
@@ -220,7 +240,6 @@ class GenerateYamlFromExcel(ParserEngine):
         for rack in self.racks:
             rack = self.racks[rack]
             for i in range(len(rackwise_hosts[rack])):
-                self.no_proxy.append(str(ips[j + self.IPS_TO_LEAVE + 1]))
                 self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
                     ips[j + self.IPS_TO_LEAVE + 1])
                 j += 1
@@ -385,7 +404,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.data['network'] = rack_data
         self.data['network']['ingress'] = self.public_network_data['ingress']
         self.data['network']['proxy'] = settings.PROXY
-        self.data['network']['proxy']['no_proxy'] = ','.join(self.no_proxy)
+        self.data['network']['proxy']['no_proxy'] = settings.NO_PROXY
         self.data['network']['ntp'] = {
             'servers': self.dns_ntp_ldap_data['ntp'],
         }
@@ -447,6 +466,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.assign_region_name()
         self.assign_ceph_data()
         self.assign_conf_data()
+        self.assign_location_data()
 
     def generate_yaml(self):
         self.generate_intermediary_yaml()

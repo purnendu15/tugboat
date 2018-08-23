@@ -12,11 +12,17 @@ metadata:
       - method: merge
         path: .
   storagePolicy: cleartext
+  substitutions:
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .calico.bgp.ipv4.ingress_vip
+      dest:
+        path: .values.network.vip.addr
 data:
   values:
     network:
       vip:
         manage: true
         interface: ingress0
-        addr: {{ data['conf']['ingress'] }}
 ...

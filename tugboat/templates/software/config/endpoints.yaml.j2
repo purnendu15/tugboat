@@ -1618,3 +1618,43 @@ data:
         ldap:
           default: 389
 ...
+---
+schema: pegleg/EndpointCatalogue/v1
+metadata:
+  schema: metadata/Document/v1
+  name: ro_endpoints
+  layeringDefinition:
+    abstract: false
+    layer: site
+    parentSelector:
+      name: ro_endpoints_global
+    actions:
+      - method: merge
+        path: .
+  storagePolicy: cleartext
+  substitutions:
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .dns.ingress_domain
+      dest:
+        path: .ro.ro.host_fqdn_override.default
+        pattern: DOMAIN
+data:
+  ro:
+    ro:
+      name: ro
+      hosts:
+        default: ro-api
+        public: ro
+      host_fqdn_override:
+        default: ro-nc.DOMAIN
+      path:
+        default: '/ro/api/version'
+      scheme:
+        default: 'http'
+      port:
+        api:
+          default: 8080
+          public: 8080
+...

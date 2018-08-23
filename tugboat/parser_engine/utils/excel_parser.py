@@ -194,16 +194,37 @@ class ExcelParser():
         }
         return dns_ntp_ldap_data
 
+    def get_location_data(self):
+        sheet_name = self.excel_specs['specs'][self.spec]['location_sheet']
+        ws = self.wb[sheet_name]
+        corridor_row = self.excel_specs['specs'][self.spec]['corridor_row']
+        column = self.excel_specs['specs'][self.spec]['column']
+        name_row = self.excel_specs['specs'][self.spec]['name_row']
+        state_row = self.excel_specs['specs'][self.spec]['state_row']
+        country_row = self.excel_specs['specs'][self.spec]['country_row']
+        clli_row = self.excel_specs['specs'][self.spec]['clli_row']
+        return {
+            'corridor': ws.cell(
+                row=corridor_row, column=column).value,
+            'name': ws.cell(row=name_row, column=column).value,
+            'state': ws.cell(row=state_row, column=column).value,
+            'country': ws.cell(row=country_row, column=column).value,
+            'physical_location_id': ws.cell(
+                row=clli_row, column=column).value,
+        }
+
     def get_data(self):
         ipmi_data = self.get_ipmi_data()
         network_data = self.get_private_network_data()
         public_network_data = self.get_public_network_data()
         dns_ntp_ldap_data = self.get_dns_ntp_ldap_data()
+        location_data = self.get_location_data()
         return {
             'ipmi_data': ipmi_data,
             'network_data': {
                 'private': network_data,
                 'public': public_network_data,
                 'dns_ntp_ldap': dns_ntp_ldap_data,
-            }
+            },
+            'location_data': location_data,
         }
