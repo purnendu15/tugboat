@@ -41,7 +41,7 @@ class NetworkProcessor(BaseProcessor):
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
-    """ To get genesis ip we take the calico ip of the genesis node"""
+    """ To get genesis ip we take the ksn ip of the genesis node"""
     def get_genesis_ip(self):
         genesis_ip = '0.0.0.0'
         for rack in self.yaml_data['baremetal']:
@@ -63,24 +63,24 @@ class NetworkProcessor(BaseProcessor):
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
         """
         ceph_cidr.append(network_data['common']['storage']['nw'])
-        calico_vlan = network_data['common']['ksn']['vlan']
+        ksn_vlan_info = network_data['common']['ksn']['vlan']
+        overlay_vlan_info = network_data['common']['overlay']['vlan']
         bgp_data = network_data['bgp']
         ldap_data = network_data['ldap']
         ldap_data['domain'] = ldap_data['base_url'].split('.')[1]
-
-
 
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
             'proxy': proxy,
             'ceph_cidr': ' '.join(ceph_cidr),
-            'calico_gw': network_data['common']['ksn']['gw'],
-            'calico_vlan': calico_vlan,
+            'ksn_gw': network_data['common']['ksn']['gw'],
+            'ksn_vlan': ksn_vlan_info,
             'bgp': bgp_data,
             'dns': network_data['dns'],
             'genesis_ip':self.get_genesis_ip(),
             'ldap': ldap_data,
+            'overlay_vlan' : overlay_vlan_info
         }
 
     def get_conf_data(self):
@@ -152,7 +152,6 @@ class NetworkProcessor(BaseProcessor):
 
                     print('Rendering data for {}'.format(outfile))
                     out = open(outfile, "w")
-                    #import pdb; pdb.set_trace()
                     template_j2.stream(
                         data=self.yaml_data['network']).dump(out)
                     out.close()

@@ -8,7 +8,7 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      hosttype: 5ec-{{ data['profile_name'] }}-type
+      hosttype: nc-cp 
     actions:
       - method: replace
         path: .interfaces
@@ -17,7 +17,7 @@ metadata:
       - method: merge
         path: .
 data:
-  hardware_profile: dell_r640_purley_5ec
+  hardware_profile: dell_r740_purley_5ec
   oob:
     network: {{ data['rack'] }}_oob
     account: tier4
@@ -71,7 +71,7 @@ data:
               fstype: 'ext4'
               mount_options: 'defaults'
 {% endif %}
-  primary_network: {{ data['rack'] }}_oam
+  primary_network: {{ data['profile'] }}_oam
   interfaces:
 {% for interface in data['profile']['networks'] %}
     {{ interface }}:

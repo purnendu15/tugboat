@@ -8,12 +8,12 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  calico:
-    ip_autodetection_method: interface=bond1.{{ data['network']['calico_vlan']}}
+  ksn:
+    ip_autodetection_method: interface=bond1.{{ data['network']['ksn_vlan']}}
     etcd:
       service_ip: 10.96.232.136
     ip_rule:
-      gateway: {{ data['network']['calico_gw']}}
+      gateway: {{ data['network']['ksn_gw']}}
       overlap_cidr: 10.96.0.0/15 
     bgp:
       ipv4:
@@ -95,8 +95,8 @@ data:
       cluster_cidr: {{ data['network']['ceph_cidr'] }}
 
   neutron:
-    tunnel_device: 'bond1.45'
-    external_iface: 'bond1'
+    tunnel_device: bond1.{{ data['network']['overlay_vlan'] }}
+    external_iface: bond1
 
   openvswitch:
     external_iface: 'bond1'
