@@ -65,6 +65,7 @@ class ProfileProcessor:
                                 profile]
                             render_data['profile_name'] = profile
                             render_data['rack'] = rack
+                            render_data['region'] = self.data['region_name']
 
                             outfile_j2 = outfile_path + templatefile.split(
                                 'templates/profiles', 1)[1]
