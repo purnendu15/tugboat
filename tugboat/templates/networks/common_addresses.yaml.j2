@@ -81,7 +81,7 @@ data:
   ldap:
     base_url: {{ data['network']['ldap']['base_url'] }}
     url: {{ data['network']['ldap']['url'] }}
-    auth_path: {{ data['network']['ldap']['auth_path'] }}
+    auth_path: DC=testitservices,DC=atttest,DC=com?sAMAccountName?sub?memberof=CN={{ data['network']['ldap']['common_name'] }},OU=Application,OU=Groups,DC=testitservices,DC=atttest,DC=com
     common_name: {{ data['network']['ldap']['common_name'] }}
     subdomain: {{ data['network']['ldap']['subdomain'] }}
     domain: {{ data['network']['ldap']['domain'] }}

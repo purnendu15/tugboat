@@ -73,6 +73,11 @@ class BaremetalProcessor:
                         raise SystemExit("Error when generating {:s}:\n{:s}"
                                          .format(outfile, ioe.strerror))
             elif template == 'bootaction':
+                file_path = 'pegleg_manifests/site/{}/baremetal/bootaction/'.format(
+                    self.dir_name)
+                if not os.path.exists(file_path):
+	                os.makedirs(file_path)
+
                 data = {
                     'hosts': [],
                     'ingress': self.ingress,
