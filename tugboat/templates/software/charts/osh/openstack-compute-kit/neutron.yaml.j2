@@ -9,7 +9,7 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      name: neutron-5ec
+      name: neutron-global
     actions:
       - method: merge
         path: .
@@ -29,10 +29,10 @@ data:
         br-bond1: bond1
       interface:
         sriov:
-          - device: enp59s0f0
+          - device: enp94s0f0
             num_vfs: 32
             promisc: false
-          - device: enp216s0f1
+          - device: enp135s0f1
             num_vfs: 32
             promisc: false
     conf:
@@ -42,7 +42,7 @@ data:
             bridge_mappings: oam:br-bond1
         sriov_agent:
           sriov_nic:
-            physical_device_mappings: sriovnet1:enp59s0f0,sriovnet2:enp216s0f1
+            physical_device_mappings: sriovnet1:enp94s0f0,sriovnet2:enp135s0f1
             exclude_devices: null
           securitygroup:
             firewall_driver: neutron.agent.firewall.NoopFirewallDriver
