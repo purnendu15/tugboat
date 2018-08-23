@@ -73,28 +73,21 @@ metadata:
   storagePolicy: cleartext
 data:
   cidr: {{ data['rack'][rack_key]['pxe']['nw'] }}
-{% if not data['rack'][rack_key]['is_genesis'] %}
-  dhcp_relay:
-    upstream_target: {{ data['dns']['dhcp_relay'] }}
-{% endif %}
   routes:
-{% if not data['rack'][rack_key]['is_genesis'] %}
-    - subnet: 0.0.0.0/0
+    - subnet: '0.0.0.0/0'
       gateway: {{ data['rack'][rack_key]['pxe']['gw'] }}
       metric: 100
-{% endif %}
-{% for other_subnet in data['rack'][rack_key]['pxe']['routes'] %}
-    - subnet: {{ other_subnet }}
-      gateway: {{ data['rack'][rack_key]['pxe']['gw'] }}
-      metric: 100
-{% endfor %}
   ranges:
-    - type: 'static'
+    - type: reserved
+      start: {{ data['rack'][rack_key]['pxe']['reserved_start'] }}
+      end: {{ data['rack'][rack_key]['pxe']['reserved_end'] }}
+    - type: static
       start: {{ data['rack'][rack_key]['pxe']['static_start'] }}
       end: {{ data['rack'][rack_key]['pxe']['static_end'] }}
     - type: dhcp
       start: {{ data['rack'][rack_key]['pxe']['dhcp_start'] }}
       end: {{ data['rack'][rack_key]['pxe']['dhcp_end'] }}
+
 ...
 ---
 {%endfor%}

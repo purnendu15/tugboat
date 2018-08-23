@@ -29,7 +29,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
           groups:
             - system:nodes
 {% endif %}
@@ -40,7 +40,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
           groups:
             - system:nodes
 {%endfor%}
@@ -75,7 +75,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
@@ -88,7 +88,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
@@ -103,7 +103,7 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
@@ -117,50 +117,50 @@ data:
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
 {% endif %}
 {%endfor%}
-    calico-etcd:
+    ksn-etcd:
       description: Certificates for Calico etcd client traffic
       certificates:
-        - document_name: calico-etcd-anchor
+        - document_name: ksn-etcd-anchor
           description: anchor
           common_name: anchor
 {% for host in data.keys()%}
 {% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis' %}
-        - document_name: calico-etcd-{{ host }}
-          common_name: calico-etcd-{{ host }}
+        - document_name: ksn-etcd-{{ host }}
+          common_name: ksn-etcd-{{ host }}
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - 10.96.232.136
 {% endif %}
 {%endfor%}
-        - document_name: calico-node
+        - document_name: ksn-node
           common_name: calcico-node
-    calico-etcd-peer:
+    ksn-etcd-peer:
       description: Certificates for Calico etcd clients
       certificates:
 {% for host in data.keys()%}
 {% if data[host]['type'] == 'controller' or data[host]['type'] == 'genesis' %}
-        - document_name: calico-etcd-{{ host }}-peer
-          common_name: calico-etcd-{{ host }}-peer
+        - document_name: ksn-etcd-{{ host }}-peer
+          common_name: ksn-etcd-{{ host }}-peer
           hosts:
             - {{ host }}
             - {{ data[host]['ip']['oam'] }}
-            - {{ data[host]['ip']['calico']}}
+            - {{ data[host]['ip']['ksn']}}
             - 127.0.0.1
             - localhost
             - 10.96.232.136
 {% endif %}
 {%endfor%}
-        - document_name: calico-node-peer
+        - document_name: ksn-node-peer
           common_name: calcico-node-peer
   keypairs:
     - name: service-account

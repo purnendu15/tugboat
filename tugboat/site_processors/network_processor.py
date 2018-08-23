@@ -41,7 +41,7 @@ class NetworkProcessor(BaseProcessor):
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
-    """ To get genesis ip we take the calico ip of the genesis node"""
+    """ To get genesis ip we take the ksn ip of the genesis node"""
     def get_genesis_ip(self):
         genesis_ip = '0.0.0.0'
         for rack in self.yaml_data['baremetal']:
@@ -63,38 +63,24 @@ class NetworkProcessor(BaseProcessor):
             ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
         """
         ceph_cidr.append(network_data['common']['storage']['nw'])
-        calico_vlan = network_data['common']['ksn']['vlan']
+        ksn_vlan_info = network_data['common']['ksn']['vlan']
+        overlay_vlan_info = network_data['common']['overlay']['vlan']
         bgp_data = network_data['bgp']
-
-        """ 
-		Dummy data to fill ldap details 
-        Code to added after xl parser fixes
-
-        """
-
-        ldap_fix = {
-           'base_url': 'dummy',
-           'url': 'dummy',
-           'auth_path': 'dummy',
-           'common_name': 'dummy',
-           'subdomain': 'dummy',
-           'domain': 'dummy'
-       }
+        ldap_data = network_data['ldap']
+        ldap_data['domain'] = ldap_data['base_url'].split('.')[1]
 
         return {
             'dns_servers': dns_servers,
             'ntp_servers': ntp_servers,
             'proxy': proxy,
             'ceph_cidr': ' '.join(ceph_cidr),
-
-            """ calico gw is suppressed, will be opened after xl parser
-            'calico_gw': network_data['common']['calico']['gw'],
-            """
-            'calico_vlan': calico_vlan,
+            'ksn_gw': network_data['common']['ksn']['gw'],
+            'ksn_vlan': ksn_vlan_info,
             'bgp': bgp_data,
             'dns': network_data['dns'],
             'genesis_ip':self.get_genesis_ip(),
-            'ldap': ldap_fix
+            'ldap': ldap_data,
+            'overlay_vlan' : overlay_vlan_info
         }
 
     def get_conf_data(self):
@@ -153,6 +139,12 @@ class NetworkProcessor(BaseProcessor):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
 
+
+                rack_list_data = []
+                for racks in self.network_data['rack'].keys():
+                    rack_list_data.append(racks)
+                
+                self.network_data['rack_list']= rack_list_data
                 self.network_data['region_name'] = self.yaml_data['region_name']
                 yaml_filename = filename.split('.j2')[0]
                 try:

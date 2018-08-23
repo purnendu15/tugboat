@@ -59,6 +59,9 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 for rack in self.baremetal_data:
                     data = self.baremetal_data[rack]
+                    #import pdb; pdb.set_trace()
+                    for hosts in data.keys():
+                        data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
                     print('Rendering data for {}'.format(outfile))
                     try:

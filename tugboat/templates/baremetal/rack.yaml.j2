@@ -11,22 +11,22 @@ metadata:
   storagePolicy: cleartext
 {% set rack = data[host]['rack'] %}
 data:
-  host_profile: {{data[host]['host_profile']}}
+  host_profile: {{data[host]['host_profile']}}_{{ rack }}
   addressing:
     - network: {{ rack }}_oob
       address: {{ data[host]['ip']['oob'] }}
-    - network: {{ rack }}_oam
+    - network: {{ data[host]['region'] }}_oam
       address: {{ data[host]['ip']['oam'] }}
     - network: {{ rack }}_pxe
       address: {{ data[host]['ip']['pxe'] }}
-    - network: {{ rack }}_storage
+    - network: {{ data[host]['region']  }}_storage
       address: {{ data[host]['ip']['storage'] }}
-    - network: {{ rack }}_ksn
+    - network: {{ data[host]['region'] }}_ksn
       address: {{ data[host]['ip']['ksn'] }}
-    - network: {{ rack }}_overlay
+    - network: {{ data[host]['region']  }}_overlay
       address: {{ data[host]['ip']['overlay'] }}
   metadata:
-    rack: {{ data[host]['rack']|upper }}
+    rack: {{ data[host]['region']|upper }}R{{rack[-2:] }}
     tags:
 {% if data[host]['type'] == 'compute' %}
         - 'workers'
