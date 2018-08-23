@@ -20,6 +20,9 @@ data:
   trunking:
     mode: 802.1q
   allowed_networks:
+{% for rack_name in data['rack_list'] %}
+    - {{ rack_name }}_oob
+{% endfor %}
     - {{ data['region_name'] }}_oam
     - {{ data['region_name'] }}_storage
     - {{ data['region_name'] }}_overlay
@@ -45,11 +48,14 @@ data:
       metric: 100
 {% endfor %}
   ranges:
+    - type: reserved
+      start: {{ data['common']['oam']['reserved_start'] }}
+      end: {{ data['common']['oam']['reserved_end'] }}
     - type: static
       start: {{ data['common']['oam']['static_start'] }}
       end: {{ data['common']['oam']['static_end'] }}
   dns:
-    domain: {{ data['dns']['domain'] }}
+    domain: {{ data['dns']['domain']|lower() }}
     servers: {{ data['dns']['servers'] }}
 ...
 ---
@@ -72,6 +78,9 @@ data:
       metric: 100
 {% endfor %}
   ranges:
+    - type: reserved
+      start: {{ data['common']['storage']['reserved_start'] }}
+      end: {{ data['common']['storage']['reserved_end'] }}
     - type: static
       start: {{ data['common']['storage']['static_start'] }}
       end: {{ data['common']['storage']['static_end'] }}
@@ -96,6 +105,9 @@ data:
       metric: 100
 {% endfor %}
   ranges:
+    - type: reserved
+      start: {{ data['common']['overlay']['reserved_start'] }}
+      end: {{ data['common']['overlay']['reserved_end'] }}
     - type: static
       start: {{ data['common']['overlay']['static_start'] }}
       end: {{ data['common']['overlay']['static_end'] }}
@@ -120,6 +132,9 @@ data:
       metric: 100
 {% endfor %}
   ranges:
+    - type: reserved
+      start: {{ data['common']['ksn']['reserved_start'] }}
+      end: {{ data['common']['ksn']['reserved_end'] }}
     - type: static
       start: {{ data['common']['ksn']['static_start'] }}
       end: {{ data['common']['ksn']['static_end'] }}

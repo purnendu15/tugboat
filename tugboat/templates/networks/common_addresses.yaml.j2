@@ -13,10 +13,12 @@ data:
     etcd:
       service_ip: 10.96.232.136
     ip_rule:
-      interface: {{ data['network']['calico_gw']}}
+      gateway: {{ data['network']['calico_gw']}}
+      overlap_cidr: 10.96.0.0/15 
     bgp:
       ipv4:
         public_service_cidr: {{ data['conf']['conf']['ingress'] }}
+        ingress_vip: TBD
         peers:
 {% for peer in data['network']['bgp']['peers'] %}
           - {{ peer }}
@@ -85,7 +87,7 @@ data:
     domain: {{ data['network']['ldap']['domain'] }}
 
   domain:
-    url: {{ data['network']['dns']['domain'] }}
+    url: {{ data['network']['dns']['domain']| lower() }}
 
   storage:
     ceph:
@@ -93,7 +95,7 @@ data:
       cluster_cidr: {{ data['network']['ceph_cidr'] }}
 
   neutron:
-    tunnel_device: 'bond1.91'
+    tunnel_device: 'bond1.45'
     external_iface: 'bond1'
 
   openvswitch:
