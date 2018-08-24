@@ -81,26 +81,6 @@ def generate_manifest_files(intermediary):
 )
 def main(generate_intermediary, generate_manifests, excel, spec, intermediary):
     """ Generate intermediary and manifests files """
-    # if argv is None:
-    #     argv = sys.argv
-    # # parse command line options
-    # filename_path = ''
-    # excel_spec_path = ''
-    #
-    # try:
-    #     opts, args = getopt.getopt(sys.argv[1:], 'h', 'help')
-    # except getopt.GetoptError as msg:
-    #     print('for help use --help')
-    # for o, a in opts:
-    #     if o in ('-h', '--help'):
-    #         print('Please provide xls and excelspec files as follows: python'
-    #               'tugboat.py <spreadsheet> <excelspec>')
-    #         sys.exit(0)
-    #
-    # # for arg in args:
-    # filename_path = args[0]
-    # excel_spec_path = args[1]
-
     # Generate YAML from Excel Workbook engine
     if generate_intermediary and generate_manifests:
         intermediary = generate_intermediary_file(excel, spec, both=True)
@@ -111,6 +91,9 @@ def main(generate_intermediary, generate_manifests, excel, spec, intermediary):
 
     elif generate_manifests:
         generate_manifest_files(intermediary)
+
+    else:
+        print('No options passed. Please pass either of -g or -m')
 
 
 if __name__ == '__main__':
