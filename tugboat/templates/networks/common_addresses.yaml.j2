@@ -17,8 +17,8 @@ data:
       overlap_cidr: 10.96.0.0/15 
     bgp:
       ipv4:
-        public_service_cidr: {{ data['conf']['conf']['ingress'] }}
-        ingress_vip: TBD
+        public_service_cidr: {{ data['network']['bgp']['public_service_cidr'] }}
+        ingress_vip: {{ data['network']['bgp']['ingress_vip'] }}
         peers:
 {% for peer in data['network']['bgp']['peers'] %}
           - {{ peer }}
