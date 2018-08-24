@@ -99,9 +99,7 @@ data:
     image: 'xenial'
     kernel: 'hwe-16.04'
     kernel_params:
-      console: 'ttyS1,115200n8'
 {% if data['profile']['type'] == 'compute' %}
-  platform:
       intel_iommu: 'on'
       iommu: 'pt'
       amd_iommu: 'on'
