@@ -63,4 +63,3 @@ class BaseProcessor:
                 else:
                     hosts['workers'].append(host)
         return hosts
- 

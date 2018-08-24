@@ -31,7 +31,8 @@ STATE_CODES = {
 }
 IPS_TO_LEAVE = 12
 OOB_IPS_TO_LEAVE = 10
-BAREMETAL_TEMPLATES = ['rack', 'calico-ip-rules','promjoin','sriov-blacklist']
+BAREMETAL_TEMPLATES = ['rack', 'calico-ip-rules',
+                       'promjoin', 'sriov-blacklist']
 PKI_TEMPLATES = ['pki-catalogue']
 SITE_DEFINITION_TEMPLATES = ['site_definition']
 HOSTPROFILE_TEMPLATES = ['profile']
