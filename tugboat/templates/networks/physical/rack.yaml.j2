@@ -78,11 +78,9 @@ data:
     upstream_target: {{ data['dns']['dhcp_relay'] }}
 {% endif %}
   routes:
-{% if not data['rack'][rack_key]['is_genesis'] %}
     - subnet: 0.0.0.0/0
       gateway: {{ data['rack'][rack_key]['pxe']['gw'] }}
       metric: 100
-{% endif %}
 {% for other_subnet in data['rack'][rack_key]['pxe']['routes'] %}
     - subnet: {{ other_subnet }}
       gateway: {{ data['rack'][rack_key]['pxe']['gw'] }}
