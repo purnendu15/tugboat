@@ -19,14 +19,22 @@ setup(
     name='tugboat',
     version='0.0.1',
     description='Generate Airship specific yaml manifest from Excel',
-    url='http://github.com/att-comdev/tugboat', 
+    url='http://github.com/att-comdev/tugboat',
     python_requires='>=3.5.0',
     license='Apache 2.0',
     packages=find_packages(),
+    install_requires=[
+        'Click',
+        'openpyxl',
+        'netaddr',
+        'pyyaml',
+        'jinja2',
+    ],
     entry_points={
         'console_scripts': [
             'tugboat=tugboat.tugboat:main',
-    ]},
+        ]
+    },
     include_package_data=True,
     package_data={
         'templates': [
