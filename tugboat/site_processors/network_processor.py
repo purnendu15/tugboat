@@ -15,6 +15,7 @@
 import yaml
 import pkg_resources
 import os
+import netaddr
 from os.path import basename
 
 from jinja2 import Environment
@@ -65,9 +66,14 @@ class NetworkProcessor(BaseProcessor):
         ceph_cidr.append(network_data['common']['storage']['nw'])
         ksn_vlan_info = network_data['common']['ksn']['vlan']
         overlay_vlan_info = network_data['common']['overlay']['vlan']
-        bgp_data = network_data['bgp']
         ldap_data = network_data['ldap']
         ldap_data['domain'] = ldap_data['base_url'].split('.')[1]
+
+        bgp_data = network_data['bgp']
+        bgp_data['public_service_cidr'] = network_data['ingress']
+        subnet = netaddr.IPNetwork(bgp_data['public_service_cidr'])
+        ips  = list(subnet)
+        bgp_data['ingress_vip'] = str(ips[1])
 
         return {
             'dns_servers': dns_servers,

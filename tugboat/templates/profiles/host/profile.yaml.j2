@@ -8,7 +8,12 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      hosttype: nc-cp
+{% if data['profile_name'] == 'nsb'  %}
+      hosttype: nc-{{ data['profile_name'][0:2] }}-r740
+{% else %}
+      hosttype: nc-{{ data['profile_name'] }}
+{% endif %}
+
     actions:
       - method: replace
         path: .interfaces
@@ -95,14 +100,8 @@ data:
     kernel: 'hwe-16.04'
     kernel_params:
       console: 'ttyS1,115200n8'
-  metadata:
-    owner_data:
-      openstack-l3-agent: enabled
 {% if data['profile']['type'] == 'compute' %}
   platform:
-    kernel: 'hwe-16.04'
-    kernel_params:
-#      console: 'ttyS1,115200n8'
       intel_iommu: 'on'
       iommu: 'pt'
       amd_iommu: 'on'
@@ -112,4 +111,7 @@ data:
       default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
       isolcpus: 'hardwareprofile:cpuset.kvm'
 {% endif %}
+  metadata:
+    owner_data:
+      openstack-l3-agent: enabled
 ...

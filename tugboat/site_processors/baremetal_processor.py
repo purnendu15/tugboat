@@ -72,7 +72,28 @@ class BaremetalProcessor:
                     except IOError as ioe:
                         raise SystemExit("Error when generating {:s}:\n{:s}"
                                          .format(outfile, ioe.strerror))
-            elif template == 'bootaction':
+            elif template == 'calico-ip-rules':
+                file_path = 'pegleg_manifests/site/{}/baremetal/bootaction/'.format(
+                    self.dir_name)
+                if not os.path.exists(file_path):
+	                os.makedirs(file_path)
+                template_name = j2_env.get_template(
+                    '{}.yaml.j2'.format(template))
+                outfile = '{}{}.yaml'.format(file_path, template)
+                print('Rendering data for {}'.format(outfile))
+                try:
+                    out = open(outfile, "w")
+                    template_name.stream(data=data).dump(out)
+                    out.close()
+                except IOError as ioe:
+                    raise SystemExit("Error when generating {:s}:\n{:s}"
+                                     .format(outfile, ioe.strerror))
+            elif template == 'promjoin':
+                file_path = 'pegleg_manifests/site/{}/baremetal/bootaction/'.format(
+                    self.dir_name)
+                if not os.path.exists(file_path):
+                    os.makedirs(file_path)
+
                 data = {
                     'hosts': [],
                     'ingress': self.ingress,
@@ -92,3 +113,22 @@ class BaremetalProcessor:
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
+            elif template == 'sriov-blacklist':
+                file_path = 'pegleg_manifests/site/{}/baremetal/bootaction/'.format(
+                    self.dir_name)
+                if not os.path.exists(file_path):
+                    os.makedirs(file_path)
+
+                template_name = j2_env.get_template(
+                    '{}.yaml.j2'.format(template))
+                outfile = '{}{}.yaml'.format(file_path, template)
+                print('Rendering data for {}'.format(outfile))
+                try:
+                    out = open(outfile, "w")
+                    template_name.stream(data=data).dump(out)
+                    out.close()
+                except IOError as ioe:
+                    raise SystemExit("Error when generating {:s}:\n{:s}"
+                                     .format(outfile, ioe.strerror))
+
+

@@ -17,8 +17,8 @@ data:
       overlap_cidr: 10.96.0.0/15 
     bgp:
       ipv4:
-        public_service_cidr: {{ data['conf']['conf']['ingress'] }}
-        ingress_vip: TBD
+        public_service_cidr: {{ data['network']['bgp']['public_service_cidr'] }}
+        ingress_vip: {{ data['network']['bgp']['ingress_vip'] }}
         peers:
 {% for peer in data['network']['bgp']['peers'] %}
           - {{ peer }}
@@ -81,7 +81,7 @@ data:
   ldap:
     base_url: {{ data['network']['ldap']['base_url'] }}
     url: {{ data['network']['ldap']['url'] }}
-    auth_path: {{ data['network']['ldap']['auth_path'] }}
+    auth_path: DC=testitservices,DC=atttest,DC=com?sAMAccountName?sub?memberof=CN={{ data['network']['ldap']['common_name'] }},OU=Application,OU=Groups,DC=testitservices,DC=atttest,DC=com
     common_name: {{ data['network']['ldap']['common_name'] }}
     subdomain: {{ data['network']['ldap']['subdomain'] }}
     domain: {{ data['network']['ldap']['domain'] }}
