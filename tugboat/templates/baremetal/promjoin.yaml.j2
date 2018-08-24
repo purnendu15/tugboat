@@ -27,7 +27,7 @@ data:
       # TODO(alanmeadows) You must replace the ip= parameter below with the appropriate MaaS network name of the network
       # you should use to contact kubernetes in the case below, this is cab24_mgmt
 {% raw %}
-      location: promenade+http://promenade-api.ucp.svc.cluster.local/api/v1.0/join-scripts?design_ref={{ action.design_ref | urlencode }}&hostname={{ node.hostname }}&ip={{ node.network.mtn54_ksn.ip }}{% for k, v in node.labels.items() %}&labels.dynamic={{ k }}={{ v }}{% endfor %}
+      location: promenade+http://promenade-api.ucp.svc.cluster.local/api/v1.0/join-scripts?design_ref={{ action.design_ref | urlencode }}&hostname={{ node.hostname }}&ip={{ node.network.{% endraw %}{{ data['region'] }}{% raw %}_ksn.ip }}{% for k, v in node.labels.items() %}&labels.dynamic={{ k }}={{ v }}{% endfor %}
 {% endraw %}
       location_pipeline:
         - template
