@@ -237,7 +237,7 @@ class GenerateYamlFromExcel(ParserEngine):
         subnet = netaddr.IPNetwork(self.public_network_data['oam']['ip'])
         ips = list(subnet)
         j = 0
-        for rack in self.racks:
+        for rack in sorted(self.racks.keys()):
             rack = self.racks[rack]
             for i in range(len(rackwise_hosts[rack])):
                 self.ipmi_data[rackwise_hosts[rack][i]]['oam'] = str(
@@ -253,7 +253,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.categorize_hosts()
         rackwise_hosts = self.get_rackwise_hosts()
         tmp_data = {}
-        for rack in self.racks:
+        for rack in sorted(self.racks.keys()):
             rack = self.racks[rack]
             tmp_data[rack] = {}
             for host in rackwise_hosts[rack]:
@@ -369,7 +369,7 @@ class GenerateYamlFromExcel(ParserEngine):
                     ips = list(rackwise_subnets['common'][net_type])
                     nw = str(rackwise_subnets['common'][net_type])
                     gw = str(ips[settings.GATEWAY_OFFSET])
-                    racks = list(self.racks.keys())
+                    racks = sorted(self.racks.keys())
                     rack = self.racks[racks[0]]
                     common_subnets[net_type] = {
                         'nw': nw,
