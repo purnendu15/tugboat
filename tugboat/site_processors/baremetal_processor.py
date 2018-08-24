@@ -29,6 +29,7 @@ class BaremetalProcessor:
         self.baremetal_data = yaml_data['baremetal']
         self.ingress = yaml_data['network']['ingress']
         self.dir_name = yaml_data['region_name']
+        self.region = self.dir_name
 
     @staticmethod
     def read_file(file_name):
@@ -96,6 +97,7 @@ class BaremetalProcessor:
                 data = {
                     'hosts': [],
                     'ingress': self.ingress,
+                    'region': self.region,
                 }
                 for rack in self.baremetal_data:
                     for host in self.baremetal_data[rack]:
