@@ -16,12 +16,10 @@ import yaml
 import pkg_resources
 import os
 import netaddr
-from os.path import basename
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from tugboat.site_processors.base import BaseProcessor
-
 
 
 class NetworkProcessor(BaseProcessor):
@@ -49,8 +47,8 @@ class NetworkProcessor(BaseProcessor):
             for host in self.yaml_data['baremetal'][rack]:
                 if self.yaml_data['baremetal'][rack][host][
                         'type'] == 'genesis':
-                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip']['ksn']
-
+                    genesis_ip = self.yaml_data['baremetal'][rack][
+                        host]['ip']['ksn']
         return genesis_ip
 
     def get_network_data(self):
@@ -68,11 +66,10 @@ class NetworkProcessor(BaseProcessor):
         overlay_vlan_info = network_data['common']['overlay']['vlan']
         ldap_data = network_data['ldap']
         ldap_data['domain'] = ldap_data['base_url'].split('.')[1]
-
         bgp_data = network_data['bgp']
         bgp_data['public_service_cidr'] = network_data['ingress']
         subnet = netaddr.IPNetwork(bgp_data['public_service_cidr'])
-        ips  = list(subnet)
+        ips = list(subnet)
         bgp_data['ingress_vip'] = str(ips[1])
 
         return {
@@ -84,15 +81,14 @@ class NetworkProcessor(BaseProcessor):
             'ksn_vlan': ksn_vlan_info,
             'bgp': bgp_data,
             'dns': network_data['dns'],
-            'genesis_ip':self.get_genesis_ip(),
+            'genesis_ip': self.get_genesis_ip(),
             'ldap': ldap_data,
-            'overlay_vlan' : overlay_vlan_info
+            'overlay_vlan': overlay_vlan_info
         }
 
     def get_conf_data(self):
         conf_data = self.yaml_data['conf']
-        return { 'conf': conf_data }
-
+        return {'conf': conf_data}
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(
@@ -144,17 +140,16 @@ class NetworkProcessor(BaseProcessor):
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-
-
                 rack_list_data = []
                 for racks in self.network_data['rack'].keys():
                     rack_list_data.append(racks)
-                
-                self.network_data['rack_list']= rack_list_data
-                self.network_data['region_name'] = self.yaml_data['region_name']
+
+                self.network_data['rack_list'] = rack_list_data
+                self.network_data['region_name'] = self.yaml_data[
+                    'region_name']
                 yaml_filename = filename.split('.j2')[0]
                 try:
-                    outfile = '{}{}'.format(outfile_dir,yaml_filename)
+                    outfile = '{}{}'.format(outfile_dir, yaml_filename)
 
                     print('Rendering data for {}'.format(outfile))
                     out = open(outfile, "w")
@@ -164,5 +159,3 @@ class NetworkProcessor(BaseProcessor):
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
-
-
