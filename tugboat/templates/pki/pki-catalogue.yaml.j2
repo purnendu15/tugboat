@@ -79,6 +79,7 @@ data:
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
+            - 10.96.0.2
 {% endif %}
 {%endfor%}
 {% for host in data.keys()%}
@@ -92,6 +93,7 @@ data:
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
+            - 10.96.0.2
 {% endif %}
 {%endfor%}
 {% for host in data.keys()%}
@@ -121,6 +123,7 @@ data:
             - 127.0.0.1
             - localhost
             - kubernetes-etcd.kube-system.svc.cluster.local
+            - 10.96.0.2
 {% endif %}
 {%endfor%}
     ksn-etcd:
