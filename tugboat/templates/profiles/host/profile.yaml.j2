@@ -8,10 +8,10 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-{% if data['profile_name'] == 'nsb'  %}
-      hosttype: nc-{{ data['profile_name'][0:2] }}-r740
+{% if data['profile_name'] == data['hw_profile']['profile_name']['compute']  %}
+      hosttype: {{data['hw_profile']['host_type']['compute']}}
 {% else %}
-      hosttype: nc-{{ data['profile_name'] }}
+      hosttype: {{data['hw_profile']['host_type']['ctrl']}}
 {% endif %}
 
     actions:
@@ -22,7 +22,13 @@ metadata:
       - method: merge
         path: .
 data:
-  hardware_profile: dell_r740_purley_nc
+
+{% if data['profile_name'] == data['hw_profile']['profile_name']  %}
+  hardware_profile: {{data['hw_profile']['hw_type']['compute']}}
+{% else %}
+  hardware_profile: {{data['hw_profile']['hw_type']['ctrl']}}
+{% endif %}
+
   oob:
     network: {{ data['rack'] }}_oob
     account: root
@@ -95,20 +101,20 @@ data:
       - {{ data['region'] }}_overlay
       - {{ data['region'] }}_storage
       - {{ data['region'] }}_ksn
-  platform:
-    image: 'xenial'
-    kernel: 'hwe-16.04'
-    kernel_params:
-{% if data['profile']['type'] == 'compute' %}
-      intel_iommu: 'on'
-      iommu: 'pt'
-      amd_iommu: 'on'
-      transparent_hugepage: 'never'
-      hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
-      hugepages: 'hardwareprofile:hugepages.dpdk.count'
-      default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
-      isolcpus: 'hardwareprofile:cpuset.kvm'
-{% endif %}
+#  platform:
+#    image: 'xenial'
+#    kernel: 'hwe-16.04'
+#    kernel_params:
+#{% if data['profile']['type'] == 'compute' %}
+#      intel_iommu: 'on'
+#      iommu: 'pt'
+#      amd_iommu: 'on'
+#      transparent_hugepage: 'never'
+#      hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+#      hugepages: 'hardwareprofile:hugepages.dpdk.count'
+#      default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+#      isolcpus: 'hardwareprofile:cpuset.kvm'
+#{% endif %}
   metadata:
     owner_data:
       openstack-l3-agent: enabled
