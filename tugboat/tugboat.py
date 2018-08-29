@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+>>>>>>> HEAD
+import sys
+import getopt
+import logging
+
+=======
+>>>>>>> upstream/master
 import click
 
 from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
@@ -31,7 +38,7 @@ PROCESSORS = [
 ]
 
 
-def generate_intermediary_file(excel, spec, both=None):
+def generate_intermediary_file(excel, spec, logger, both=None):
     """ Generate intermediary file """
     if excel and spec:
         parser = GenerateYamlFromExcel(excel, spec)
@@ -43,12 +50,17 @@ def generate_intermediary_file(excel, spec, both=None):
         return intermediary
 
 
-def generate_manifest_files(intermediary):
+def generate_manifest_files(intermediary, logger):
     """ Generate manifests """
     if intermediary:
         print('Generating manifest files')
+>>>>>>> HEAD
+        for processor in processors:
+            processor_engine = processor(intermediary, logger)
+=======
         for processor in PROCESSORS:
             processor_engine = processor(intermediary)
+>>>>>>> upstream/master
             processor_engine.render_template()
     else:
         print('Please pass intermediary file')
@@ -76,6 +88,29 @@ def generate_manifest_files(intermediary):
     '--intermediary', '-i', type=click.Path(exists=True),
     help='Path to intermediary file, to be passed with generate_manifests'
 )
+>>>>>>> HEAD
+def main(generate_intermediary, generate_manifests, excel, spec, intermediary):
+
+    logging.info("Tugboay start")
+
+    tug_logger = logging.getLogger('__name__')
+    # Set default log level to INFO
+    tug_logger.setLevel(logging.INFO)
+
+    # set console logging. Change to file by changign to FileHandler
+    stream_handle = logging.StreamHandler()
+    stream_handle.setLevel(logging.INFO)
+
+    # Set logging format
+    formatter = logging.Formatter(
+        '%(asctime)s - (%(name)s) - %(level)s:%(message)s')
+    stream_handle.setFormatter(formatter)
+
+    tug_logger.addHandler(stream_handle)
+
+    """ Generate intermediary and manifests files """
+    # Generate YAML from Excel Workbook engine
+=======
 def main(*args, **kwargs):
     """
     Generate intermediary and manifests files using the
@@ -86,18 +121,21 @@ def main(*args, **kwargs):
     excel = kwargs['excel']
     spec = kwargs['spec']
     intermediary = kwargs['intermediary']
+>>>>>>> upstream/master
     if generate_intermediary and generate_manifests:
-        intermediary = generate_intermediary_file(excel, spec, both=True)
-        generate_manifest_files(intermediary)
+        intermediary = generate_intermediary_file(excel, spec,
+                                                  tug_logger, both=True)
+        generate_manifest_files(intermediary, tug_logger)
 
     elif generate_intermediary:
-        generate_intermediary_file(excel, spec)
+        generate_intermediary_file(excel, spec, tug_logger)
 
     elif generate_manifests:
-        generate_manifest_files(intermediary)
+        generate_manifest_files(intermediary, tug_logger)
 
     else:
         print('No options passed. Please pass either of -g or -m')
+    logging.info("Tugboat Stopped")
 
 
 if __name__ == '__main__':

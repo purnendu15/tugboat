@@ -23,7 +23,7 @@ from tugboat.config import settings
 
 
 class DeploymentProcessor:
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger):
         self.deployment_manifest = settings.DEPLOYMENT_MANIFEST
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)

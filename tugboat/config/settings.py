@@ -106,6 +106,30 @@ CEPH = {
     'osd': ['sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh']
 }
 
+"""
+Assuming that there is a unique hw profile for
+controller and compute nodes. This settings shall
+be overidden when there are multiple compute/controller
+nodes with varying HW types
+"""
+
+HARDWARE_PROFILE = {
+    'host_type': {
+        'ctrl': 'nc-cp',
+        'compute': 'nc-ns-r740'
+    },
+    'hw_type': {
+        'ctrl': 'dell_r740_purley_nc',
+        'compute': 'dell_r740_purley_nc'
+    },
+    'profile_name': {
+        'ctrl': 'cp',
+        'compute': 'nsb'
+    },
+
+}
+
+
 CONF = {
     'nova': {
         'vcpu_pin_set':

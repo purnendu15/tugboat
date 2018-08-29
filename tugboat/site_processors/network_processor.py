@@ -23,7 +23,7 @@ from tugboat.site_processors.base import BaseProcessor
 
 
 class NetworkProcessor(BaseProcessor):
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger):
         raw_data = self.read_file(file_name)
         self.yaml_data = self.get_yaml_data(raw_data)
         self.network_data = self.yaml_data['network']

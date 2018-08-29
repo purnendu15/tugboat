@@ -18,6 +18,7 @@ from openpyxl import load_workbook
 
 from ..check_exceptions import (
     NoSpecMatched, )
+import logging
 
 
 class ExcelParser():

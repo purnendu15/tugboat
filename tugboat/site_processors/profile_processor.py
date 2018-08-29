@@ -23,7 +23,7 @@ from tugboat.config import settings
 
 
 class ProfileProcessor:
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger):
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
@@ -54,6 +54,7 @@ class ProfileProcessor:
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
                 templatefile = os.path.join(dirpath, filename)
+                hardware_profile = settings.HARDWARE_PROFILE
 
                 # Special processing for hostprofile file
                 if filename.rstrip(
@@ -66,7 +67,8 @@ class ProfileProcessor:
                             render_data['profile_name'] = profile
                             render_data['rack'] = rack
                             render_data['region'] = self.data['region_name']
-
+                            render_data['hw_profile'] = (
+                                    settings.HARDWARE_PROFILE)
                             outfile_j2 = outfile_path + templatefile.split(
                                 'templates/profiles', 1)[1]
                             outfile_tmp = outfile_j2.split(filename)[0]
@@ -76,6 +78,7 @@ class ProfileProcessor:
                             if not os.path.exists(outfile_dir):
                                 os.makedirs(outfile_dir)
                             template_j2 = j2_env.get_template(filename)
+                            self.data['hw_profile'] = hardware_profile
                             print('Rendering data for {}'.format(outfile))
                             try:
                                 out = open(outfile, "w")

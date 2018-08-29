@@ -23,7 +23,7 @@ from tugboat.config import settings
 
 
 class PkiProcessor:
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger):
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.baremetal_data = yaml_data['baremetal']
