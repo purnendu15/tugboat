@@ -23,7 +23,7 @@ from tugboat.config import settings
 
 
 class ProfileProcessor:
-    def __init__(self, file_name):
+    def __init__(self, file_name, logger):
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
@@ -67,8 +67,8 @@ class ProfileProcessor:
                             render_data['profile_name'] = profile
                             render_data['rack'] = rack
                             render_data['region'] = self.data['region_name']
-                            render_data['hw_profile'] = settings.HARDWARE_PROFILE
-
+                            render_data['hw_profile'] = (
+                                    settings.HARDWARE_PROFILE)
                             outfile_j2 = outfile_path + templatefile.split(
                                 'templates/profiles', 1)[1]
                             outfile_tmp = outfile_j2.split(filename)[0]
