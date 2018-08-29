@@ -230,7 +230,7 @@ class GenerateYamlFromExcel(ParserEngine):
                     net_type]['reserved_start'] = reserved_start
                 self.network_data[rack][
                     net_type]['reserved_end'] = reserved_end
-            j = i + 1
+            j += i + 1
 
     def assign_public_ip_to_host(self):
         rackwise_hosts = self.get_rackwise_hosts()

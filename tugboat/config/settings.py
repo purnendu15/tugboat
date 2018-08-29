@@ -28,6 +28,7 @@ PRIVATE_NETWORK_TYPES = {
 }
 STATE_CODES = {
     'New Jersey': 'NJ',
+    'Texas': 'TX',
 }
 IPS_TO_LEAVE = 12
 OOB_IPS_TO_LEAVE = 10
@@ -75,6 +76,17 @@ HOSTPROFILE_INTERFACES = {
         },
     },
     'nsb': {
+        'networks': {
+            'pxe': ['eno4'],
+            'bond1': [
+                'gp_nic01',
+                'gp_nic02',
+            ],
+            'p1p1': ['sriov_nic01'],
+            'p3p2': ['sriov_nic02'],
+        },
+    },
+    'ns': {
         'networks': {
             'pxe': ['eno4'],
             'bond1': [
