@@ -12,10 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+>>>>>>> HEAD
 import sys
 import getopt
 import logging
 
+=======
+>>>>>>> upstream/master
 import click
 
 from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
@@ -29,7 +32,7 @@ from tugboat.site_processors.site_definition_processor import (
     SiteDeifinitionProcessor)
 from tugboat.site_processors.software_processor import SoftwareProcessor
 
-processors = [
+PROCESSORS = [
     BaremetalProcessor, DeploymentProcessor, NetworkProcessor, PkiProcessor,
     ProfileProcessor, SiteDeifinitionProcessor, SoftwareProcessor
 ]
@@ -51,8 +54,13 @@ def generate_manifest_files(intermediary, logger):
     """ Generate manifests """
     if intermediary:
         print('Generating manifest files')
+>>>>>>> HEAD
         for processor in processors:
             processor_engine = processor(intermediary, logger)
+=======
+        for processor in PROCESSORS:
+            processor_engine = processor(intermediary)
+>>>>>>> upstream/master
             processor_engine.render_template()
     else:
         print('Please pass intermediary file')
@@ -80,6 +88,7 @@ def generate_manifest_files(intermediary, logger):
     '--intermediary', '-i', type=click.Path(exists=True),
     help='Path to intermediary file, to be passed with generate_manifests'
 )
+>>>>>>> HEAD
 def main(generate_intermediary, generate_manifests, excel, spec, intermediary):
 
     logging.info("Tugboay start")
@@ -101,6 +110,18 @@ def main(generate_intermediary, generate_manifests, excel, spec, intermediary):
 
     """ Generate intermediary and manifests files """
     # Generate YAML from Excel Workbook engine
+=======
+def main(*args, **kwargs):
+    """
+    Generate intermediary and manifests files using the
+    engineering package excel and respective excel spec.
+    """
+    generate_intermediary = kwargs['generate_intermediary']
+    generate_manifests = kwargs['generate_manifests']
+    excel = kwargs['excel']
+    spec = kwargs['spec']
+    intermediary = kwargs['intermediary']
+>>>>>>> upstream/master
     if generate_intermediary and generate_manifests:
         intermediary = generate_intermediary_file(excel, spec,
                                                   tug_logger, both=True)
