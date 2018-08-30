@@ -80,13 +80,12 @@ def generate_manifest_files(intermediary):
     help='Path to intermediary file, to be passed with generate_manifests'
 )
 
-
 def main(*args, **kwargs):
 
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
     logger.setLevel(logging.DEBUG)
-    # set console logging. Change to file by changign to FileHandler
+    # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
     formatter = logging.Formatter(
