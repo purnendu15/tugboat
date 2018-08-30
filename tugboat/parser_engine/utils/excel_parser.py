@@ -22,6 +22,7 @@ import logging
 
 
 class ExcelParser():
+    """ Parse data from excel into a dict """
     def __init__(self, file_name, excel_specs):
         self.file_name = file_name
         with open(excel_specs, 'r') as f:
@@ -32,12 +33,15 @@ class ExcelParser():
 
     @staticmethod
     def sanitize(string):
+        """ Remove extra spaces and convert string to lower case """
         return string.replace(' ', '').lower()
 
     def compare(self, string1, string2):
+        """ Compare the strings """
         return bool(re.search(self.sanitize(string1), self.sanitize(string2)))
 
     def validate_sheet(self, spec, sheet):
+        """ Check if the sheet is correct or not """
         ws = self.wb[sheet]
         header_row = self.excel_specs['specs'][spec]['header_row']
         ipmi_header = self.excel_specs['specs'][spec]['ipmi_address_header']
@@ -46,6 +50,7 @@ class ExcelParser():
         return bool(self.compare(ipmi_header, header_value))
 
     def find_correct_spec(self):
+        """ Find the correct spec """
         for spec in self.excel_specs['specs']:
             sheet_name = self.excel_specs['specs'][spec]['ipmi_sheet_name']
             for sheet in self.wb.sheetnames:
@@ -56,6 +61,7 @@ class ExcelParser():
         raise NoSpecMatched(self.excel_specs)
 
     def get_ipmi_data(self):
+        """ Read IPMI data from the sheet """
         ipmi_data = {}
         hosts = []
         self.spec = self.find_correct_spec()
@@ -94,6 +100,7 @@ class ExcelParser():
         return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
+        """ Get private vlan data from private IP sheet """
         vlan_data = {}
         row = self.excel_specs['specs'][self.spec]['vlan_start_row']
         end_row = self.excel_specs['specs'][self.spec]['vlan_end_row']
@@ -108,6 +115,7 @@ class ExcelParser():
         return vlan_data
 
     def get_private_network_data(self):
+        """ Read network data from the private ip sheet """
         sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
         ws = self.wb[sheet_name]
         vlan_data = self.get_private_vlan_data(ws)
@@ -128,6 +136,8 @@ class ExcelParser():
                         'subnet': [],
                     }
             elif not vlan and network:
+                # If vlan is not present then assign old vlan to vlan as vlan
+                # value is spread over several rows
                 vlan = old_vlan
             else:
                 row += 1
@@ -143,6 +153,7 @@ class ExcelParser():
         return network_data
 
     def get_public_network_data(self):
+        """ Read public network data from public ip data """
         network_data = {}
         sheet_name = self.excel_specs['specs'][self.spec]['public_ip_sheet']
         ws = self.wb[sheet_name]
@@ -172,6 +183,7 @@ class ExcelParser():
         return network_data
 
     def get_dns_ntp_ldap_data(self):
+        """ Read dns, ntp and ldap data from build notes sheet """
         dns_ntp_ldap_data = {}
         sheet_name = self.excel_specs['specs'][self.spec]['dns_ntp_ldap_sheet']
         ws = self.wb[sheet_name]
@@ -201,6 +213,7 @@ class ExcelParser():
         return dns_ntp_ldap_data
 
     def get_location_data(self):
+        """ Read location data from the site and zone sheet """
         sheet_name = self.excel_specs['specs'][self.spec]['location_sheet']
         ws = self.wb[sheet_name]
         corridor_row = self.excel_specs['specs'][self.spec]['corridor_row']
@@ -220,6 +233,7 @@ class ExcelParser():
         }
 
     def get_data(self):
+        """ Create a dict with combined data """
         ipmi_data = self.get_ipmi_data()
         network_data = self.get_private_network_data()
         public_network_data = self.get_public_network_data()
