@@ -50,7 +50,7 @@ class BaremetalProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/baremetal/rack.yaml.j2')
             template_dir = os.path.dirname(template_file)
-            self.logger.debug("template file:{}".format(template_file))
+            self.logger.info("template :{}".format(template))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -68,7 +68,7 @@ class BaremetalProcessor:
                         data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
                     self.logger.debug(
-                        "Template %s data to j2 %s",template,pprint.pformat(data))
+                        "Template %s data to j2:\n%s",template,pprint.pformat(data))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
@@ -88,7 +88,7 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
                 self.logger.debug(
-                    "Template %s data to j2 %s",template,pprint.pformat(data))
+                    "Template %s data to j2\n%s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -117,7 +117,7 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
                 self.logger.debug(
-                    "Template %s data to j2 %s",template,pprint.pformat(data))
+                    "Template %s data to j2\n%s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -136,7 +136,7 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
                 self.logger.debug(
-                    "Template %s data to j2 %s",template,pprint.pformat(data))
+                    "Template %s data to j2\n%s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)

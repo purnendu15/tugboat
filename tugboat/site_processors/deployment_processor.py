@@ -15,6 +15,8 @@
 import pkg_resources
 import os
 import yaml
+import logging
+import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -24,6 +26,7 @@ from tugboat.config import settings
 
 class DeploymentProcessor:
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         self.deployment_manifest = settings.DEPLOYMENT_MANIFEST
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
@@ -45,6 +48,7 @@ class DeploymentProcessor:
             'tugboat', 'templates/deployment/deployment-configuration.yaml.j2')
         template = 'deployment-configuration'
         template_dir = os.path.dirname(template_file)
+        self.logger.info("template :{}".format(template))
         j2_env = Environment(
             autoescape=False,
             loader=FileSystemLoader(template_dir),
@@ -55,11 +59,12 @@ class DeploymentProcessor:
             os.makedirs(file_path)
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(file_path, 'deployment-configuration')
-        print('Rendering data for {}'.format(outfile))
+        self.logger.debug("Template %s data to j2 %s",template,pprint.pformat(self.deployment_manifest))
         try:
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member
             template_name.stream(data=self.deployment_manifest).dump(out)
+            self.logger.info('Rendered {}'.format(outfile))
             out.close()
         except IOError as ioe:
             raise SystemExit("Error when generating {:s}:\n{:s}".format(

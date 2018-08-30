@@ -89,7 +89,7 @@ def main(*args, **kwargs):
     stream_handle = logging.StreamHandler()
     # Set logging format
     formatter = logging.Formatter(
-        '(%(name)s) - %(levelname)s:%(message)s')
+        '(%(name)s) - [%(levelname)s] - %(filename)s[%(lineno)d]:%(funcName)s \n:%(message)s')
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Tugboat start")
@@ -105,19 +105,24 @@ def main(*args, **kwargs):
     intermediary = kwargs['intermediary']
 
     if generate_intermediary and generate_manifests:
+        logger.info("Generate Intermediary File")
         intermediary = generate_intermediary_file(excel, spec, both=True)
+        logger.info("Generate Manifest File")
         generate_manifest_files(intermediary)
 
     elif generate_intermediary:
+        logger.info("Generate Intermediary File")
+        intermediary = generate_intermediary_file(excel, spec, both=True)
         generate_intermediary_file(excel, spec)
 
     elif generate_manifests:
+        logger.info("Generate Manifest File")
         generate_manifest_files(intermediary)
 
     else:
         print('No options passed. Please pass either of -g or -m')
 
-    logger.info("Tugboat Stopped")
+    logger.info("Tugboat Execution Completed")
 
 
 if __name__ == '__main__':
