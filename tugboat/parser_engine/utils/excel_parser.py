@@ -28,8 +28,6 @@ class ExcelParser():
             spec_raw_data = f.read()
         self.excel_specs = yaml.safe_load(spec_raw_data)
         self.wb = load_workbook(file_name, data_only=True)
-        self.ipmi_data = {}
-        self.hosts = []
         self.spec = None
 
     @staticmethod
@@ -58,6 +56,8 @@ class ExcelParser():
         raise NoSpecMatched(self.excel_specs)
 
     def get_ipmi_data(self):
+        ipmi_data = {}
+        hosts = []
         self.spec = self.find_correct_spec()
         sheet_name = self.excel_specs['specs'][self.spec]['ipmi_sheet_name']
         ws = self.wb[sheet_name]
@@ -70,23 +70,28 @@ class ExcelParser():
             'host_profile_col']
         ipmi_gateway_col = self.excel_specs['specs'][self.spec][
             'ipmi_gateway_col']
+        previous_server_gateway = None
         while row <= end_row:
             hostname = self.sanitize(
                 ws.cell(row=row, column=hostname_col).value)
-            self.hosts.append(hostname)
+            hosts.append(hostname)
             ipmi_address = ws.cell(row=row, column=ipmi_address_col).value
             if '/' in ipmi_address:
                 ipmi_address = ipmi_address.split('/')[0]
             ipmi_gateway = ws.cell(row=row, column=ipmi_gateway_col).value
+            if ipmi_gateway:
+                previous_server_gateway = ipmi_gateway
+            else:
+                ipmi_gateway = previous_server_gateway
             tmp_host_profile = ws.cell(row=row, column=host_profile_col).value
             host_profile = tmp_host_profile.split('-')[1]
-            self.ipmi_data[hostname] = {
+            ipmi_data[hostname] = {
                 'ipmi_address': ipmi_address,
                 'ipmi_gateway': ipmi_gateway,
                 'host_profile': host_profile,
             }
             row += 1
-        return [self.ipmi_data, self.hosts]
+        return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
         vlan_data = {}
