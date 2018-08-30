@@ -42,9 +42,12 @@ PROXY = {
     'http': 'http://one.proxy.att.com:8080',
     'https': 'http://one.proxy.att.com:8080',
 }
-NO_PROXY = 'artifacts-nc.mtn29.cci.att.com,docker-nc.mtn29.cci.att.com,' \
-    'docker-open-nc.mtn29.cci.att.com,10.96.0.1,cluster.local,' \
-    'svc.cluster.local'
+
+NO_PROXY = '10.96.0.2,10.96.232.136,artifacts-nc.mtn29.cci.att.com,' \
+    'docker-nc.mtn29.cci.att.com,docker-open-nc.mtn29.cci.att.com,' \
+    '10.96.0.1,cluster.local,svc.cluster.local,,localhost,127.0.0.1,10.0.0.0/8'
+
+
 GATEWAY_OFFSET = 1
 DEPLOYMENT_MANIFEST = 'full-site'
 

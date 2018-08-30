@@ -32,6 +32,36 @@ data:
   oob:
     network: {{ data['rack'] }}_oob
     account: root
+  primary_network: {{ data['region'] }}_oam
+  interfaces:
+    pxe:
+      device_link: {{data['rack']}}_pxe
+      slaves:
+        - pxe_nic01
+      networks:
+        - {{data['rack']}}_pxe
+    bond1:
+      device_link: bond1
+      slaves:
+        - dp_nic01
+        - dp_nic02
+      networks:
+      - {{ data['region'] }}_oam
+      - {{ data['region'] }}_overlay
+      - {{ data['region'] }}_storage
+      - {{ data['region'] }}_ksn
+    p1p1:
+      slaves:
+        - 'sriov_nic01'
+      sriov:
+        vf_count: 32  # Currently ignored
+        trustedmode: false
+    p3p2:
+      slaves:
+        - 'sriov_nic02'
+      sriov:
+        vf_count: 32  # Currently ignored
+        trustedmode: false
   storage:
     physical_devices:
       bootdisk:
@@ -82,25 +112,11 @@ data:
               fstype: 'ext4'
               mount_options: 'defaults'
 {% endif %}
-  primary_network: {{ data['region'] }}_oam
-  interfaces:
-    eno4:
-      device_link: {{data['rack']}}_pxe
-      slaves:
-        - eno4
-      networks:
-        - {{data['rack']}}_pxe
-    bond1:
-      device_link: bond1
-      slaves:
-        - enp135s0f0
-        - enp94s0f1
-      networks:
-      - {{ data['region'] }}_oam
-      - {{ data['rack'] }}_oob
-      - {{ data['region'] }}_overlay
-      - {{ data['region'] }}_storage
-      - {{ data['region'] }}_ksn
+  platform:
+    image: 'xenial'
+    kernel: 'hwe-16.04'
+    kernel_params:
+      console: 'ttyS1,115200n8'
   metadata:
     owner_data:
       openstack-l3-agent: enabled

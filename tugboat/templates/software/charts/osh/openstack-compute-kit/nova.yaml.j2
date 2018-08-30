@@ -9,16 +9,21 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      name: nova-5ec
+      name: nova-global
     actions:
       - method: merge
         path: .
-      - method: replace
-        path: .values.conf.nova.libvirt.virt_type
   storagePolicy: cleartext
 data:
   values:
+    network:
+      backend:
+        - openvswitch
+        - sriov
     conf:
+      policy:
+        os_compute_api:servers:create:forced_host: rule:admin_create or rule:tenant_create
+        os_compute_api:os-extended-server-attributes: rule:tenant_read
       nova:
         libvirt:
           virt_type: kvm

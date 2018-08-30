@@ -64,11 +64,11 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 for rack in self.baremetal_data:
                     data = self.baremetal_data[rack]
-                    self.logger.debug(
-                        "Baremetal  rack:%s %s",rack,pprint.pformat(data))
                     for hosts in data.keys():
                         data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
+                    self.logger.debug(
+                        "Template %s data to j2 %s",template,pprint.pformat(data))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
@@ -87,6 +87,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
+                self.logger.debug(
+                    "Template %s data to j2 %s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -114,6 +116,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
+                self.logger.debug(
+                    "Template %s data to j2 %s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -131,6 +135,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
+                self.logger.debug(
+                    "Template %s data to j2 %s",template,pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
