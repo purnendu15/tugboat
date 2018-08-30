@@ -17,7 +17,7 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .calico.bgp.ipv4.public_service_cidr
+        path: .ksn.bgp.ipv4.public_service_cidr
       dest:
         path: .values.networking.bgp.ipv4.additional_cidrs[0]
 
@@ -25,7 +25,7 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .calico.bgp.ipv4.peers[{{ loop.index0 }}]
+        path: .ksn.bgp.ipv4.peers[{{ loop.index0 }}]
       dest:
         path: .values.networking.bgp.ipv4.peers[{{ loop.index0 }}].metadata.peerIP
 {% endfor %}

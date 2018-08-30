@@ -1367,29 +1367,15 @@ metadata:
         name: common-addresses
         path: .ldap.base_url
       dest:
-        path:  .osh_infra.ldap.host_fqdn_override.default
+        path:  .osh_infra.ldap.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .ldap.subdomain
+        path: .ldap.auth_path
       dest:
         path:  .osh_infra.ldap.path.default
-        pattern: SUBDOMAIN
-    - src:
-        schema: pegleg/CommonAddresses/v1
-        name: common-addresses
-        path: .ldap.domain
-      dest:
-        path:  .osh_infra.ldap.path.default
-        pattern: DOMAIN
-    - src:
-        schema: pegleg/CommonAddresses/v1
-        name: common-addresses
-        path: .ldap.common_name
-      dest:
-        path:  .osh_infra.ldap.path.default
-        pattern: COMMON_NAME
+        pattern: AUTH_PATH
 data:
   osh_infra:
     elasticsearch:
@@ -1609,9 +1595,11 @@ data:
       hosts:
         default: ldap
       host_fqdn_override:
-        default: DOMAIN
+        default: null
+        public:
+	  host: DOMAIN
       path:
-        default: /"DC=SUBDOMAIN,DC=DOMAIN,DC=com?cn?sub?(memberof=CN=COMMON_NAME,OU=Application,OU=Groups,DC=SUBDOMAIN,DC=DOMAIN,DC=com)"
+        default: /AUTH_PATH
       scheme:
         default: "ldap"
       port:
