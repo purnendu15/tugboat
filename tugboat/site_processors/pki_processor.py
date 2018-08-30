@@ -66,8 +66,8 @@ class PkiProcessor:
                     data[host] = self.baremetal_data[rack][host]
             # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
-            self.logger.debug("Template %s data to j2:\n%s", \
-                              template,pprint.pformat(data))
+            self.logger.debug("Template %s data to j2:\n%s",
+                              template, pprint.pformat(data))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member

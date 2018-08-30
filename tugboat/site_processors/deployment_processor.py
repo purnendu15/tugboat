@@ -59,7 +59,8 @@ class DeploymentProcessor:
             os.makedirs(file_path)
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(file_path, 'deployment-configuration')
-        self.logger.debug("Template %s data to j2 %s",template,pprint.pformat(self.deployment_manifest))
+        self.logger.debug("Template %s data to j2 %s",
+                          template, pprint.pformat(self.deployment_manifest))
         try:
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member

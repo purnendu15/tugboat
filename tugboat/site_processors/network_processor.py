@@ -91,14 +91,14 @@ class NetworkProcessor(BaseProcessor):
 
     def get_conf_data(self):
         conf_data = self.yaml_data['conf']
-        self.logger.debug("Conf Data:\n%s",conf_data)
+        self.logger.debug("Conf Data:\n%s", conf_data)
         return {'conf': conf_data}
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(
             'tugboat', 'templates/networks')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        self.logger.debug("Template dif abspath:%s",template_dir_abspath)
+        self.logger.debug("Template dif abspath:%s", template_dir_abspath)
         outfile_path = 'pegleg_manifests/site/{}/networks/'.format(
             self.dir_name)
         outfile_dir = os.path.dirname(outfile_path)
@@ -118,7 +118,8 @@ class NetworkProcessor(BaseProcessor):
         }
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
-        self.logger.debug("Template %s data to j2 %s",template,pprint.pformat(data))
+        self.logger.debug("Template %s data to j2 %s",
+                          template, pprint.pformat(data))
         try:
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member
@@ -157,7 +158,8 @@ class NetworkProcessor(BaseProcessor):
                     'region_name']
                 yaml_filename = filename.split('.j2')[0]
                 self.logger.debug("Template %s data to j2:\n%s",
-					filename,pprint.pformat(self.yaml_data['network']))
+                                  filename,
+                                  pprint.pformat(self.yaml_data['network']))
                 try:
                     outfile = '{}{}'.format(outfile_dir, yaml_filename)
                     out = open(outfile, "w")

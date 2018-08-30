@@ -32,7 +32,6 @@ class BaremetalProcessor:
         self.ingress = yaml_data['network']['ingress']
         self.dir_name = yaml_data['region_name']
         self.region = self.dir_name
-        
 
     @staticmethod
     def read_file(file_name):
@@ -67,8 +66,8 @@ class BaremetalProcessor:
                     for hosts in data.keys():
                         data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
-                    self.logger.debug(
-                        "Template %s data to j2:\n%s",template,pprint.pformat(data))
+                    self.logger.debug("Template %s data to j2:\n%s",
+                                      template, pprint.pformat(data))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
@@ -87,8 +86,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug(
-                    "Template %s data to j2\n%s",template,pprint.pformat(data))
+                self.logger.debug("Template %s data to j2\n%s",
+                                  template, pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -116,8 +115,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug(
-                    "Template %s data to j2\n%s",template,pprint.pformat(data))
+                self.logger.debug("Template %s data to j2\n%s",
+                                  template, pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -135,8 +134,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug(
-                    "Template %s data to j2\n%s",template,pprint.pformat(data))
+                self.logger.debug("Template %s data to j2\n%s",
+                                  template, pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
