@@ -15,7 +15,8 @@
 import yaml
 import pkg_resources
 import os
-
+import logging
+import pprint
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
@@ -23,13 +24,15 @@ from tugboat.config import settings
 
 
 class BaremetalProcessor:
-    def __init__(self, file_name, logger):
+    def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.baremetal_data = yaml_data['baremetal']
         self.ingress = yaml_data['network']['ingress']
         self.dir_name = yaml_data['region_name']
         self.region = self.dir_name
+        
 
     @staticmethod
     def read_file(file_name):
@@ -47,6 +50,7 @@ class BaremetalProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/baremetal/rack.yaml.j2')
             template_dir = os.path.dirname(template_file)
+            self.logger.debug("template file:{}".format(template_file))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -60,16 +64,19 @@ class BaremetalProcessor:
                     '{}.yaml.j2'.format(template))
                 for rack in self.baremetal_data:
                     data = self.baremetal_data[rack]
+                    self.logger.debug(
+                        "Baremetal  rack:%s %s",rack,pprint.pformat(data))
                     for hosts in data.keys():
                         data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
-                    print('Rendering data for {}'.format(outfile))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
                         template_name.stream(data=data).dump(out)
+                        self.logger.info('Rendered {}'.format(outfile))
                         out.close()
                     except IOError as ioe:
+                        self.logger.error("IOError during file operation")
                         raise SystemExit("Error when generating {:s}:\n{:s}"
                                          .format(outfile, ioe.strerror))
             elif template == 'calico-ip-rules':
@@ -80,10 +87,10 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                print('Rendering data for {}'.format(outfile))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
@@ -107,10 +114,10 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                print('Rendering data for {}'.format(outfile))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
@@ -124,10 +131,10 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                print('Rendering data for {}'.format(outfile))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
