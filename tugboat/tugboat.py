@@ -79,9 +79,7 @@ def generate_manifest_files(intermediary):
     '--intermediary', '-i', type=click.Path(exists=True),
     help='Path to intermediary file, to be passed with generate_manifests'
 )
-
 def main(*args, **kwargs):
-
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
     logger.setLevel(logging.DEBUG)
