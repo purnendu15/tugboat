@@ -101,20 +101,6 @@ data:
       - {{ data['region'] }}_overlay
       - {{ data['region'] }}_storage
       - {{ data['region'] }}_ksn
-#  platform:
-#    image: 'xenial'
-#    kernel: 'hwe-16.04'
-#    kernel_params:
-#{% if data['profile']['type'] == 'compute' %}
-#      intel_iommu: 'on'
-#      iommu: 'pt'
-#      amd_iommu: 'on'
-#      transparent_hugepage: 'never'
-#      hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
-#      hugepages: 'hardwareprofile:hugepages.dpdk.count'
-#      default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
-#      isolcpus: 'hardwareprofile:cpuset.kvm'
-#{% endif %}
   metadata:
     owner_data:
       openstack-l3-agent: enabled

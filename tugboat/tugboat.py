@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import logging
-
+import sys
+import getopt
 import click
 
 from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
@@ -26,6 +26,7 @@ from tugboat.site_processors.profile_processor import ProfileProcessor
 from tugboat.site_processors.site_definition_processor import (
     SiteDeifinitionProcessor)
 from tugboat.site_processors.software_processor import SoftwareProcessor
+import logging
 
 PROCESSORS = [
     BaremetalProcessor, DeploymentProcessor, NetworkProcessor, PkiProcessor,
@@ -33,7 +34,7 @@ PROCESSORS = [
 ]
 
 
-def generate_intermediary_file(excel, spec, logger, both=None):
+def generate_intermediary_file(excel, spec, both=None):
     """ Generate intermediary file """
     if excel and spec:
         parser = GenerateYamlFromExcel(excel, spec)
@@ -45,12 +46,12 @@ def generate_intermediary_file(excel, spec, logger, both=None):
         return intermediary
 
 
-def generate_manifest_files(intermediary, logger):
+def generate_manifest_files(intermediary):
     """ Generate manifests """
     if intermediary:
         print('Generating manifest files')
         for processor in PROCESSORS:
-            processor_engine = processor(intermediary, logger)
+            processor_engine = processor(intermediary)
             processor_engine.render_template()
     else:
         print('Please pass intermediary file')
@@ -78,7 +79,21 @@ def generate_manifest_files(intermediary, logger):
     '--intermediary', '-i', type=click.Path(exists=True),
     help='Path to intermediary file, to be passed with generate_manifests'
 )
+
 def main(*args, **kwargs):
+
+    logger = logging.getLogger('tugboat')
+    # Set default log level to INFO
+    logger.setLevel(logging.DEBUG)
+    # set console logging. Change to file by changing to FileHandler
+    stream_handle = logging.StreamHandler()
+    # Set logging format
+    formatter = logging.Formatter(
+        '(%(name)s) - %(levelname)s:%(message)s')
+    stream_handle.setFormatter(formatter)
+    logger.addHandler(stream_handle)
+    logger.info("Tugboat start")
+
     """
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
@@ -88,37 +103,21 @@ def main(*args, **kwargs):
     excel = kwargs['excel']
     spec = kwargs['spec']
     intermediary = kwargs['intermediary']
-    logging.info("Tugboay start")
-
-    tug_logger = logging.getLogger('__name__')
-    # Set default log level to INFO
-    tug_logger.setLevel(logging.INFO)
-
-    # set console logging. Change to file by changign to FileHandler
-    stream_handle = logging.StreamHandler()
-    stream_handle.setLevel(logging.INFO)
-
-    # Set logging format
-    formatter = logging.Formatter(
-        '%(asctime)s - (%(name)s) - %(level)s:%(message)s')
-    stream_handle.setFormatter(formatter)
-
-    tug_logger.addHandler(stream_handle)
 
     if generate_intermediary and generate_manifests:
-        intermediary = generate_intermediary_file(excel, spec,
-                                                  tug_logger, both=True)
-        generate_manifest_files(intermediary, tug_logger)
+        intermediary = generate_intermediary_file(excel, spec, both=True)
+        generate_manifest_files(intermediary)
 
     elif generate_intermediary:
-        generate_intermediary_file(excel, spec, tug_logger)
+        generate_intermediary_file(excel, spec)
 
     elif generate_manifests:
-        generate_manifest_files(intermediary, tug_logger)
+        generate_manifest_files(intermediary)
 
     else:
         print('No options passed. Please pass either of -g or -m')
-    logging.info("Tugboat Stopped")
+
+    logger.info("Tugboat Stopped")
 
 
 if __name__ == '__main__':
