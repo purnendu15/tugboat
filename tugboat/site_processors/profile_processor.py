@@ -15,6 +15,8 @@
 import yaml
 import pkg_resources
 import os
+import logging
+import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -24,6 +26,7 @@ from tugboat.config import settings
 
 class ProfileProcessor:
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
@@ -46,6 +49,8 @@ class ProfileProcessor:
         template_dir_abspath = os.path.dirname(template_software_dir)
         outfile_path = 'pegleg_manifests/site/{}/profiles'.format(
             self.dir_name)
+        self.logger.debug("Template dir abspath:{}".
+                          format(template_dir_abspath))
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
@@ -55,12 +60,18 @@ class ProfileProcessor:
                     trim_blocks=True)
                 templatefile = os.path.join(dirpath, filename)
                 hardware_profile = settings.HARDWARE_PROFILE
-
+                self.logger.info("template :{}".format(filename))
                 # Special processing for hostprofile file
                 if filename.rstrip(
                         '.yaml.j2') in settings.HOSTPROFILE_TEMPLATES:
                     for profile in self.data['profiles']:
+                        # Logging
+                        self.logger.debug("Processing for profile :{}".
+                                          format(profile))
                         for rack in self.data['profiles'][profile]['racks']:
+                            # Logging
+                            self.logger.debug(
+                                "Processing for rack:{}".format(rack))
                             render_data = {}
                             render_data['profile'] = self.data['profiles'][
                                 profile]
@@ -79,11 +90,16 @@ class ProfileProcessor:
                                 os.makedirs(outfile_dir)
                             template_j2 = j2_env.get_template(filename)
                             self.data['hw_profile'] = hardware_profile
-                            print('Rendering data for {}'.format(outfile))
+                            # Logging
+                            self.logger.debug(
+                                "Template %s data to j2:\n%s",
+                                filename, pprint.pformat(render_data))
                             try:
                                 out = open(outfile, "w")
                                 # pylint: disable=maybe-no-member
                                 template_j2.stream(data=render_data).dump(out)
+                                # Logging
+                                self.logger.info('Rendered {}'.format(outfile))
                                 out.close()
                             except IOError as ioe:
                                 raise SystemExit(
@@ -98,10 +114,13 @@ class ProfileProcessor:
                         os.makedirs(outfile_dir)
                     template_j2 = j2_env.get_template(filename)
                     print('Rendering data for {}'.format(outfile))
+                    self.logger.debug("Template %s data to j2:\n%s",
+                                      filename, pprint.pformat(self.data))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
                         template_j2.stream(data=self.data).dump(out)
+                        self.logger.info('Rendered {}'.format(outfile))
                         out.close()
                     except IOError as ioe:
                         raise SystemExit("Error when generating {:s}:\n{:s}"

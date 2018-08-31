@@ -15,6 +15,8 @@
 import yaml
 import pkg_resources
 import os
+import logging
+import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -22,6 +24,7 @@ from jinja2 import FileSystemLoader
 
 class SoftwareProcessor:
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
@@ -51,6 +54,7 @@ class SoftwareProcessor:
                     autoescape=False,
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
+                self.logger.info("template :{}".format(filename))
                 templatefile = os.path.join(dirpath, filename)
                 outfile_j2 = outfile_path + templatefile.split(
                     'templates/software', 1)[1]
@@ -59,11 +63,14 @@ class SoftwareProcessor:
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-                print('Rendering data for {}'.format(outfile))
+                self.logger.debug(
+                    "Template %s data to j2:\n%s",
+                    filename, pprint.pformat(self.data))
                 try:
                     out = open(outfile, "w")
                     # pylint: disable=maybe-no-member
                     template_j2.stream(data=self.data).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
