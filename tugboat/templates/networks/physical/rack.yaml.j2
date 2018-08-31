@@ -22,6 +22,7 @@ data:
     - {{rack_key}}_oob
 ...
 
+
 ---
 schema: 'drydock/Network/v1'
 metadata:
@@ -43,6 +44,7 @@ data:
       end: {{ data['rack'][rack_key]['oob']['static_end'] }}
 ...
 
+
 ---
 schema: 'drydock/NetworkLink/v1'
 metadata:
@@ -63,6 +65,7 @@ data:
   allowed_networks:
     - {{rack_key}}_pxe
 ...
+
 
 ---
 schema: 'drydock/Network/v1'
