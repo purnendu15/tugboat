@@ -17,19 +17,13 @@ Before using Tugboat, you must:
 
 1. Clone the Tugboat repository:
 
-.. code-block:: console
-
-    git clone https://github.com/att-comdev/tugboat
+     git clone https://github.com/att-comdev/tugboat
 
 2. Install the required packages in tugboat/:
-
-.. code-block:: console
 
      pip3 install -r tugboat/requirements.txt
 
 3. To run the tool:
-
-.. code-block:: console
 
     export WORKSPACE=<dir where excelspecs are placed>
     export IMAGE=<docker_image>
