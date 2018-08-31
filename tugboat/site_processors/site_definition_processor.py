@@ -50,7 +50,7 @@ class SiteDeifinitionProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/site_definition/site_definition.yaml.j2')
             template_dir = os.path.dirname(template_file)
-            self.logger.info("template :{}".format(template))
+            self.logger.info("template :{}.yaml.j2".format(template))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -62,7 +62,7 @@ class SiteDeifinitionProcessor:
             template_name = j2_env.get_template('{}.yaml.j2'.format(template))
             outfile = '{}{}.yaml'.format(file_path, "site-definition")
             self.logger.debug(
-                "Template %s data to j2:\n%s",
+                "Dict dump to %s:\n%s",
                 template, pprint.pformat(self.region_name))
             try:
                 out = open(outfile, "w")

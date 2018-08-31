@@ -50,7 +50,7 @@ class PkiProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/pki/pki-catalogue.yaml.j2')
             template_dir = os.path.dirname(template_file)
-            self.logger.info("template :{}".format(template))
+            self.logger.info("template :{}.yaml.j2".format(template))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -66,7 +66,7 @@ class PkiProcessor:
                     data[host] = self.baremetal_data[rack][host]
             # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
-            self.logger.debug("Template %s data to j2:\n%s",
+            self.logger.debug("Dict dump to %s:\n%s",
                               template, pprint.pformat(data))
             try:
                 out = open(outfile, "w")

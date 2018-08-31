@@ -106,7 +106,7 @@ class NetworkProcessor(BaseProcessor):
             os.makedirs(outfile_dir)
         outfile_j2 = ''
         template = 'common_addresses'
-        self.logger.info("template :{}".format(template))
+        self.logger.info("template :{}.yaml.j2".format(template))
         j2_env = Environment(
             autoescape=False,
             loader=FileSystemLoader(template_software_dir),
@@ -118,7 +118,7 @@ class NetworkProcessor(BaseProcessor):
         }
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
-        self.logger.debug("Template %s data to j2 %s",
+        self.logger.debug("Dict dump to %s:\n%s",
                           template, pprint.pformat(data))
         try:
             out = open(outfile, "w")
@@ -157,7 +157,7 @@ class NetworkProcessor(BaseProcessor):
                 self.network_data['region_name'] = self.yaml_data[
                     'region_name']
                 yaml_filename = filename.split('.j2')[0]
-                self.logger.debug("Template %s data to j2:\n%s",
+                self.logger.debug("Dict dump to %s:\n%s",
                                   filename,
                                   pprint.pformat(self.yaml_data['network']))
                 try:

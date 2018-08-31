@@ -64,7 +64,7 @@ class SoftwareProcessor:
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
                 self.logger.debug(
-                    "Template %s data to j2:\n%s",
+                    "Dict dump to %s:\n%s",
                     filename, pprint.pformat(self.data))
                 try:
                     out = open(outfile, "w")

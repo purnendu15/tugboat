@@ -92,7 +92,7 @@ class ProfileProcessor:
                             self.data['hw_profile'] = hardware_profile
                             # Logging
                             self.logger.debug(
-                                "Template %s data to j2:\n%s",
+                                "Dict dump to %s:\n%s",
                                 filename, pprint.pformat(render_data))
                             try:
                                 out = open(outfile, "w")
@@ -114,7 +114,7 @@ class ProfileProcessor:
                         os.makedirs(outfile_dir)
                     template_j2 = j2_env.get_template(filename)
                     print('Rendering data for {}'.format(outfile))
-                    self.logger.debug("Template %s data to j2:\n%s",
+                    self.logger.debug("Dict dump to %s:\n%s",
                                       filename, pprint.pformat(self.data))
                     try:
                         out = open(outfile, "w")

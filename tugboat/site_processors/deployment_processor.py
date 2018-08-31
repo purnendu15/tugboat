@@ -48,7 +48,7 @@ class DeploymentProcessor:
             'tugboat', 'templates/deployment/deployment-configuration.yaml.j2')
         template = 'deployment-configuration'
         template_dir = os.path.dirname(template_file)
-        self.logger.info("template :{}".format(template))
+        self.logger.info("template :{}.yaml.j2".format(template))
         j2_env = Environment(
             autoescape=False,
             loader=FileSystemLoader(template_dir),
@@ -59,7 +59,7 @@ class DeploymentProcessor:
             os.makedirs(file_path)
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(file_path, 'deployment-configuration')
-        self.logger.debug("Template %s data to j2 %s",
+        self.logger.debug("Dict dump to %s %s",
                           template, pprint.pformat(self.deployment_manifest))
         try:
             out = open(outfile, "w")

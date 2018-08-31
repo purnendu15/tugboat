@@ -82,7 +82,7 @@ def generate_manifest_files(intermediary):
 def main(*args, **kwargs):
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
-    logger.setLevel(logging.DEBUG)
+    logger.setLevel(logging.INFO)
     # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
