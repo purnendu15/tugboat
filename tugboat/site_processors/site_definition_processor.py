@@ -15,6 +15,9 @@
 import yaml
 import pkg_resources
 import os
+import logging
+import pprint
+
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -24,6 +27,7 @@ from tugboat.config import settings
 
 class SiteDeifinitionProcessor:
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.region_name = yaml_data['region_name']
@@ -46,6 +50,7 @@ class SiteDeifinitionProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/site_definition/site_definition.yaml.j2')
             template_dir = os.path.dirname(template_file)
+            self.logger.info("template :{}.yaml.j2".format(template))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -56,11 +61,14 @@ class SiteDeifinitionProcessor:
                 os.makedirs(directory)
             template_name = j2_env.get_template('{}.yaml.j2'.format(template))
             outfile = '{}{}.yaml'.format(file_path, "site-definition")
-            print('Rendering data for {}'.format(outfile))
+            self.logger.debug(
+                "Dict dump to %s:\n%s",
+                template, pprint.pformat(self.region_name))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member
                 template_name.stream(region_name=self.region_name).dump(out)
+                self.logger.info('Rendered {}'.format(outfile))
                 out.close()
             except IOError as ioe:
                 raise SystemExit("Error when generating {:s}:\n{:s}".format(

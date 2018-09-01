@@ -93,7 +93,7 @@ data:
               mountpoint: '/var'
               fstype: 'ext4'
               mount_options: 'defaults'
-{% if data['profile']['type'] == 'master' %}
+{% if data['profile']['type'] == 'controller' %}
       cephjournal:
         partitions:
           - name: 'cephj'
@@ -120,4 +120,4 @@ data:
   metadata:
     owner_data:
       openstack-l3-agent: enabled
-...
+

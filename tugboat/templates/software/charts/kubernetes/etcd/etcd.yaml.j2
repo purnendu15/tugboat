@@ -47,13 +47,10 @@ metadata:
         path: .
       dest:
         path: .values.nodes[{{ count[0] }}].tls.peer.key
-
     {% if count.append(count.pop() + 1) %}{% endif %} {# increment count by 1 #}
-
 {% endif %}
 {% endfor %}
 {% endfor %}
-
 {% for rack in data.baremetal.keys() %}
 {% for host in data["baremetal"][rack] %}
 {% if data["baremetal"][rack][host]["type"]  == 'genesis' %}
@@ -87,11 +84,10 @@ metadata:
         path: $
       dest:
         path: .values.nodes[{{ count[0] }}].tls.peer.key
-
-
 {% endif %}
 {% endfor %}
 {% endfor %}
 
 data: {}
 ...
+

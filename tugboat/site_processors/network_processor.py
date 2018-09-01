@@ -16,6 +16,8 @@ import yaml
 import pkg_resources
 import os
 import netaddr
+import logging
+import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -24,6 +26,7 @@ from tugboat.site_processors.base import BaseProcessor
 
 class NetworkProcessor(BaseProcessor):
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         self.yaml_data = self.get_yaml_data(raw_data)
         self.network_data = self.yaml_data['network']
@@ -88,12 +91,14 @@ class NetworkProcessor(BaseProcessor):
 
     def get_conf_data(self):
         conf_data = self.yaml_data['conf']
+        self.logger.debug("Conf Data:\n%s", conf_data)
         return {'conf': conf_data}
 
     def render_template(self):
         template_software_dir = pkg_resources.resource_filename(
             'tugboat', 'templates/networks')
         template_dir_abspath = os.path.dirname(template_software_dir)
+        self.logger.debug("Template dif abspath:%s", template_dir_abspath)
         outfile_path = 'pegleg_manifests/site/{}/networks/'.format(
             self.dir_name)
         outfile_dir = os.path.dirname(outfile_path)
@@ -101,6 +106,7 @@ class NetworkProcessor(BaseProcessor):
             os.makedirs(outfile_dir)
         outfile_j2 = ''
         template = 'common_addresses'
+        self.logger.info("template :{}.yaml.j2".format(template))
         j2_env = Environment(
             autoescape=False,
             loader=FileSystemLoader(template_software_dir),
@@ -112,11 +118,13 @@ class NetworkProcessor(BaseProcessor):
         }
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
+        self.logger.debug("Dict dump to %s:\n%s",
+                          template, pprint.pformat(data))
         try:
-            print('Rendering data for {}'.format(outfile))
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member
             template_name.stream(data=data).dump(out)
+            self.logger.info('Rendered {}'.format(outfile))
             out.close()
         except IOError as ioe:
             raise SystemExit("Error when generating {:s}:\n{:s}".format(
@@ -133,6 +141,7 @@ class NetworkProcessor(BaseProcessor):
                 if not outfile_j2 and 'networks/physical' in templatefile:
                     outfile_j2 = outfile_path + templatefile.split(
                         'templates/networks/physical', 1)[1]
+                    self.logger.info("template :{}".format(filename))
                 else:
                     continue
                 outfile = outfile_j2.split('.j2')[0]
@@ -143,18 +152,20 @@ class NetworkProcessor(BaseProcessor):
                 rack_list_data = []
                 for racks in self.network_data['rack'].keys():
                     rack_list_data.append(racks)
-
+                self.logger.debug("Rack list:{}".format(rack_list_data))
                 self.network_data['rack_list'] = rack_list_data
                 self.network_data['region_name'] = self.yaml_data[
                     'region_name']
                 yaml_filename = filename.split('.j2')[0]
+                self.logger.debug("Dict dump to %s:\n%s",
+                                  filename,
+                                  pprint.pformat(self.yaml_data['network']))
                 try:
                     outfile = '{}{}'.format(outfile_dir, yaml_filename)
-
-                    print('Rendering data for {}'.format(outfile))
                     out = open(outfile, "w")
                     template_j2.stream(
                         data=self.yaml_data['network']).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"

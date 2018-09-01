@@ -15,6 +15,9 @@
 import yaml
 import pkg_resources
 import os
+import logging
+import pprint
+
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
@@ -24,6 +27,7 @@ from tugboat.config import settings
 
 class PkiProcessor:
     def __init__(self, file_name):
+        self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.baremetal_data = yaml_data['baremetal']
@@ -46,6 +50,7 @@ class PkiProcessor:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/pki/pki-catalogue.yaml.j2')
             template_dir = os.path.dirname(template_file)
+            self.logger.info("template :{}.yaml.j2".format(template))
             j2_env = Environment(
                 autoescape=False,
                 loader=FileSystemLoader(template_dir),
@@ -61,11 +66,13 @@ class PkiProcessor:
                     data[host] = self.baremetal_data[rack][host]
             # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
-            print('Rendering data for {}'.format(outfile))
+            self.logger.debug("Dict dump to %s:\n%s",
+                              template, pprint.pformat(data))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member
                 template_name.stream(data=data).dump(out)
+                self.logger.info('Rendered {}'.format(outfile))
                 out.close()
             except IOError as ioe:
                 raise SystemExit("Error when generating {:s}:\n{:s}".format(

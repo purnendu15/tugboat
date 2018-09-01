@@ -21,6 +21,7 @@ data:
   allowed_networks:
     - {{rack_key}}_oob
 ...
+
 ---
 schema: 'drydock/Network/v1'
 metadata:
@@ -41,8 +42,8 @@ data:
       start: {{ data['rack'][rack_key]['oob']['static_start'] }}
       end: {{ data['rack'][rack_key]['oob']['static_end'] }}
 ...
----
 
+---
 schema: 'drydock/NetworkLink/v1'
 metadata:
   schema: 'metadata/Document/v1'
@@ -62,6 +63,7 @@ data:
   allowed_networks:
     - {{rack_key}}_pxe
 ...
+
 ---
 schema: 'drydock/Network/v1'
 metadata:
@@ -96,7 +98,5 @@ data:
     - type: dhcp
       start: {{ data['rack'][rack_key]['pxe']['dhcp_start'] }}
       end: {{ data['rack'][rack_key]['pxe']['dhcp_end'] }}
-
 ...
----
 {%endfor%}

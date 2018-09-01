@@ -14,6 +14,8 @@
 
 import yaml
 import re
+import logging
+import pprint
 
 import netaddr
 from .base import ParserEngine
@@ -23,11 +25,14 @@ import tugboat.config.settings as settings
 
 class GenerateYamlFromExcel(ParserEngine):
     def __init__(self, file_name, excel_specs):
+        self.logger = logging.getLogger(__name__)
+        self.logger.info("Getting parsed data from excel") 
         self.HOST_TYPES = settings.HOST_TYPES
         self.PRIVATE_NETWORK_TYPES = settings.PRIVATE_NETWORK_TYPES
         self.IPS_TO_LEAVE = settings.IPS_TO_LEAVE
         self.OOB_IPS_TO_LEAVE = settings.OOB_IPS_TO_LEAVE
         parsed_data = self.get_parsed_data(file_name, excel_specs)
+        self.logger.debug("yaml data:\n%s",parsed_data)
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
         self.private_network_data = self.get_private_network_data(
@@ -68,14 +73,17 @@ class GenerateYamlFromExcel(ParserEngine):
                 if net_type.lower() in key.lower():
                     network_data[self.PRIVATE_NETWORK_TYPES[
                         net_type]] = raw_data['private'][key]
+        self.logger.debug("Private Network Data:\n%s",network_data)
         return network_data
 
     def get_public_network_data(self, raw_data):
         network_data = raw_data['public']
+        self.logger.debug("Public Network Data:\n%s",network_data)
         return network_data
 
     def get_dns_ntp_ldap_data(self, raw_data):
         network_data = raw_data['dns_ntp_ldap']
+        self.logger.debug("DNS, NTP, LDAP data:\n%s",network_data)
         return network_data
 
     def get_location_data(self, raw_data):
