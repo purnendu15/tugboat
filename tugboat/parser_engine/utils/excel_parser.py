@@ -19,11 +19,13 @@ from openpyxl import load_workbook
 from ..check_exceptions import (
     NoSpecMatched, )
 import logging
+import pprint
 
 
 class ExcelParser():
     """ Parse data from excel into a dict """
     def __init__(self, file_name, excel_specs):
+        self.logger = logging.getLogger(__name__)
         self.file_name = file_name
         with open(excel_specs, 'r') as f:
             spec_raw_data = f.read()
@@ -57,6 +59,8 @@ class ExcelParser():
                 if self.compare(sheet_name, sheet):
                     self.excel_specs['specs'][spec]['ipmi_sheet_name'] = sheet
                     if self.validate_sheet(spec, sheet):
+                        self.logger.info("Sheet:{} validation\
+                                         OK!".format(sheet))
                         return spec
         raise NoSpecMatched(self.excel_specs)
 
@@ -97,6 +101,8 @@ class ExcelParser():
                 'host_profile': host_profile,
             }
             row += 1
+        self.logger.debug("ipmi data extracted from excel:\%s",[ipmi_data,
+                                                                hosts])
         return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
@@ -112,6 +118,7 @@ class ExcelParser():
                 vlan = ws.cell(row=row, column=vlan_col).value
                 vlan_data[vlan] = cell_value
             row += 1
+        self.logger.debug("vlan data extracted from excel:\n%s",vlan_data)
         return vlan_data
 
     def get_private_network_data(self):
@@ -150,6 +157,8 @@ class ExcelParser():
                 network_data[network]['is_common'] = False
             else:
                 network_data[network]['is_common'] = True
+        self.logger.debug("private network data extracted from\
+                          excel:\n%s",network_data)
         return network_data
 
     def get_public_network_data(self):
@@ -180,6 +189,8 @@ class ExcelParser():
                 network_data['oob']['subnets'].append(
                     self.sanitize(cell_value))
             col += 1
+        self.logger.debug("public network data extracted from\
+                          excel:\n%s",network_data)
         return network_data
 
     def get_dns_ntp_ldap_data(self):
@@ -210,6 +221,8 @@ class ExcelParser():
                 'url': ws.cell(row=ldap_url_row, column=ldap_col).value,
             }
         }
+        self.logger.debug("dns,ntp,ldap data extracted from\
+                          excel:\n%s",dns_ntp_ldap_data)
         return dns_ntp_ldap_data
 
     def get_location_data(self):
@@ -239,6 +252,8 @@ class ExcelParser():
         public_network_data = self.get_public_network_data()
         dns_ntp_ldap_data = self.get_dns_ntp_ldap_data()
         location_data = self.get_location_data()
+        self.logger.debug("Location data extracted from\
+                          excel:\n%s",location_data)
         return {
             'ipmi_data': ipmi_data,
             'network_data': {
