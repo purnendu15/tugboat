@@ -26,13 +26,13 @@ import tugboat.config.settings as settings
 class GenerateYamlFromExcel(ParserEngine):
     def __init__(self, file_name, excel_specs):
         self.logger = logging.getLogger(__name__)
-        self.logger.info("Getting parsed data from excel") 
+        self.logger.info("Getting parsed data from excel")
         self.HOST_TYPES = settings.HOST_TYPES
         self.PRIVATE_NETWORK_TYPES = settings.PRIVATE_NETWORK_TYPES
         self.IPS_TO_LEAVE = settings.IPS_TO_LEAVE
         self.OOB_IPS_TO_LEAVE = settings.OOB_IPS_TO_LEAVE
         parsed_data = self.get_parsed_data(file_name, excel_specs)
-        self.logger.debug("yaml data:\n%s",parsed_data)
+        self.logger.debug("yaml data:\n%s", parsed_data)
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
         self.private_network_data = self.get_private_network_data(
@@ -73,39 +73,40 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def get_private_network_data(self, raw_data):
         """
-        Get private network data from the information extracted
+        Get private network data from information extracted
         by ExcelParser(i.e raw data)
         """
         network_data = {}
         for net_type in self.PRIVATE_NETWORK_TYPES:
             for key in raw_data['private']:
                 if net_type.lower() in key.lower():
-                    network_data[self.PRIVATE_NETWORK_TYPES[net_type]] = \
-                    raw_data['private'][key]
-        self.logger.debug("Private Network Data:\n%s",network_data)
+                    network_data[
+                        self.PRIVATE_NETWORK_TYPES[net_type]] = raw_data[
+                            'private'][key]
+        self.logger.debug("Private Network Data:\n%s", network_data)
         return network_data
 
     def get_public_network_data(self, raw_data):
         """
-        Get public network data from the information extracted
+        Get public network data from information extracted
         by ExcelParser(i.e raw data)
         """
         network_data = raw_data['public']
-        self.logger.debug("Public Network Data:\n%s",network_data)
+        self.logger.debug("Public Network Data:\n%s", network_data)
         return network_data
 
     def get_dns_ntp_ldap_data(self, raw_data):
         """
-        Get dns, ntp and ldap data from the information extracted
+        Get dns, ntp and ldap data from  information extracted
         by ExcelParser(i.e raw data)
         """
         network_data = raw_data['dns_ntp_ldap']
-        self.logger.debug("DNS, NTP, LDAP data:\n%s",network_data)
+        self.logger.debug("DNS, NTP, LDAP data:\n%s", network_data)
         return network_data
 
     def get_location_data(self, raw_data):
         """
-        Prepare location data from the information extracted
+        Prepare location data from information extracted
         by ExcelParser(i.e raw data)
         """
         corridor_pattern = '\d+'
@@ -123,11 +124,12 @@ class GenerateYamlFromExcel(ParserEngine):
         }
 
     def assign_location_data(self):
-        """ Assing the prepared location data """
+        """ Assign the prepared location data """
         self.data['location'] = self.location_data
 
     def format_network_data(self):
-        """ Network data extracted from xl is formatted
+        """
+        Network data extracted from xl is formatted
         to have a predictable data type. For e.g VlAN 45
         extracted from xl is formatted as 45
         """
@@ -160,8 +162,8 @@ class GenerateYamlFromExcel(ParserEngine):
                 self.dns_ntp_ldap_data[type_]['url'] = url
 
     def get_rack(self, host):
-        """ 
-        Get rack id  from the rack pattern extracted 
+        """
+        Get rack id  from the rack string extracted
         from xl
         """
         rack_pattern = '\w.*(r\d+)\w.*'
@@ -172,8 +174,8 @@ class GenerateYamlFromExcel(ParserEngine):
 
     def categorize_hosts(self):
         """
-        Catehorize host as genesis, controller and compute based on 
-        pattern in extracted hostname from xl
+        Categorize host as genesis, controller and compute based on
+        the hostname string extracted from xl
         """
         is_genesis = False
         controller_pattern = '\w.*r\d+o\d+'
@@ -188,7 +190,7 @@ class GenerateYamlFromExcel(ParserEngine):
                 self.host_type[host] = 'compute'
 
     def get_rackwise_subnet(self):
-        """ 
+        """
         Extract subnet information for private and public networks
         for each rack
         """
@@ -216,7 +218,7 @@ class GenerateYamlFromExcel(ParserEngine):
                 rackwise_subnets['common'][
                     net_type] = netaddr.IPNetwork(
                         self.private_network_data[net_type]['subnet'][0])
-        self.logger.debug("rackwise subnets:\n%s",rackwise_subnets)
+        self.logger.debug("rackwise subnets:\n%s", rackwise_subnets)
         return rackwise_subnets
 
     def get_rackwise_hosts(self):
@@ -228,7 +230,7 @@ class GenerateYamlFromExcel(ParserEngine):
             for host in self.hostnames:
                 if rack in host:
                     rackwise_hosts[self.racks[rack]].append(host)
-        self.logger.debug("rackwise hosts:\n%s",rackwise_hosts)
+        self.logger.debug("rackwise hosts:\n%s", rackwise_hosts)
         return rackwise_hosts
 
     def assign_private_ip_to_hosts(self):
@@ -406,7 +408,7 @@ class GenerateYamlFromExcel(ParserEngine):
     def assign_network_data(self):
         """
         Create derived network data with information from xl and static
-        configuration and store them into the dictionary
+        configuration and then store them into the dictionary
         """
         self.logger.info("Assigning network data")
         rack_data = {}

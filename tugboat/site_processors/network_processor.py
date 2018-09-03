@@ -40,6 +40,7 @@ class NetworkProcessor(BaseProcessor):
 
     @staticmethod
     def get_yaml_data(data):
+        """ load yaml data """
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
@@ -55,15 +56,12 @@ class NetworkProcessor(BaseProcessor):
         return genesis_ip
 
     def get_network_data(self):
+        """ Get data for various network configs like dns, ntp, ldap etc """
         network_data = self.yaml_data['network']
         dns_servers = network_data['dns']['servers'].split(',')
         ntp_servers = network_data['ntp']['servers'].split(',')
         proxy = network_data['proxy']
         ceph_cidr = []
-        """
-        for rack in network_data['rack']:
-            ceph_cidr.append(network_data['rack'][rack]['storage']['nw'])
-        """
         ceph_cidr.append(network_data['common']['storage']['nw'])
         ksn_vlan_info = network_data['common']['ksn']['vlan']
         overlay_vlan_info = network_data['common']['overlay']['vlan']
@@ -90,11 +88,18 @@ class NetworkProcessor(BaseProcessor):
         }
 
     def get_conf_data(self):
+        """ Get common network config data """
         conf_data = self.yaml_data['conf']
         self.logger.debug("Conf Data:\n%s", conf_data)
         return {'conf': conf_data}
 
     def render_template(self):
+        """
+        The function renders network config yaml from j2 templates.
+        Network configs common to all racks (i.e oam, overlay, storage,
+        ksn) are generated in a single file. Rack specific
+        configs( pxe and oob) are generated per rack.
+        """
         template_software_dir = pkg_resources.resource_filename(
             'tugboat', 'templates/networks')
         template_dir_abspath = os.path.dirname(template_software_dir)
@@ -120,6 +125,7 @@ class NetworkProcessor(BaseProcessor):
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
         self.logger.debug("Dict dump to %s:\n%s",
                           template, pprint.pformat(data))
+        """ Generating common config """
         try:
             out = open(outfile, "w")
             # pylint: disable=maybe-no-member
@@ -160,6 +166,7 @@ class NetworkProcessor(BaseProcessor):
                 self.logger.debug("Dict dump to %s:\n%s",
                                   filename,
                                   pprint.pformat(self.yaml_data['network']))
+                """ Generating rack specific configs """
                 try:
                     outfile = '{}{}'.format(outfile_dir, yaml_filename)
                     out = open(outfile, "w")

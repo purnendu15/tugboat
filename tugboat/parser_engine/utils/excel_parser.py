@@ -101,8 +101,8 @@ class ExcelParser():
                 'host_profile': host_profile,
             }
             row += 1
-        self.logger.debug("ipmi data extracted from excel:\%s",[ipmi_data,
-                                                                hosts])
+        self.logger.debug("ipmi data extracted from excel:\n%s",
+                          [ipmi_data, hosts])
         return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
@@ -118,7 +118,7 @@ class ExcelParser():
                 vlan = ws.cell(row=row, column=vlan_col).value
                 vlan_data[vlan] = cell_value
             row += 1
-        self.logger.debug("vlan data extracted from excel:\n%s",vlan_data)
+        self.logger.debug("vlan data extracted from excel:\n%s", vlan_data)
         return vlan_data
 
     def get_private_network_data(self):
@@ -158,7 +158,7 @@ class ExcelParser():
             else:
                 network_data[network]['is_common'] = True
         self.logger.debug("private network data extracted from\
-                          excel:\n%s",network_data)
+                          excel:\n%s", network_data)
         return network_data
 
     def get_public_network_data(self):
@@ -190,7 +190,7 @@ class ExcelParser():
                     self.sanitize(cell_value))
             col += 1
         self.logger.debug("public network data extracted from\
-                          excel:\n%s",network_data)
+                          excel:\n%s", network_data)
         return network_data
 
     def get_dns_ntp_ldap_data(self):
@@ -222,7 +222,7 @@ class ExcelParser():
             }
         }
         self.logger.debug("dns,ntp,ldap data extracted from\
-                          excel:\n%s",dns_ntp_ldap_data)
+                          excel:\n%s", dns_ntp_ldap_data)
         return dns_ntp_ldap_data
 
     def get_location_data(self):
@@ -253,7 +253,7 @@ class ExcelParser():
         dns_ntp_ldap_data = self.get_dns_ntp_ldap_data()
         location_data = self.get_location_data()
         self.logger.debug("Location data extracted from\
-                          excel:\n%s",location_data)
+                          excel:\n%s", location_data)
         return {
             'ipmi_data': ipmi_data,
             'network_data': {

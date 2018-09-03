@@ -41,10 +41,12 @@ class BaremetalProcessor:
 
     @staticmethod
     def get_yaml_data(data):
+        """ Load Yaml data """
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
     def render_template(self):
+        """ Rendering baremetal yamls """
         for template in settings.BAREMETAL_TEMPLATES:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/baremetal/rack.yaml.j2')
@@ -58,6 +60,7 @@ class BaremetalProcessor:
                 self.dir_name)
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
+            """ Rendering baremetal node configs for each host/rack"""
             if template == 'rack':
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
@@ -78,6 +81,7 @@ class BaremetalProcessor:
                         self.logger.error("IOError during file operation")
                         raise SystemExit("Error when generating {:s}:\n{:s}"
                                          .format(outfile, ioe.strerror))
+            """ Rendering baremetal node configs for k8 network"""
             elif template == 'calico-ip-rules':
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
@@ -96,6 +100,7 @@ class BaremetalProcessor:
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
+            """ Rendering baremetal node configs for promjoin"""
             elif template == 'promjoin':
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
@@ -125,6 +130,7 @@ class BaremetalProcessor:
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
+            """ Rendering baremetal node configs for sriov nodes"""
             elif template == 'sriov-blacklist':
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
