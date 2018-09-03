@@ -81,8 +81,8 @@ class BaremetalProcessor:
                         self.logger.error("IOError during file operation")
                         raise SystemExit("Error when generating {:s}:\n{:s}"
                                          .format(outfile, ioe.strerror))
-            """ Rendering baremetal node configs for k8 network"""
             elif template == 'calico-ip-rules':
+                """ Rendering baremetal node configs for ksn """
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
                 if not os.path.exists(file_path):
@@ -100,8 +100,8 @@ class BaremetalProcessor:
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
-            """ Rendering baremetal node configs for promjoin"""
             elif template == 'promjoin':
+                """ Rendering baremetal node configs for promjoin """
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
                 if not os.path.exists(file_path):
@@ -130,8 +130,8 @@ class BaremetalProcessor:
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
-            """ Rendering baremetal node configs for sriov nodes"""
             elif template == 'sriov-blacklist':
+                """ Rendering baremetal node configs for sriov nodes"""
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
                     'bootaction/'.format(self.dir_name)
                 if not os.path.exists(file_path):
