@@ -63,9 +63,8 @@ class SoftwareProcessor:
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-                self.logger.debug(
-                    "Dict dump to %s:\n%s",
-                    filename, pprint.pformat(self.data))
+                self.logger.debug("Dict dump to %s:\n%s", filename,
+                                  pprint.pformat(self.data))
                 try:
                     out = open(outfile, "w")
                     # pylint: disable=maybe-no-member

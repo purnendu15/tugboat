@@ -24,7 +24,7 @@ import tugboat.config.settings as settings
 
 
 class GenerateYamlFromExcel(ParserEngine):
-    def __init__(self, file_name, excel_specs):
+    def __init__(self, file_name, excel_specs, sitetype):
         self.logger = logging.getLogger(__name__)
         self.logger.info("Getting parsed data from excel")
         self.HOST_TYPES = settings.HOST_TYPES
@@ -32,7 +32,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.IPS_TO_LEAVE = settings.IPS_TO_LEAVE
         self.OOB_IPS_TO_LEAVE = settings.OOB_IPS_TO_LEAVE
         parsed_data = self.get_parsed_data(file_name, excel_specs)
-        self.logger.debug("yaml data:\n%s", parsed_data)
+        self.logger.debug("yaml data:\n%s", pprint.pformat(parsed_data))
         self.ipmi_data = parsed_data['ipmi_data'][0]
         self.hostnames = parsed_data['ipmi_data'][1]
         self.private_network_data = self.get_private_network_data(
@@ -52,6 +52,7 @@ class GenerateYamlFromExcel(ParserEngine):
             'conf': {},
             'ceph': {},
             'location': {},
+            'sitetype': '',
         }
         self.service_ip = ''
         self.region_name = ''
@@ -61,6 +62,7 @@ class GenerateYamlFromExcel(ParserEngine):
             'assigned_subnets': {},
         }
         self.racks = {}
+        self.sitetype = sitetype
 
     def get_parsed_data(self, file_name, excel_specs):
         """
@@ -80,10 +82,10 @@ class GenerateYamlFromExcel(ParserEngine):
         for net_type in self.PRIVATE_NETWORK_TYPES:
             for key in raw_data['private']:
                 if net_type.lower() in key.lower():
-                    network_data[
-                        self.PRIVATE_NETWORK_TYPES[net_type]] = raw_data[
-                            'private'][key]
-        self.logger.debug("Private Network Data:\n%s", network_data)
+                    network_data[self.PRIVATE_NETWORK_TYPES[
+                        net_type]] = raw_data['private'][key]
+        self.logger.debug("Private Network Data:\n%s",
+                          pprint.pformat(network_data))
         return network_data
 
     def get_public_network_data(self, raw_data):
@@ -92,7 +94,8 @@ class GenerateYamlFromExcel(ParserEngine):
         by ExcelParser(i.e raw data)
         """
         network_data = raw_data['public']
-        self.logger.debug("Public Network Data:\n%s", network_data)
+        self.logger.debug("Public Network Data:\n%s",
+                          pprint.pformat(network_data))
         return network_data
 
     def get_dns_ntp_ldap_data(self, raw_data):
@@ -101,7 +104,8 @@ class GenerateYamlFromExcel(ParserEngine):
         by ExcelParser(i.e raw data)
         """
         network_data = raw_data['dns_ntp_ldap']
-        self.logger.debug("DNS, NTP, LDAP data:\n%s", network_data)
+        self.logger.debug("DNS, NTP, LDAP data:\n%s",
+                          pprint.pformat(network_data))
         return network_data
 
     def get_location_data(self, raw_data):
@@ -215,10 +219,10 @@ class GenerateYamlFromExcel(ParserEngine):
                     if i >= len(sorted_racks):
                         break
             else:
-                rackwise_subnets['common'][
-                    net_type] = netaddr.IPNetwork(
-                        self.private_network_data[net_type]['subnet'][0])
-        self.logger.debug("rackwise subnets:\n%s", rackwise_subnets)
+                rackwise_subnets['common'][net_type] = netaddr.IPNetwork(
+                    self.private_network_data[net_type]['subnet'][0])
+        self.logger.debug("rackwise subnets:\n%s",
+                          pprint.pformat(rackwise_subnets))
         return rackwise_subnets
 
     def get_rackwise_hosts(self):
@@ -230,7 +234,8 @@ class GenerateYamlFromExcel(ParserEngine):
             for host in self.hostnames:
                 if rack in host:
                     rackwise_hosts[self.racks[rack]].append(host)
-        self.logger.debug("rackwise hosts:\n%s", rackwise_hosts)
+        self.logger.debug("rackwise hosts:\n%s",
+                          pprint.pformat(rackwise_hosts))
         return rackwise_hosts
 
     def assign_private_ip_to_hosts(self):
@@ -254,8 +259,7 @@ class GenerateYamlFromExcel(ParserEngine):
                     if net_type not in self.network_data['assigned_subnets']:
                         self.network_data['assigned_subnets'][net_type] = []
                     self.network_data['assigned_subnets'][net_type].append(
-                        str(subnet)
-                    )
+                        str(subnet))
                 else:
                     subnet = rackwise_subnets['common'][net_type]
                     ips = list(subnet)
@@ -272,18 +276,16 @@ class GenerateYamlFromExcel(ParserEngine):
                     static_end = str(ips[mid - 1])
                     dhcp_start = str(ips[mid])
                     dhcp_end = str(ips[-2])
-                    self.network_data[rack][
-                        net_type]['dhcp_start'] = dhcp_start
-                    self.network_data[rack][
-                        net_type]['dhcp_end'] = dhcp_end
-                self.network_data[rack][
-                    net_type]['static_start'] = static_start
-                self.network_data[rack][
-                    net_type]['static_end'] = static_end
-                self.network_data[rack][
-                    net_type]['reserved_start'] = reserved_start
-                self.network_data[rack][
-                    net_type]['reserved_end'] = reserved_end
+                    self.network_data[rack][net_type][
+                        'dhcp_start'] = dhcp_start
+                    self.network_data[rack][net_type]['dhcp_end'] = dhcp_end
+                self.network_data[rack][net_type][
+                    'static_start'] = static_start
+                self.network_data[rack][net_type]['static_end'] = static_end
+                self.network_data[rack][net_type][
+                    'reserved_start'] = reserved_start
+                self.network_data[rack][net_type][
+                    'reserved_end'] = reserved_end
             j += i + 1
 
     def assign_public_ip_to_host(self):
@@ -336,6 +338,11 @@ class GenerateYamlFromExcel(ParserEngine):
         """ Assign region name """
         self.logger.info("Assigning region name")
         self.data['region_name'] = self.region_name
+
+    def assign_sitetype(self):
+        """ Assign profile name """
+        self.logger.info("Assigning sitetype  name")
+        self.data['sitetype'] = self.sitetype
 
     def get_oam_network_data(self):
         """ Extracting OAM network info"""
@@ -426,18 +433,22 @@ class GenerateYamlFromExcel(ParserEngine):
                             'assigned_subnets'][net_type] if subnet != nw
                     ]
                     rackwise_subnets[rack][net_type] = {
-                        'nw': nw,
-                        'gw': gw,
-                        'vlan': self.private_network_data[net_type]['vlan'],
-                        'routes': routes,
-                        'static_start': self.network_data[rack][net_type][
-                            'static_start'],
-                        'static_end': self.network_data[rack][net_type][
-                            'static_end'],
-                        'reserved_start': self.network_data[rack][net_type][
-                            'reserved_start'],
-                        'reserved_end': self.network_data[rack][net_type][
-                            'reserved_end'],
+                        'nw':
+                        nw,
+                        'gw':
+                        gw,
+                        'vlan':
+                        self.private_network_data[net_type]['vlan'],
+                        'routes':
+                        routes,
+                        'static_start':
+                        self.network_data[rack][net_type]['static_start'],
+                        'static_end':
+                        self.network_data[rack][net_type]['static_end'],
+                        'reserved_start':
+                        self.network_data[rack][net_type]['reserved_start'],
+                        'reserved_end':
+                        self.network_data[rack][net_type]['reserved_end'],
                     }
                 else:
                     ips = list(rackwise_subnets['common'][net_type])
@@ -446,17 +457,20 @@ class GenerateYamlFromExcel(ParserEngine):
                     racks = sorted(self.racks.keys())
                     rack = self.racks[racks[0]]
                     common_subnets[net_type] = {
-                        'nw': nw,
-                        'gw': gw,
-                        'vlan': self.private_network_data[net_type]['vlan'],
-                        'static_start': self.network_data[rack][net_type][
-                            'static_start'],
-                        'static_end': self.network_data[rack][net_type][
-                            'static_end'],
-                        'reserved_start': self.network_data[rack][net_type][
-                            'reserved_start'],
-                        'reserved_end': self.network_data[rack][net_type][
-                            'reserved_end'],
+                        'nw':
+                        nw,
+                        'gw':
+                        gw,
+                        'vlan':
+                        self.private_network_data[net_type]['vlan'],
+                        'static_start':
+                        self.network_data[rack][net_type]['static_start'],
+                        'static_end':
+                        self.network_data[rack][net_type]['static_end'],
+                        'reserved_start':
+                        self.network_data[rack][net_type]['reserved_start'],
+                        'reserved_end':
+                        self.network_data[rack][net_type]['reserved_end'],
                     }
                 if net_type == 'pxe':
                     rackwise_subnets[rack][net_type][
@@ -557,6 +571,7 @@ class GenerateYamlFromExcel(ParserEngine):
         self.assign_ceph_data()
         self.assign_conf_data()
         self.assign_location_data()
+        self.assign_sitetype()
 
     def generate_yaml(self):
         """ Generating intermediary yaml """

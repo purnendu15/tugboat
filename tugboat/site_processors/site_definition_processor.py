@@ -18,7 +18,6 @@ import os
 import logging
 import pprint
 
-
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
@@ -62,9 +61,8 @@ class SiteDeifinitionProcessor:
                 os.makedirs(directory)
             template_name = j2_env.get_template('{}.yaml.j2'.format(template))
             outfile = '{}{}.yaml'.format(file_path, "site-definition")
-            self.logger.debug(
-                "Dict dump to %s:\n%s",
-                template, pprint.pformat(self.region_name))
+            self.logger.debug("Dict dump to %s:\n%s", template,
+                              pprint.pformat(self.region_name))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member

@@ -53,6 +53,9 @@ Path to excel spec, to be passed with generate_intermediary.
 
 Path to intermediary file, to be passed with generate_manifests.
 
+**-S / --sitetype**
+Specify site type, '5ec' or 'nc'. It is nc by default
+
 **-h / --help**
 
 Show the options and exit.

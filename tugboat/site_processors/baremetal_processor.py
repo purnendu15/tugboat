@@ -69,8 +69,8 @@ class BaremetalProcessor:
                     for hosts in data.keys():
                         data[hosts]['region'] = self.dir_name
                     outfile = '{}{}.yaml'.format(file_path, rack)
-                    self.logger.debug("Dict dump to %s:\n%s",
-                                      template, pprint.pformat(data))
+                    self.logger.debug("Dict dump to %s:\n%s", template,
+                                      pprint.pformat(data))
                     try:
                         out = open(outfile, "w")
                         # pylint: disable=maybe-no-member
@@ -90,8 +90,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s",
-                                  template, pprint.pformat(data))
+                self.logger.debug("Dict dump to %s\n%s", template,
+                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -114,14 +114,14 @@ class BaremetalProcessor:
                 }
                 for rack in self.baremetal_data:
                     for host in self.baremetal_data[rack]:
-                        if self.baremetal_data[rack][host][
-                                'type'] != 'genesis':
+                        if self.baremetal_data[rack][host]['type'] !=\
+                           'genesis':
                             data['hosts'].append(host)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s",
-                                  template, pprint.pformat(data))
+                self.logger.debug("Dict dump to %s\n%s", template,
+                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)
@@ -140,8 +140,8 @@ class BaremetalProcessor:
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s",
-                                  template, pprint.pformat(data))
+                self.logger.debug("Dict dump to %s\n%s", template,
+                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
                     template_name.stream(data=data).dump(out)

@@ -24,6 +24,7 @@ import pprint
 
 class ExcelParser():
     """ Parse data from excel into a dict """
+
     def __init__(self, file_name, excel_specs):
         self.logger = logging.getLogger(__name__)
         self.file_name = file_name
@@ -102,7 +103,8 @@ class ExcelParser():
             }
             row += 1
         self.logger.debug("ipmi data extracted from excel:\n%s",
-                          [ipmi_data, hosts])
+                          [pprint.pformat(ipmi_data),
+                           pprint.pformat(hosts)])
         return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
@@ -118,7 +120,8 @@ class ExcelParser():
                 vlan = ws.cell(row=row, column=vlan_col).value
                 vlan_data[vlan] = cell_value
             row += 1
-        self.logger.debug("vlan data extracted from excel:\n%s", vlan_data)
+        self.logger.debug("vlan data extracted from excel:\n%s",
+                          pprint.pformat(vlan_data))
         return vlan_data
 
     def get_private_network_data(self):
@@ -157,8 +160,9 @@ class ExcelParser():
                 network_data[network]['is_common'] = False
             else:
                 network_data[network]['is_common'] = True
-        self.logger.debug("private network data extracted from\
-                          excel:\n%s", network_data)
+        self.logger.debug(
+            "private network data extracted from\
+                          excel:\n%s", pprint.pformat(network_data))
         return network_data
 
     def get_public_network_data(self):
@@ -189,8 +193,9 @@ class ExcelParser():
                 network_data['oob']['subnets'].append(
                     self.sanitize(cell_value))
             col += 1
-        self.logger.debug("public network data extracted from\
-                          excel:\n%s", network_data)
+        self.logger.debug(
+            "public network data extracted from\
+                          excel:\n%s", pprint.pformat(network_data))
         return network_data
 
     def get_dns_ntp_ldap_data(self):
@@ -214,15 +219,17 @@ class ExcelParser():
             'ntp': ws.cell(row=ntp_row, column=ntp_col).value,
             'domain': ws.cell(row=domain_row, column=domain_col).value,
             'ldap': {
-                'subdomain': ws.cell(
-                    row=ldap_subdomain_row, column=ldap_col).value,
-                'common_name': ws.cell(
-                    row=ldap_group_row, column=ldap_col).value,
-                'url': ws.cell(row=ldap_url_row, column=ldap_col).value,
+                'subdomain':
+                ws.cell(row=ldap_subdomain_row, column=ldap_col).value,
+                'common_name':
+                ws.cell(row=ldap_group_row, column=ldap_col).value,
+                'url':
+                ws.cell(row=ldap_url_row, column=ldap_col).value,
             }
         }
-        self.logger.debug("dns,ntp,ldap data extracted from\
-                          excel:\n%s", dns_ntp_ldap_data)
+        self.logger.debug(
+            "dns,ntp,ldap data extracted from\
+                          excel:\n%s", pprint.pformat(dns_ntp_ldap_data))
         return dns_ntp_ldap_data
 
     def get_location_data(self):
@@ -236,13 +243,11 @@ class ExcelParser():
         country_row = self.excel_specs['specs'][self.spec]['country_row']
         clli_row = self.excel_specs['specs'][self.spec]['clli_row']
         return {
-            'corridor': ws.cell(
-                row=corridor_row, column=column).value,
+            'corridor': ws.cell(row=corridor_row, column=column).value,
             'name': ws.cell(row=name_row, column=column).value,
             'state': ws.cell(row=state_row, column=column).value,
             'country': ws.cell(row=country_row, column=column).value,
-            'physical_location_id': ws.cell(
-                row=clli_row, column=column).value,
+            'physical_location_id': ws.cell(row=clli_row, column=column).value,
         }
 
     def get_data(self):
@@ -252,8 +257,9 @@ class ExcelParser():
         public_network_data = self.get_public_network_data()
         dns_ntp_ldap_data = self.get_dns_ntp_ldap_data()
         location_data = self.get_location_data()
-        self.logger.debug("Location data extracted from\
-                          excel:\n%s", location_data)
+        self.logger.debug(
+            "Location data extracted from\
+                          excel:\n%s", pprint.pformat(location_data))
         return {
             'ipmi_data': ipmi_data,
             'network_data': {
