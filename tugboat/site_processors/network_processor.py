@@ -45,14 +45,15 @@ class NetworkProcessor(BaseProcessor):
         return yaml_data
 
     """ To get genesis ip we take the ksn ip of the genesis node"""
+
     def get_genesis_ip(self):
         genesis_ip = '0.0.0.0'
         for rack in self.yaml_data['baremetal']:
             for host in self.yaml_data['baremetal'][rack]:
                 if self.yaml_data['baremetal'][rack][host][
                         'type'] == 'genesis':
-                    genesis_ip = self.yaml_data['baremetal'][rack][
-                        host]['ip']['ksn']
+                    genesis_ip = self.yaml_data['baremetal'][rack][host]['ip'][
+                        'ksn']
         return genesis_ip
 
     def get_network_data(self):
@@ -123,8 +124,8 @@ class NetworkProcessor(BaseProcessor):
         }
         template_name = j2_env.get_template('{}.yaml.j2'.format(template))
         outfile = '{}{}.yaml'.format(outfile_path, template.replace('_', '-'))
-        self.logger.debug("Dict dump to %s:\n%s",
-                          template, pprint.pformat(data))
+        self.logger.debug("Dict dump to %s:\n%s", template,
+                          pprint.pformat(data))
         """ Generating common config """
         try:
             out = open(outfile, "w")
@@ -163,8 +164,7 @@ class NetworkProcessor(BaseProcessor):
                 self.network_data['region_name'] = self.yaml_data[
                     'region_name']
                 yaml_filename = filename.split('.j2')[0]
-                self.logger.debug("Dict dump to %s:\n%s",
-                                  filename,
+                self.logger.debug("Dict dump to %s:\n%s", filename,
                                   pprint.pformat(self.yaml_data['network']))
                 """ Generating rack specific configs """
                 try:

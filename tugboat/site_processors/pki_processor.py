@@ -18,7 +18,6 @@ import os
 import logging
 import pprint
 
-
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 
@@ -66,8 +65,8 @@ class PkiProcessor:
                     data[host] = self.baremetal_data[rack][host]
             # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
-            self.logger.debug("Dict dump to %s:\n%s",
-                              template, pprint.pformat(data))
+            self.logger.debug("Dict dump to %s:\n%s", template,
+                              pprint.pformat(data))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member

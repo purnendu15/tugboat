@@ -13,7 +13,6 @@ metadata:
 {% else %}
       hosttype: {{data['hw_profile']['host_type']['ctrl']}}
 {% endif %}
-
     actions:
       - method: replace
         path: .interfaces
@@ -22,13 +21,11 @@ metadata:
       - method: merge
         path: .
 data:
-
 {% if data['profile_name'] == data['hw_profile']['profile_name']  %}
   hardware_profile: {{data['hw_profile']['hw_type']['compute']}}
 {% else %}
   hardware_profile: {{data['hw_profile']['hw_type']['ctrl']}}
 {% endif %}
-
   oob:
     network: {{ data['rack'] }}_oob
     account: root
@@ -51,15 +48,15 @@ data:
       - {{ data['region'] }}_storage
       - {{ data['region'] }}_ksn
 {% if data['profile_name'] == data['hw_profile']['profile_name']['compute']  %}
-    p1p1:
+    {{data['hw_profile']['sriov_itf']['itf1'][0]}}:
       slaves:
-        - 'sriov_nic01'
+        - {{data['hw_profile']['sriov_itf']['itf1'][1]}}
       sriov:
         vf_count: 32  # Currently ignored
         trustedmode: false
-    p3p2:
+    {{data['hw_profile']['sriov_itf']['itf2'][0]}}:
       slaves:
-        - 'sriov_nic02'
+        - {{data['hw_profile']['sriov_itf']['itf2'][1]}}
       sriov:
         vf_count: 32  # Currently ignored
         trustedmode: false

@@ -32,8 +32,9 @@ STATE_CODES = {
 }
 IPS_TO_LEAVE = 12
 OOB_IPS_TO_LEAVE = 10
-BAREMETAL_TEMPLATES = ['rack', 'calico-ip-rules',
-                       'promjoin', 'sriov-blacklist']
+BAREMETAL_TEMPLATES = [
+    'rack', 'calico-ip-rules', 'promjoin', 'sriov-blacklist'
+]
 PKI_TEMPLATES = ['pki-catalogue']
 SITE_DEFINITION_TEMPLATES = ['site_definition']
 HOSTPROFILE_TEMPLATES = ['profile']
@@ -46,7 +47,6 @@ PROXY = {
 NO_PROXY = '10.96.0.2,10.96.232.136,artifacts-nc.mtn29.cci.att.com,' \
     'docker-nc.mtn29.cci.att.com,docker-open-nc.mtn29.cci.att.com,' \
     '10.96.0.1,cluster.local,svc.cluster.local,,localhost,127.0.0.1,10.0.0.0/8'
-
 
 GATEWAY_OFFSET = 1
 DEPLOYMENT_MANIFEST = 'full-site'
@@ -108,7 +108,6 @@ CEPH = {
     'osd_count_fullsite': 24,
     'osd': ['sdc', 'sdd', 'sde', 'sdf', 'sdg', 'sdh']
 }
-
 """
 Assuming that there is a unique hw profile for
 controller and compute nodes. This settings shall
@@ -117,21 +116,43 @@ nodes with varying HW types
 """
 
 HARDWARE_PROFILE = {
-    'host_type': {
-        'ctrl': 'nc-cp',
-        'compute': 'nc-ns-r740'
+    'nc': {
+        'host_type': {
+            'ctrl': 'nc-cp',
+            'compute': 'nc-ns-r740'
+        },
+        'hw_type': {
+            'ctrl': 'dell_r740_purley_nc',
+            'compute': 'dell_r740_purley_nc'
+        },
+        'profile_name': {
+            'ctrl': 'cp',
+            'compute': 'nsb'
+        },
+        'sriov_itf': {
+            'itf1': ['p2p2', 'dp_nic01'],
+            'itf2': ['p7p1', 'dp_nic02']
+        },
     },
-    'hw_type': {
-        'ctrl': 'dell_r740_purley_nc',
-        'compute': 'dell_r740_purley_nc'
-    },
-    'profile_name': {
-        'ctrl': 'cp',
-        'compute': 'nsb'
-    },
-
+    '5ec': {
+        'host_type': {
+            'ctrl': '5ec-cp',
+            'compute': '5ec-ns-r640'
+        },
+        'hw_type': {
+            'ctrl': 'dell_r640_purley_5ec',
+            'compute': 'dell_r640_purley_5ec'
+        },
+        'profile_name': {
+            'ctrl': 'cp',
+            'compute': 'nsb'
+        },
+        'sriov_itf': {
+            'itf1': ['p1p1', 'sriov_nic01'],
+            'itf2': ['p3p2', 'sriov_nic02']
+        },
+    }
 }
-
 
 CONF = {
     'nova': {

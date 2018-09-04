@@ -47,15 +47,11 @@ class BaseProcessor:
         """
         for rack in yaml_data['baremetal']:
             for host in yaml_data['baremetal'][rack]:
-                if yaml_data['baremetal'][rack][host][
-                        'type'] == 'genesis':
+                if yaml_data['baremetal'][rack][host]['type'] == 'genesis':
                     hosts['genesis'] = {
-                        'name':
-                        host,
-                        'pxe':
-                        yaml_data['baremetal'][rack][host]['ip']['pxe'],
-                        'oam':
-                        yaml_data['baremetal'][rack][host]['ip']['oam'],
+                        'name': host,
+                        'pxe': yaml_data['baremetal'][rack][host]['ip']['pxe'],
+                        'oam': yaml_data['baremetal'][rack][host]['ip']['oam'],
                     }
                 elif yaml_data['baremetal'][rack][host][
                         'type'] == 'controller':
