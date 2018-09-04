@@ -126,7 +126,7 @@ class ProfileProcessor:
                     if not os.path.exists(outfile_dir):
                         os.makedirs(outfile_dir)
                     template_j2 = j2_env.get_template(filename)
-                    print('Rendering data for {}'.format(outfile))
+                    self.logger.info('Rendered {}'.format(outfile))
                     self.logger.debug("Dict dump to %s:\n%s", filename,
                                       pprint.pformat(self.data))
                     try:

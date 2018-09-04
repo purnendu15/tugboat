@@ -90,10 +90,26 @@ def generate_manifest_files(intermediary):
     multiple=False,
     show_default=True,
     help='Specify the sitetype \'5ec\' or \'nc\'')
+@click.option(
+    '--loglevel',
+    '-l',
+    default=20,
+    multiple=False,
+    show_default=True,
+    help='Loglevel NOTSET:0 ,DEBUG:10,\
+    INFO:20, WARNING:30, ERROR:40, CRITICAL:50')
 def main(*args, **kwargs):
+
+    generate_intermediary = kwargs['generate_intermediary']
+    generate_manifests = kwargs['generate_manifests']
+    excel = kwargs['excel']
+    spec = kwargs['spec']
+    intermediary = kwargs['intermediary']
+    sitetype = kwargs['sitetype']
+    loglevel = kwargs['loglevel']
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
-    logger.setLevel(logging.INFO)
+    logger.setLevel(loglevel)
     # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
@@ -102,17 +118,11 @@ def main(*args, **kwargs):
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Tugboat start")
+
     """
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
-    generate_intermediary = kwargs['generate_intermediary']
-    generate_manifests = kwargs['generate_manifests']
-    excel = kwargs['excel']
-    spec = kwargs['spec']
-    intermediary = kwargs['intermediary']
-    sitetype = kwargs['sitetype']
-
     if generate_intermediary and generate_manifests and sitetype:
         logger.info("Generate Intermediary File")
         intermediary = generate_intermediary_file(
