@@ -43,13 +43,14 @@ data:
     bond1:
       device_link: bond1
       slaves:
-        - dp_nic01
-        - dp_nic02
+        - gp_nic01
+        - gp_nic02
       networks:
       - {{ data['region'] }}_oam
       - {{ data['region'] }}_overlay
       - {{ data['region'] }}_storage
       - {{ data['region'] }}_ksn
+{% if data['profile_name'] == data['hw_profile']['profile_name']['compute']  %}
     p1p1:
       slaves:
         - 'sriov_nic01'
@@ -62,6 +63,7 @@ data:
       sriov:
         vf_count: 32  # Currently ignored
         trustedmode: false
+{% endif %}
   storage:
     physical_devices:
       bootdisk:

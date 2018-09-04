@@ -46,6 +46,7 @@ class SiteDeifinitionProcessor:
         return yaml_data
 
     def render_template(self):
+        """ Renders site config yaml describing site type and information"""
         for template in settings.SITE_DEFINITION_TEMPLATES:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/site_definition/site_definition.yaml.j2')
