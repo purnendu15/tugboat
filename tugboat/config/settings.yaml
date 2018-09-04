@@ -1,0 +1,363 @@
+###########################
+# Global Tugboat Settings #
+###########################
+---
+
+host_types:
+    - genesis
+    - controllers
+    - computes
+    
+template_dir: 'templates/'
+process_dir: 
+    - baremetal
+    
+private_network_types:
+    pxe: 'pxe'
+    storage: 'storage'
+    calico: 'ksn'
+    overlay: 'overlay'
+state_codes:
+    New Jersey: 'NJ'
+
+ips_to_leave: 12
+oob_ips_to_leave: 10
+
+baremetal_templates:
+    - rack
+    - calico-ip-rules
+    - promjoin
+    - sriov-blacklist
+
+pki_templates:
+    - pki-catalogue
+    
+site_definition_templates:
+    - site_definition
+
+hostprofile_templates:
+    - profile
+network_templates:
+    - common-addresses
+    - physical/rack
+proxy:
+    - http: 'http://one.proxy.att.com:8080'
+    - https: 'http://one.proxy.att.com:8080'
+
+NO_PROXY : 'artifacts-nc.mtn29.cci.att.com,docker-nc.mtn29.cci.att.com,docker-open-nc.mtn29.cci.att.com,10.96.0.1,cluster.local,svc.cluster.local'
+GATEWAY_OFFSET : 1
+DEPLOYMENT_MANIFEST : 'full-site'
+BGP :
+    peers:
+    - '172.29.0.2' 
+    - '172.29.0.3'
+    asnumber: 64671
+    peer_asnumber: 64688
+    
+HOSTPROFILE_INTERFACES :
+    cp:
+        networks: 
+            bond1: 
+                - 'gp_nic01'
+                - 'gp_nic02'
+            p1p1: 'sriov_nic01'
+            p3p2: 'sriov_nic02'
+    gv:
+        networks: 
+            bond1: 
+                - 'gp_nic01'
+                - 'gp_nic02'
+            p1p1: 'sriov_nic01'
+            p3p2: 'sriov_nic02'
+    nsb:
+        networks: 
+            pxe: 'eno4'
+            bond1: 
+                - 'gp_nic01'
+                - 'gp_nic02'
+            p1p1: 'sriov_nic01'
+            p3p2: 'sriov_nic02'
+    ns:
+        networks: 
+            pxe: 'eno4'
+            bond1: 
+                - 'gp_nic01'
+                - 'gp_nic02'
+            p1p1: 'sriov_nic01'
+            p3p2: 'sriov_nic02'                         
+            
+LDAP_PROTOCOL : 'ldap'
+
+CEPH :
+    osd_count : 6
+    osd_count_fullsite : 24
+    osd : 
+    - 'sdc'
+    - 'sdd'
+    - 'sde'
+    - 'sdf' 
+    - 'sdg'
+    - 'sdh'
+    
+HARDWARE_PROFILE :
+    nc :
+        host_type :
+            ctrl : 'nc-cp'
+            compute : 'nc-ns-r740'
+        hw_type :
+            ctrl : 'dell_r740_purley_nc'
+            compute : 'dell_r740_purley_nc'
+        profile_name :
+            ctrl : 'cp'
+            compute : 'nsb'
+        sriov_itf :
+             itf1 : 
+             - 'p2p2'
+             - 'dp_nic01'
+             itf2 :
+             - 'p7p1'
+             - 'dp_nic02'
+    5ec :
+        host_type : 
+            ctrl : '5ec-cp'
+            compute : '5ec-ns-r640'
+        hw_type : 
+            ctrl : 'dell_r640_purley_5ec'
+            compute : 'dell_r640_purley_5ec'
+        profile_name :
+            ctrl : 'cp'
+            compute : 'nsb'
+        sriov_itf :
+             itf1 : 
+             - 'p1p1'
+             - 'sriov_nic01'
+             itf2 :
+             - 'p3p2'
+             - 'sriov_nic02'
+
+
+CONF :
+    nova:
+        vcpu_pin_set : '4-10'
+        passthrough_whitelist :
+            - address : "0000:d8:0a.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0a.1"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0a.2"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:d8:0a.3"
+              physical_network : "sriovnet2"
+              trusted : "true"                
+            - address : "0000:d8:0a.4"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:d8:0a.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0a.6"
+              physical_network : "sriovnet2"
+              trusted : "true"                
+            - address : "0000:d8:0a.7"
+              physical_network : "sriovnet2"
+              trusted : "true"  
+            - address : "0000:3b:02.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:02.1"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:02.2"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:3b:02.3"
+              physical_network : "sriovnet2"
+              trusted : "true"     
+            - address : "0000:3b:02.4"
+              physical_network : "sriovnet2"
+              trusted : "true"  
+            - address : "0000:3b:02.5"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:3b:02.6"
+              physical_network : "sriovnet2"
+              trusted : "true"     
+            - address : "0000:3b:02.7"
+              physical_network : "sriovnet2"
+              trusted : "true"  
+            - address : "0000:3b:03.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.1"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:3b:03.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.3"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:03.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.1"
+              physical_network : "sriovnet2"
+              trusted : "true"       
+            - address : "0000:3b:04.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.3"
+              physical_network : "sriovnet2"
+              trusted : "true"      
+            - address : "0000:3b:04.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:04.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.1"
+              physical_network : "sriovnet2"
+              trusted : "true"       
+            - address : "0000:3b:05.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.3"
+              physical_network : "sriovnet2"
+              trusted : "true"      
+            - address : "0000:3b:05.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:3b:05.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.1"
+              physical_network : "sriovnet2"
+              trusted : "true"                
+            - address : "0000:d8:0b.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.3"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0b.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.0"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.1"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.3"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0c.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.0"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:d8:0d.1"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.3"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.7"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.0"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+            - address : "0000:d8:0d.1"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.2"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.3"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.4"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.5"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.6"
+              physical_network : "sriovnet2"
+              trusted : "true"
+            - address : "0000:d8:0d.7"
+              physical_network : "sriovnet2"
+              trusted : "true"              
+    neutron:
+        network_vlan_ranges: ' oam:100:1000,sriovnet1:105:109,sriovnet2:121:124'
+
+            
+...
