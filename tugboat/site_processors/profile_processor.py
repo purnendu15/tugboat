@@ -21,12 +21,12 @@ import sys
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from .base import BaseProcessor
 
-from tugboat.config import settings
 
-
-class ProfileProcessor:
+class ProfileProcessor(BaseProcessor):
     def __init__(self, file_name):
+        BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
@@ -55,9 +55,9 @@ class ProfileProcessor:
             "Template dir abspath:{}".format(template_dir_abspath))
         """ Get sitetype and set Hardware profile accordingly """
         hardware_profile = {}
-        for key in settings.HARDWARE_PROFILE:
+        for key in self.rules_data['hardware_profile']:
             if self.sitetype == key:
-                hardware_profile = settings.HARDWARE_PROFILE[key]
+                hardware_profile = self.rules_data['hardware_profile'][key]
         """ raise exception is hardware profile is not set """
         try:
             if bool(hardware_profile):
@@ -78,8 +78,8 @@ class ProfileProcessor:
                 templatefile = os.path.join(dirpath, filename)
                 self.logger.info("template :{}".format(filename))
                 # Special processing for hostprofile file
-                if filename.rstrip(
-                        '.yaml.j2') in settings.HOSTPROFILE_TEMPLATES:
+                if filename.rstrip('.yaml.j2') in self.rules_data[
+                    'hostprofile_templates']:
                     for profile in self.data['profiles']:
                         # Logging
                         self.logger.debug(

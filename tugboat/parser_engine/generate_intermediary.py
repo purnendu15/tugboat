@@ -16,21 +16,25 @@ import yaml
 import re
 import logging
 import pprint
-
+import pkg_resources
 import netaddr
 from .base import ParserEngine
 from .utils.excel_parser import ExcelParser
-import tugboat.config.settings as settings
 
 
 class GenerateYamlFromExcel(ParserEngine):
     def __init__(self, file_name, excel_specs, sitetype):
+        """ Load rules.yaml """
+        rules_dir = pkg_resources.resource_filename('tugboat', 'config/')
+        rules_file = rules_dir + 'rules.yaml'
+        rules_data = self.read_file(rules_file)
+        self.rules_data = self.get_yaml_data(rules_data)
         self.logger = logging.getLogger(__name__)
         self.logger.info("Getting parsed data from excel")
-        self.HOST_TYPES = settings.HOST_TYPES
-        self.PRIVATE_NETWORK_TYPES = settings.PRIVATE_NETWORK_TYPES
-        self.IPS_TO_LEAVE = settings.IPS_TO_LEAVE
-        self.OOB_IPS_TO_LEAVE = settings.OOB_IPS_TO_LEAVE
+        self.HOST_TYPES = self.rules_data['host_types']
+        self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
+        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
+        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
         parsed_data = self.get_parsed_data(file_name, excel_specs)
         self.logger.debug("yaml data:\n%s", pprint.pformat(parsed_data))
         self.ipmi_data = parsed_data['ipmi_data'][0]
@@ -63,6 +67,18 @@ class GenerateYamlFromExcel(ParserEngine):
         }
         self.racks = {}
         self.sitetype = sitetype
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name, 'r') as f:
+            raw_data = f.read()
+        return raw_data
+
+    @staticmethod
+    def get_yaml_data(data):
+        """ Load Yaml data """
+        yaml_data = yaml.safe_load(data)
+        return yaml_data
 
     def get_parsed_data(self, file_name, excel_specs):
         """
@@ -116,7 +132,7 @@ class GenerateYamlFromExcel(ParserEngine):
         corridor_pattern = '\d+'
         corridor_number = re.findall(corridor_pattern, raw_data['corridor'])[0]
         name = raw_data['name']
-        state = settings.STATE_CODES[raw_data['state']]
+        state = self.rules_data['state_codes'][raw_data['state']]
         country = raw_data['country']
         physical_location_id = raw_data['physical_location_id']
         return {
@@ -161,7 +177,8 @@ class GenerateYamlFromExcel(ParserEngine):
             else:
                 url = self.dns_ntp_ldap_data[type_]['url']
                 base_url = url.split('//')[1]
-                url = '{}://{}'.format(settings.LDAP_PROTOCOL, base_url)
+                url = '{}://{}'.format(
+                    self.rules_data['ldap_protocol'], base_url)
                 self.dns_ntp_ldap_data[type_]['base_url'] = base_url
                 self.dns_ntp_ldap_data[type_]['url'] = url
 
@@ -352,7 +369,7 @@ class GenerateYamlFromExcel(ParserEngine):
         vlan = self.public_network_data['oam']['vlan']
         subnet = netaddr.IPNetwork(nw)
         ips = list(subnet)
-        gw = str(ips[settings.GATEWAY_OFFSET])
+        gw = str(ips[self.rules_data['gateway_offset']])
         static_start = str(ips[self.IPS_TO_LEAVE + 1])
         static_end = str(ips[-1])
         reserved_start = str(ips[1])
@@ -393,7 +410,7 @@ class GenerateYamlFromExcel(ParserEngine):
         for rack in rackwise_oob_subnets:
             nw = rackwise_oob_subnets[rack]
             ips = list(nw)
-            gw = str(ips[settings.GATEWAY_OFFSET])
+            gw = str(ips[self.rules_data['gateway_offset']])
             routes = [
                 str(subnet) for subnet in assigned_subnets if subnet != nw
             ]
@@ -427,7 +444,7 @@ class GenerateYamlFromExcel(ParserEngine):
                 if not self.private_network_data[net_type]['is_common']:
                     ips = list(rackwise_subnets[rack][net_type])
                     nw = str(rackwise_subnets[rack][net_type])
-                    gw = str(ips[settings.GATEWAY_OFFSET])
+                    gw = str(ips[self.rules_data['gateway_offset']])
                     routes = [
                         subnet for subnet in self.network_data[
                             'assigned_subnets'][net_type] if subnet != nw
@@ -453,7 +470,7 @@ class GenerateYamlFromExcel(ParserEngine):
                 else:
                     ips = list(rackwise_subnets['common'][net_type])
                     nw = str(rackwise_subnets['common'][net_type])
-                    gw = str(ips[settings.GATEWAY_OFFSET])
+                    gw = str(ips[self.rules_data['gateway_offset']])
                     racks = sorted(self.racks.keys())
                     rack = self.racks[racks[0]]
                     common_subnets[net_type] = {
@@ -491,8 +508,8 @@ class GenerateYamlFromExcel(ParserEngine):
         rack_data['common'] = common_subnets
         self.data['network'] = rack_data
         self.data['network']['ingress'] = self.public_network_data['ingress']
-        self.data['network']['proxy'] = settings.PROXY
-        self.data['network']['proxy']['no_proxy'] = settings.NO_PROXY
+        self.data['network']['proxy'] = self.rules_data['proxy']
+        self.data['network']['proxy']['no_proxy'] = self.rules_data['no_proxy']
         self.data['network']['ntp'] = {
             'servers': self.dns_ntp_ldap_data['ntp'],
         }
@@ -502,12 +519,13 @@ class GenerateYamlFromExcel(ParserEngine):
             'dhcp_relay': self.dhcp_relay,
         }
         self.data['network']['ldap'] = self.dns_ntp_ldap_data['ldap']
-        self.data['network']['bgp'] = settings.BGP
+        self.data['network']['bgp'] = self.rules_data['bgp']
 
     def get_deployment_configuration(self):
-        """ Get deployment configuration from settings.py """
+        """ Get deployment configuration from self.rules_data['py """
         self.logger.info("Getting deployment config")
-        self.data['deployment_manifest'] = settings.DEPLOYMENT_MANIFEST
+        self.data[
+            'deployment_manifest'] = self.rules_data['deployment_manifest']
 
     def get_host_profile_wise_racks(self):
         """
@@ -535,23 +553,25 @@ class GenerateYamlFromExcel(ParserEngine):
         self.logger.info("Assigning rack to host profile")
         host_profile_wise_racks = self.get_host_profile_wise_racks()
         for host_profile in host_profile_wise_racks:
-            rack_list = list(host_profile_wise_racks[host_profile]['racks'])
+            rack_list = list(
+                host_profile_wise_racks[host_profile]['racks'])
             host_profile_wise_racks[host_profile]['racks'] = rack_list
-            for key in settings.HOSTPROFILE_INTERFACES[host_profile]:
+            for key in self.rules_data['hostprofile_interfaces'][host_profile]:
                 host_profile_wise_racks[host_profile][
-                    key] = settings.HOSTPROFILE_INTERFACES[host_profile][key]
+                    key] = self.rules_data[
+                        'hostprofile_interfaces'][host_profile][key]
         self.data['profiles'] = host_profile_wise_racks
 
     def assign_ceph_data(self):
         """ Assigning ceph data from configuration in setttings.py """
         self.logger.info("Assigning ceph data")
-        self.data['ceph'] = settings.CEPH
+        self.data['ceph'] = self.rules_data['ceph']
 
     def assign_conf_data(self):
         """ Creating a conf key and storing common network config for UCP """
         self.logger.info("Assigning conf data")
-        self.data['ceph'] = settings.CEPH
-        self.data['conf'] = settings.CONF
+        self.data['ceph'] = self.rules_data['ceph']
+        self.data['conf'] = self.rules_data['conf']
         ingress_subnet = netaddr.IPNetwork(self.data['network']['ingress'])
         ips = list(ingress_subnet)
         self.data['conf']['ingress'] = '{}/32'.format(str(ips[1]))

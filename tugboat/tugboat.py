@@ -118,7 +118,6 @@ def main(*args, **kwargs):
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Tugboat start")
-
     """
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
