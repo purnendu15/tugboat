@@ -19,12 +19,12 @@ import logging
 import pprint
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from .base import BaseProcessor
 
-from tugboat.config import settings
 
-
-class BaremetalProcessor:
+class BaremetalProcessor(BaseProcessor):
     def __init__(self, file_name):
+        BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
@@ -47,7 +47,7 @@ class BaremetalProcessor:
 
     def render_template(self):
         """ Rendering baremetal yamls """
-        for template in settings.BAREMETAL_TEMPLATES:
+        for template in self.rules_data['baremetal_templates']:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/baremetal/rack.yaml.j2')
             template_dir = os.path.dirname(template_file)

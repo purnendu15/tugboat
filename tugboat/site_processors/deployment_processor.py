@@ -20,14 +20,14 @@ import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from .base import BaseProcessor
 
-from tugboat.config import settings
 
-
-class DeploymentProcessor:
+class DeploymentProcessor(BaseProcessor):
     def __init__(self, file_name):
+        BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
-        self.deployment_manifest = settings.DEPLOYMENT_MANIFEST
+        self.deployment_manifest = self.rules_data['deployment_manifest']
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
         self.dir_name = yaml_data['region_name']

@@ -20,12 +20,12 @@ import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
+from .base import BaseProcessor
 
-from tugboat.config import settings
 
-
-class PkiProcessor:
+class PkiProcessor(BaseProcessor):
     def __init__(self, file_name):
+        BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
         yaml_data = self.get_yaml_data(raw_data)
@@ -45,7 +45,7 @@ class PkiProcessor:
         return yaml_data
 
     def render_template(self):
-        for template in settings.PKI_TEMPLATES:
+        for template in self.rules_data['pki_templates']:
             template_file = pkg_resources.resource_filename(
                 'tugboat', 'templates/pki/pki-catalogue.yaml.j2')
             template_dir = os.path.dirname(template_file)
