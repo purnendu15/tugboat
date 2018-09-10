@@ -79,7 +79,7 @@ class ProfileProcessor(BaseProcessor):
                 self.logger.info("template :{}".format(filename))
                 # Special processing for hostprofile file
                 if filename.rstrip('.yaml.j2') in self.rules_data[
-                    'hostprofile_templates']:
+                        'hostprofile_templates']:
                     for profile in self.data['profiles']:
                         # Logging
                         self.logger.debug(

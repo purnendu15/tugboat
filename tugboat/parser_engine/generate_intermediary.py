@@ -120,6 +120,8 @@ class GenerateYamlFromExcel(ParserEngine):
         by ExcelParser(i.e raw data)
         """
         network_data = raw_data['dns_ntp_ldap']
+        network_data['dns'] = " ".join(network_data['dns'])
+        network_data['ntp'] = " ".join(network_data['ntp'])
         self.logger.debug("DNS, NTP, LDAP data:\n%s",
                           pprint.pformat(network_data))
         return network_data

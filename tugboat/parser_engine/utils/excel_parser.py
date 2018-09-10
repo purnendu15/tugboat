@@ -12,7 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
+import jsonschema
+import pkg_resources
 import re
+import sys
 import yaml
 from openpyxl import load_workbook
 
@@ -214,9 +218,21 @@ class ExcelParser():
         ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
         ldap_group_row = self.excel_specs['specs'][self.spec]['ldap_group_row']
         ldap_url_row = self.excel_specs['specs'][self.spec]['ldap_url_row']
+        dns_servers = ws.cell(row=dns_row, column=dns_col).value.replace(
+            '\n', ' ')
+        ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value.replace(
+            '\n', ' ')
+        if ',' in dns_servers:
+            dns_servers = dns_servers.split(',')
+        else:
+            dns_servers = dns_servers.split()
+        if ',' in ntp_servers:
+            ntp_servers = ntp_servers.split(',')
+        else:
+            ntp_servers = ntp_servers.split()
         dns_ntp_ldap_data = {
-            'dns': ws.cell(row=dns_row, column=dns_col).value,
-            'ntp': ws.cell(row=ntp_row, column=ntp_col).value,
+            'dns': dns_servers,
+            'ntp': ntp_servers,
             'domain': ws.cell(row=domain_row, column=domain_col).value,
             'ldap': {
                 'subdomain':
@@ -250,6 +266,25 @@ class ExcelParser():
             'physical_location_id': ws.cell(row=clli_row, column=column).value,
         }
 
+    def validate_data(self, data):
+        self.logger.info('Validating data read from sheet')
+        schema_dir = pkg_resources.resource_filename('tugboat', 'schemas/')
+        schema_file = schema_dir + "data_schema.json"
+        json_data = json.loads(json.dumps(data))
+        with open(schema_file, 'r') as f:
+            json_schema = json.load(f)
+        try:
+            jsonschema.validate(json_data, json_schema)
+        except jsonschema.exceptions.ValidationError as e:
+            self.logger.error(
+                "Validation Failed with following error: \n{}".format(
+                    e.message
+                )
+            )
+            sys.exit(1)
+        self.logger.info("Data validation\
+                         OK!")
+
     def get_data(self):
         """ Create a dict with combined data """
         ipmi_data = self.get_ipmi_data()
@@ -260,7 +295,7 @@ class ExcelParser():
         self.logger.debug(
             "Location data extracted from\
                           excel:\n%s", pprint.pformat(location_data))
-        return {
+        data = {
             'ipmi_data': ipmi_data,
             'network_data': {
                 'private': network_data,
@@ -269,3 +304,5 @@ class ExcelParser():
             },
             'location_data': location_data,
         }
+        self.validate_data(data)
+        return data

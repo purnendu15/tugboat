@@ -133,7 +133,7 @@ def main(*args, **kwargs):
         logger.info("Generate Intermediary File")
         intermediary = generate_intermediary_file(
             excel, spec, sitetype, all_param=True)
-        generate_intermediary_file(excel, spec)
+        logger.info("Intermediary File Generated: {}".format(intermediary))
 
     elif generate_manifests:
         logger.info("Generate Manifest File")
