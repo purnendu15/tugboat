@@ -289,8 +289,45 @@ class ExcelParser():
         self.logger.info("Data validation\
                          OK!")
 
+    def validate_sheet_names_with_spec(self):
+        spec = list(self.excel_specs['specs'].keys())[0]
+        spec_item = self.excel_specs['specs'][spec]
+        ipmi_header_sheet_name = spec_item['ipmi_sheet_name']
+        private_ip_sheet_name = spec_item['private_ip_sheet']
+        public_ip_sheet_name = spec_item['public_ip_sheet']
+        dns_ntp_ldap_sheet_name = spec_item['dns_ntp_ldap_sheet']
+        location_sheet_name = spec_item['location_sheet']
+
+        try:
+            if ipmi_header_sheet_name not in self.wb.sheetnames:
+                raise RuntimeError(
+                    "SheetName '{}' not found in '{}'".format(
+                        ipmi_header_sheet_name, self.file_name))
+            if private_ip_sheet_name not in self.wb.sheetnames:
+                raise RuntimeError(
+                    "SheetName '{}' not found in '{}'".format(
+                        private_ip_sheet_name, self.file_name))
+            if public_ip_sheet_name not in self.wb.sheetnames:
+                raise RuntimeError(
+                    "SheetName '{}' not found in '{}'".format(
+                        public_ip_sheet_name, self.file_name))
+            if dns_ntp_ldap_sheet_name not in self.wb.sheetnames:
+                raise RuntimeError(
+                    "SheetName '{}' not found in '{}'".format(
+                        dns_ntp_ldap_sheet_name, self.file_name))
+            if location_sheet_name not in self.wb.sheetnames:
+                raise RuntimeError(
+                    "SheetName '{}' not found in '{}'".format(
+                        location_sheet_name, self.file_name))
+        except RuntimeError as rerror:
+            self.logger.critical(rerror)
+        self.logger.info(
+            "Sheet name in excel spec validated with'{}'".format(
+                self.file_name))
+
     def get_data(self):
         """ Create a dict with combined data """
+        self.validate_sheet_names_with_spec()
         ipmi_data = self.get_ipmi_data()
         network_data = self.get_private_network_data()
         public_network_data = self.get_public_network_data()
