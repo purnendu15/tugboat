@@ -122,6 +122,8 @@ class ExcelParser():
             cell_value = ws.cell(row=row, column=type_col).value
             if cell_value:
                 vlan = ws.cell(row=row, column=vlan_col).value
+                if vlan:
+                    vlan = vlan.lower()
                 vlan_data[vlan] = cell_value
             row += 1
         self.logger.debug("vlan data extracted from excel:\n%s",
@@ -141,6 +143,8 @@ class ExcelParser():
         old_vlan = ''
         while row <= end_row:
             vlan = ws.cell(row=row, column=vlan_col).value
+            if vlan:
+                vlan = vlan.lower()
             network = ws.cell(row=row, column=col).value
             if vlan and network:
                 net_type = vlan_data[vlan]
