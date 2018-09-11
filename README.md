@@ -22,8 +22,17 @@ Before using Tugboat, you must:
 2. Install the required packages in tugboat/:
 
      pip3 install -r tugboat/requirements.txt
+3. Preparation 
+   Step1:
+   customize excel_spec.yaml based design specification.
+   A sample is kept at tugboat/samples/specs/excel_spec.yaml.
+   Please correctly specify the cell and coulmn numbers by referrring the desing spec
 
-3. To run the tool:
+   Step2:
+   Edit tugboat/tugboat/config/rules.yaml based on project settings.
+   These are values which are not present in design spec.
+
+4. To run the tool:
 
     export WORKSPACE=<dir where excelspecs are placed>
     export IMAGE=<docker_image>
