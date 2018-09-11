@@ -9,11 +9,12 @@ metadata:
     abstract: false
     layer: site
     parentSelector:
-      name: nova-global
+      name: nova-type
     actions:
       - method: merge
         path: .
   storagePolicy: cleartext
+  replacement: true
 data:
   values:
     network:
@@ -21,9 +22,6 @@ data:
         - openvswitch
         - sriov
     conf:
-      policy:
-        os_compute_api:servers:create:forced_host: rule:admin_create or rule:tenant_create
-        os_compute_api:os-extended-server-attributes: rule:tenant_read
       nova:
         libvirt:
           virt_type: kvm
