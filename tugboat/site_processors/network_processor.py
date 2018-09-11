@@ -65,8 +65,7 @@ class NetworkProcessor(BaseProcessor):
         ceph_cidr = []
         ceph_cidr.append(network_data['common']['storage']['nw'])
         ksn_vlan_info = network_data['common']['ksn']['vlan']
-        # overlay vlan is neutron vlan which is ksn_vlan_info
-        overlay_vlan_info = network_data['common']['ksn']['vlan']
+        overlay_vlan_info = network_data['common']['overlay']['vlan']
         ldap_data = network_data['ldap']
         ldap_data['domain'] = ldap_data['base_url'].split('.')[1]
         bgp_data = network_data['bgp']
