@@ -64,8 +64,6 @@ class ExcelParser():
                 if self.compare(sheet_name, sheet):
                     self.excel_specs['specs'][spec]['ipmi_sheet_name'] = sheet
                     if self.validate_sheet(spec, sheet):
-                        self.logger.info("Sheet:{} validation\
-                                         OK!".format(sheet))
                         return spec
         raise NoSpecMatched(self.excel_specs)
 
@@ -99,7 +97,16 @@ class ExcelParser():
             else:
                 ipmi_gateway = previous_server_gateway
             tmp_host_profile = ws.cell(row=row, column=host_profile_col).value
+            try:
+                if tmp_host_profile is None:
+                    raise RuntimeError("No value read from {} ".format(
+                        self.file_name) + "sheet:{} row:{}, col:{}".format(
+                                           self.spec, row, host_profile_col))
+            except RuntimeError as rerror:
+               self.logger.critical(rerror)
+               sys.exit("Tugboat existed!!")
             host_profile = tmp_host_profile.split('-')[1]
+            
             ipmi_data[hostname] = {
                 'ipmi_address': ipmi_address,
                 'ipmi_gateway': ipmi_gateway,
@@ -222,10 +229,24 @@ class ExcelParser():
         ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
         ldap_group_row = self.excel_specs['specs'][self.spec]['ldap_group_row']
         ldap_url_row = self.excel_specs['specs'][self.spec]['ldap_url_row']
-        dns_servers = ws.cell(row=dns_row, column=dns_col).value.replace(
-            '\n', ' ')
-        ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value.replace(
-            '\n', ' ')
+        dns_servers = ws.cell(row=dns_row, column=dns_col).value
+        ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value
+        try:
+            if dns_servers is None:
+                raise RuntimeError("No value read for dns_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name,
+                                                  dns_row, dns_col))
+                raise RuntimeError("No value read for ntp_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name,
+                                                  ntp_row, ntp_col))
+        except RuntimeError as rerror:
+            self.logger.critical(rerror)
+            sys.exit("Tugboat existed!!")
+
+        dns_servers = dns_servers.replace('\n', ' ')
+        ntp_servers = ntp_servers.replace('\n', ' ')
         if ',' in dns_servers:
             dns_servers = dns_servers.split(',')
         else:
@@ -278,10 +299,13 @@ class ExcelParser():
         with open(schema_file, 'r') as f:
             json_schema = json.load(f)
         try:
+            with open('data2.json', 'w') as outfile:
+                json.dump(data,outfile,sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             self.logger.error(
-                "Validation Failed with following error: \n{}".format(
+                "Validation Failed with following error:i" +
+                "\n{}\n Please check excel spec settings(row,col)".format(
                     e.message
                 )
             )
@@ -321,6 +345,7 @@ class ExcelParser():
                         location_sheet_name, self.file_name))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
+            sys.exit("Tugboat exited!!")
         self.logger.info(
             "Sheet name in excel spec validated with'{}'".format(
                 self.file_name))
