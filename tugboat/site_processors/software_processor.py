@@ -31,7 +31,6 @@ class SoftwareProcessor:
         yaml_data = self.get_yaml_data(raw_data)
         self.data = yaml_data
         self.dir_name = yaml_data['region_name']
-        self.data['ldap_username'] = self.rules_data['ldap_username']
 
     @staticmethod
     def read_file(file_name):
