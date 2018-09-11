@@ -20,6 +20,12 @@ metadata:
         name: ubuntu_crypt_password
         path: .
     - dest:
+        path: .values.conf.uamlite.users[0].user_sshkeys[0]
+      src:
+        schema: deckhand/PublicKey/v1
+        name: ubuntu_ssh_public_key
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[1].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
@@ -74,13 +80,31 @@ metadata:
         name: mb874d_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[5].user_crypt_passwd
+      src:
+        schema: deckhand/Passphrase/v1
+        name: mb874d_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[6].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: sh8121_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[6].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sh8121_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[7].user_sshkeys[0]
+      src:
+        schema: deckhand/PublicKey/v1
+        name: bp4242_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[7].user_crypt_passwd
       src:
         schema: deckhand/PublicKey/v1
         name: bp4242_ssh_public_key
@@ -92,7 +116,19 @@ metadata:
         name: go4243_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[8].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: go4243_ssh_public_key
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[9].user_sshkeys[0]
+      src:
+        schema: deckhand/PublicKey/v1
+        name: mp0306_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[9].user_crypt_passwd
       src:
         schema: deckhand/PublicKey/v1
         name: mp0306_ssh_public_key
@@ -104,10 +140,22 @@ metadata:
         name: sb3065_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[10].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sb3065_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[11].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: kp6228_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[11].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: kp6228_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[12].user_sshkeys[0]
@@ -116,10 +164,22 @@ metadata:
         name: mg339b_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[12].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: mg339b_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[13].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: dp6938_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[13].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: dp6938_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[14].user_sshkeys[0]
@@ -128,10 +188,22 @@ metadata:
         name: hc697c_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[14].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: hc697c_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[15].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: jh6103_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[15].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: jh6103_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[16].user_sshkeys[0]
@@ -140,10 +212,21 @@ metadata:
         name: jj2898_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[16].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: jj2898_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[17].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: kb1828_ssh_public_key
+    - dest:
+        path: .values.conf.uamlite.users[17].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: kb1828_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[18].user_sshkeys[0]
@@ -152,10 +235,22 @@ metadata:
         name: ms4575_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[18].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: ms4575_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[19].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: sd1885_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[19].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sd1885_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[20].user_sshkeys[0]
@@ -164,10 +259,22 @@ metadata:
         name: sg6082_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[20].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sg6082_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[21].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: ss610g_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[21].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: ss610g_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[22].user_sshkeys[0]
@@ -176,10 +283,22 @@ metadata:
         name: tg7924_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[22].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: tg7924_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[23].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: rd3676_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[23].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: rd3676_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[24].user_sshkeys[0]
@@ -188,10 +307,22 @@ metadata:
         name: es1724_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[24].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: es1724_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[25].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: db9871_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[25].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: db9871_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[26].user_sshkeys[0]
@@ -200,10 +331,22 @@ metadata:
         name: sw1867_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[26].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sw1867_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[27].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: tj1728_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[27].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: tj1728_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[28].user_sshkeys[0]
@@ -212,10 +355,22 @@ metadata:
         name: sc3998_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[28].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: sc3998_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[29].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: jl401j_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[29].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: jl401j_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[30].user_sshkeys[0]
@@ -224,10 +379,22 @@ metadata:
         name: rp196m_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[30].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: rp196m_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[31].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: mm6021_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[31].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: mm6021_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[32].user_sshkeys[0]
@@ -236,10 +403,22 @@ metadata:
         name: ya8439_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[32].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: ya8439_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[33].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: kr1519_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[33].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: kr1519_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[34].user_sshkeys[0]
@@ -248,10 +427,22 @@ metadata:
         name: dn5242_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[34].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: dn5242_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[35].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: rg4437_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[35].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: rg4437_crypt_password
         path: .
     - dest:
         path: .values.conf.uamlite.users[36].user_sshkeys[0]
@@ -260,16 +451,34 @@ metadata:
         name: uk4686_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[36].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: uk4686_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[37].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: bt106c_ssh_public_key
         path: .
     - dest:
+        path: .values.conf.uamlite.users[37].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: bt106c_crypt_password
+        path: .
+    - dest:
         path: .values.conf.uamlite.users[38].user_sshkeys[0]
       src:
         schema: deckhand/PublicKey/v1
         name: nh863p_ssh_public_key
+        path: .
+    - dest:
+        path: .values.conf.uamlite.users[38].user_crypt_passwd
+      src:
+        schema: deckhand/PublicKey/v1
+        name: nh863p_crypt_password
         path: .
 data:
   values:

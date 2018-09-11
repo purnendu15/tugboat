@@ -116,8 +116,14 @@ data:
     kernel: 'hwe-16.04'
     kernel_params:
       console: 'ttyS1,115200n8'
-  metadata:
-    owner_data:
-      openstack-l3-agent: enabled
+      intel_iommu: 'on'
+      iommu: 'pt'
+      amd_iommu: 'on'
+      cgroup_disable: 'hugetlb'
+      transparent_hugepage: 'never'
+      hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+      hugepages: 'hardwareprofile:hugepages.dpdk.count'
+      default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
+      isolcpus: 'hardwareprofile:cpuset.kvm'
 ...
 

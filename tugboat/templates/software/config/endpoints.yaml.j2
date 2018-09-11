@@ -11,14 +11,14 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .ucp.identity.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .ucp.shipyard.host_fqdn_override.public.host
         pattern: DOMAIN
@@ -61,14 +61,14 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .ceph.object_store.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .ceph.ceph_object_store.host_fqdn_override.public.host
         pattern: DOMAIN
@@ -327,7 +327,7 @@ data:
         public:
           host: object-store-nc.DOMAIN
       path:
-        default: /swift/v1/KEY_$(tenant_id)s
+        default: /swift/v1
       scheme:
         default: http
         public: "https"
@@ -390,14 +390,14 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.object_store.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.ceph_object_store.host_fqdn_override.public.host
         pattern: DOMAIN
@@ -440,84 +440,84 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.image.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.cloudformation.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.orchestration.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.compute.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.compute_novnc_proxy.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.placement.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.network.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.identity.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.dashboard.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.volume.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.volumev2.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh.volumev3.host_fqdn_override.public.host
         pattern: DOMAIN
@@ -1144,7 +1144,7 @@ data:
         public:
           host: compute-nc.DOMAIN
       path:
-        default: "/v2/%(tenant_id)s"
+        default: "/v2.1/%(tenant_id)s"
       scheme:
         default: "http"
         public: "https"
@@ -1292,21 +1292,21 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh_infra.kibana.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh_infra.grafana.host_fqdn_override.public.host
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .domain.url
+        path: .dns.ingress_domain
       dest:
         path: .osh_infra.nagios.host_fqdn_override.public.host
         pattern: DOMAIN
@@ -1369,14 +1369,14 @@ metadata:
         name: common-addresses
         path: .ldap.base_url
       dest:
-        path:  .osh_infra.ldap.host_fqdn_override.public.host
+        path: .osh_infra.ldap.host_fqdn_override.default
         pattern: DOMAIN
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
         path: .ldap.auth_path
       dest:
-        path:  .osh_infra.ldap.path.default
+        path: .osh_infra.ldap.path.default
         pattern: AUTH_PATH
 data:
   osh_infra:
@@ -1597,9 +1597,7 @@ data:
       hosts:
         default: ldap
       host_fqdn_override:
-        default: null
-        public:
-	  host: DOMAIN
+        default: DOMAIN
       path:
         default: /AUTH_PATH
       scheme:
@@ -1648,5 +1646,93 @@ data:
         api:
           default: 8080
           public: 8080
+...
+---
+schema: pegleg/EndpointCatalogue/v1
+metadata:
+  schema: metadata/Document/v1
+  name: osh_addons_endpoints
+  layeringDefinition:
+    abstract: false
+    layer: site
+  storagePolicy: cleartext
+  substitutions:
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .dns.ingress_domain
+      dest:
+        path: .osh_addons.ranger_rds.host_fqdn_override.public.host
+        pattern: DOMAIN
+    - src:
+        schema: pegleg/CommonAddresses/v1
+        name: common-addresses
+        path: .dns.ingress_domain
+      dest:
+        path: .osh_addons.ranger-agent.host_fqdn_override.public.host
+        pattern: DOMAIN
+data:
+  osh_addons:
+    ranger_rds:
+      name: ranger_rds
+      namespace: openstack
+      hosts:
+        default: ranger_rds
+        public: ranger_rds
+      host_fqdn_override:
+        default: null
+        public:
+          host: ranger_rds-nc.DOMAIN
+      path:
+        default: "/v1/rds/status"
+      scheme:
+        default: "http"
+      port:
+        rds:
+          default: 8777
+    ranger-agent:
+      name: ranger-agent
+      namespace: openstack
+      hosts:
+        default: ranger-agent-api
+        public: ranger-agent
+      host_fqdn_override:
+        default: null
+        public:
+          host: ranger-agent-nc.DOMAIN
+      path:
+        default: "/v1/ord/ord_notifier/"
+      scheme:
+        default: "http"
+      port:
+        api:
+          default: 9010
+          public: 80
+    ranger_agent_oslo_messaging:
+      namespace: openstack
+      hosts:
+        default: ranger-agent-rabbitmq
+      host_fqdn_override:
+        default: null
+      path: /ranger-agent
+      scheme: rabbit
+      port:
+        amqp:
+          default: 5672
+        http:
+          default: 15672
+    ranger_agent_rabbitmq_exporter:
+      namespace: openstack
+      hosts:
+        default: ranger-agent-rabbitmq-exporter
+      host_fqdn_override:
+        default: null
+      path:
+        default: /metrics
+      scheme:
+        default: "http"
+      port:
+        metrics:
+          default: 9095
 ...
 

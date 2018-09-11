@@ -43,6 +43,7 @@ data:
         sriov_agent:
           sriov_nic:
             physical_device_mappings: sriovnet1:enp94s0f0,sriovnet2:enp135s0f1
+            exclude_devices: null
           securitygroup:
             firewall_driver: neutron.agent.firewall.NoopFirewallDriver
 {% if data['conf']['neutron']['network_vlan_ranges'] %}

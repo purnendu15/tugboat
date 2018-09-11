@@ -136,7 +136,7 @@ class NetworkProcessor(BaseProcessor):
         except IOError as ioe:
             raise SystemExit("Error when generating {:s}:\n{:s}".format(
                 outfile, ioe.strerror))
-
+        """ Generating rack specific configs """
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
                 j2_env = Environment(

@@ -53,7 +53,6 @@ metadata:
 {% endif %}
 {% endfor %}
 {% endfor %}
-
 {% for rack in data.baremetal.keys() %}
 {% for host in data["baremetal"][rack] %}
 {% if data["baremetal"][rack][host]["type"]  == 'genesis' %}
@@ -91,7 +90,6 @@ metadata:
 {% endif %}
 {% endfor %}
 {% endfor %}
-
 data: {}
 ...
 
