@@ -87,6 +87,7 @@ hostprofile_interfaces :
             p3p2: 'sriov_nic02'                         
             
 ldap_protocol : 'ldap'
+ldap_username : 'm96743@ldapservices.test.com'
 
 ceph :
     osd_count : 6
