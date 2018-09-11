@@ -99,14 +99,14 @@ class ExcelParser():
             tmp_host_profile = ws.cell(row=row, column=host_profile_col).value
             try:
                 if tmp_host_profile is None:
-                    raise RuntimeError("No value read from {} ".format(
-                        self.file_name) + "sheet:{} row:{}, col:{}".format(
-                                           self.spec, row, host_profile_col))
+                    raise RuntimeError(
+                        "No value read from {} ".format(self.file_name) +
+                        "sheet:{} row:{}, col:{}".format(self.spec, row,
+                                                         host_profile_col))
             except RuntimeError as rerror:
-               self.logger.critical(rerror)
-               sys.exit("Tugboat existed!!")
+                self.logger.critical(rerror)
+                sys.exit("Tugboat existed!!")
             host_profile = tmp_host_profile.split('-')[1]
-            
             ipmi_data[hostname] = {
                 'ipmi_address': ipmi_address,
                 'ipmi_gateway': ipmi_gateway,
@@ -234,13 +234,17 @@ class ExcelParser():
         try:
             if dns_servers is None:
                 raise RuntimeError("No value read for dns_server from File:" +
-                    "{} Sheet:'{}' Row:{} Col:{}".format(
-                        self.file_name, sheet_name,
-                                                  dns_row, dns_col))
+                                   "{} Sheet:'{}' Row:{} Col:{}".format(
+                                       self.file_name,
+                                       sheet_name,
+                                       dns_row,
+                                       dns_col))
                 raise RuntimeError("No value read for ntp_server from File:" +
-                    "{} Sheet:'{}' Row:{} Col:{}".format(
-                        self.file_name, sheet_name,
-                                                  ntp_row, ntp_col))
+                                   "{} Sheet:'{}' Row:{} Col:{}".format(
+                                       self.file_name,
+                                       sheet_name,
+                                       ntp_row,
+                                       ntp_col))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
             sys.exit("Tugboat existed!!")
@@ -300,7 +304,7 @@ class ExcelParser():
             json_schema = json.load(f)
         try:
             with open('data2.json', 'w') as outfile:
-                json.dump(data,outfile,sort_keys=True, indent=4)
+                json.dump(data, outfile, sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             self.logger.error(

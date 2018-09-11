@@ -22,6 +22,7 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from .base import BaseProcessor
 
+
 class SoftwareProcessor:
     def __init__(self, file_name):
         BaseProcessor.__init__(self, file_name)
