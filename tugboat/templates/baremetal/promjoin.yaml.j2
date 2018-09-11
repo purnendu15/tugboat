@@ -25,22 +25,5 @@ data:
         - template
       data_pipeline:
         - utf8_decode
-    - path: /lib/systemd/system/promjoin.service
-      type: unit
-      permissions: '600'
-      data: |-
-        [Unit]
-        Description=Promenade Initialization Service
-        After=network-online.target local-fs.target cloud-final.service
-        ConditionPathExists=!/var/lib/prom.done
-
-        [Service]
-        Type=simple
-        ExecStart=/opt/promjoin.sh
-
-        [Install]
-        WantedBy=multi-user.target
-      data_pipeline:
-        - utf8_decode
 ...
 
