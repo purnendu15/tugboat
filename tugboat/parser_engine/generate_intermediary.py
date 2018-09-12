@@ -204,8 +204,11 @@ class GenerateYamlFromExcel(ParserEngine):
         """
         """ loop through IPMI data and determine hosttype """
         is_genesis = False
+        sitetype = self.sitetype
+        ctrl_profile_type = \
+        self.rules_data['hardware_profile'][sitetype]['profile_name']['ctrl']
         for host in sorted(self.ipmi_data.keys()):
-            if (self.ipmi_data[host]['host_profile'] == 'cp'):
+            if (self.ipmi_data[host]['host_profile'] == ctrl_profile_type):
                 if not is_genesis:
                     self.host_type[host] = 'genesis'
                     is_genesis = True
