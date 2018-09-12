@@ -20,6 +20,7 @@ import pkg_resources
 import netaddr
 from .base import ParserEngine
 from .utils.excel_parser import ExcelParser
+from collections import OrderedDict 
 
 
 class GenerateYamlFromExcel(ParserEngine):
@@ -65,7 +66,8 @@ class GenerateYamlFromExcel(ParserEngine):
         self.network_data = {
             'assigned_subnets': {},
         }
-        self.racks = {}
+        #self.racks = {}
+        self.racks = OrderedDict()  
         self.sitetype = sitetype
 
     @staticmethod
@@ -200,10 +202,10 @@ class GenerateYamlFromExcel(ParserEngine):
         Categorize host as genesis, controller and compute based on
         the hostname string extracted from xl
         """
+        """ loop through IPMI data and determine hosttype """
         is_genesis = False
-        controller_pattern = '\w.*r\d+o\d+'
-        for host in self.hostnames:
-            if re.search(controller_pattern, host):
+        for host in sorted(self.ipmi_data.keys()):
+            if (self.ipmi_data[host]['host_profile'] == 'cp'):
                 if not is_genesis:
                     self.host_type[host] = 'genesis'
                     is_genesis = True
