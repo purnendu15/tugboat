@@ -227,7 +227,7 @@
                 },
                 "physical_location_id": {
                     "type": "string",
-                    "pattern": "^[A-Za-z ]+[0-9]+$"
+                    "pattern": "^\\w+"
                 }
             },
             "required": [
