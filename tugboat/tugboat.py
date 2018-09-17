@@ -98,8 +98,8 @@ def generate_manifest_files(intermediary):
     show_default=True,
     help='Loglevel NOTSET:0 ,DEBUG:10,\
     INFO:20, WARNING:30, ERROR:40, CRITICAL:50')
-def main(*args, **kwargs):
 
+def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
     excel = kwargs['excel']
@@ -122,14 +122,14 @@ def main(*args, **kwargs):
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
-    if generate_intermediary and generate_manifests and sitetype:
+    if generate_intermediary and generate_manifests:
         logger.info("Generate Intermediary File")
         intermediary = generate_intermediary_file(
             excel, spec, sitetype, all_param=True)
         logger.info("Generate Manifest File")
         generate_manifest_files(intermediary)
 
-    elif generate_intermediary and sitetype:
+    elif generate_intermediary:
         logger.info("Generate Intermediary File")
         intermediary = generate_intermediary_file(
             excel, spec, sitetype, all_param=True)
@@ -137,10 +137,16 @@ def main(*args, **kwargs):
 
     elif generate_manifests:
         logger.info("Generate Manifest File")
+        intermediary = generate_intermediary_file(
+            excel, spec, sitetype, all_param=True)
         generate_manifest_files(intermediary)
 
     else:
-        print('No options passed. Please pass either of -g or -m')
+        print('No options passed')
+        print("Usage Instructions:")
+        print("Generate Manifests:\ntugboat -m -x <DesignSpec> -s <excel spec>") 
+        print("Generate Intermediary:\ntugboat -g -x <DesignSpec> -s <excel spec>") 
+        print("Generate Manifest & Intermediary:\ntugboat -mg -x <DesignSpec> -s <excel spec>") 
 
     logger.info("Tugboat Execution Completed")
 
