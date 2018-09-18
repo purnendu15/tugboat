@@ -20,7 +20,7 @@ data:
   trunking:
     mode: 802.1q
   allowed_networks:
-{% for rack_name in data['rack_list'] %}
+{% for rack_name in data['network']['rack'] %}
     - {{ rack_name }}_oob
 {% endfor %}
     - {{ data['region_name'] }}_oam
@@ -38,17 +38,17 @@ metadata:
     layer: 'site'
   storagePolicy: cleartext
 data:
-  vlan: {{ data['common']['oam']['vlan'] }}
+  vlan: {{ data['network']['common']['oam']['vlan'] }}
   mtu: 9100
-  cidr: {{ data['common']['oam']['nw'] }}
+  cidr: {{ data['network']['common']['oam']['nw'] }}
 {% set flag = [0] %}
-{% for route in data['common']['oam']['routes'] %}
+{% for route in data['network']['common']['oam']['routes'] %}
 {% if flag[0] == 0 %}
   routes:
 {% endif %}
 {% if flag.append(flag.pop() + 1) %} {% endif %}
     - subnet: {{ route }}
-      gateway: {{ data['common']['oam']['gw'] }}
+      gateway: {{ data['network']['common']['oam']['gw'] }}
       metric: 100
 {% endfor %}
 {% if flag[0] == 0 %}
@@ -56,14 +56,14 @@ data:
 {% endif %}
   ranges:
     - type: reserved
-      start: {{ data['common']['oam']['reserved_start'] }}
-      end: {{ data['common']['oam']['reserved_end'] }}
+      start: {{ data['network']['common']['oam']['reserved_start'] }}
+      end: {{ data['network']['common']['oam']['reserved_end'] }}
     - type: static
-      start: {{ data['common']['oam']['static_start'] }}
-      end: {{ data['common']['oam']['static_end'] }}
+      start: {{ data['network']['common']['oam']['static_start'] }}
+      end: {{ data['network']['common']['oam']['static_end'] }}
   dns:
-    domain: {{ data['dns']['domain']|lower() }}
-    servers: {{ data['dns']['servers'] }}
+    domain: {{ data['network']['dns']['domain']|lower() }}
+    servers: {{ data['network']['dns']['servers'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -75,17 +75,17 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  vlan: {{ data['common']['storage']['vlan'] }}
+  vlan: {{ data['network']['common']['storage']['vlan'] }}
   mtu: 9100
-  cidr: {{ data['common']['storage']['nw'] }}
+  cidr: {{ data['network']['common']['storage']['nw'] }}
 {% set flag = [0] %}
-{% for route in data['common']['storage']['routes'] %}
+{% for route in data['network']['common']['storage']['routes'] %}
 {% if flag[0] == 0 %}
   routes:
 {% endif %}
 {% if flag.append(flag.pop() + 1) %} {% endif %}
     - subnet: {{ route }}
-      gateway: {{ data['common']['storage']['gw'] }}
+      gateway: {{ data['network']['common']['storage']['gw'] }}
       metric: 100
 {% endfor %}
 {% if flag[0] == 0 %}
@@ -93,11 +93,11 @@ data:
 {% endif %}
   ranges:
     - type: reserved
-      start: {{ data['common']['storage']['reserved_start'] }}
-      end: {{ data['common']['storage']['reserved_end'] }}
+      start: {{ data['network']['common']['storage']['reserved_start'] }}
+      end: {{ data['network']['common']['storage']['reserved_end'] }}
     - type: static
-      start: {{ data['common']['storage']['static_start'] }}
-      end: {{ data['common']['storage']['static_end'] }}
+      start: {{ data['network']['common']['storage']['static_start'] }}
+      end: {{ data['network']['common']['storage']['static_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -109,17 +109,17 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  vlan: {{ data['common']['overlay']['vlan'] }}
+  vlan: {{ data['network']['common']['overlay']['vlan'] }}
   mtu: 9100
-  cidr: {{ data['common']['overlay']['nw'] }}
+  cidr: {{ data['network']['common']['overlay']['nw'] }}
 {% set flag = [0] %}
-{% for route in data['common']['overlay']['routes'] %}
+{% for route in data['network']['common']['overlay']['routes'] %}
 {% if flag[0] == 0 %}
   routes:
 {% endif %}
 {% if flag.append(flag.pop() + 1) %} {% endif %}
     - subnet: {{ route }}
-      gateway: {{ data['common']['overlay']['gw'] }}
+      gateway: {{ data['network']['common']['overlay']['gw'] }}
       metric: 100
 {% endfor %}
 {% if flag[0] == 0 %}
@@ -127,11 +127,11 @@ data:
 {% endif %}
   ranges:
     - type: reserved
-      start: {{ data['common']['overlay']['reserved_start'] }}
-      end: {{ data['common']['overlay']['reserved_end'] }}
+      start: {{ data['network']['common']['overlay']['reserved_start'] }}
+      end: {{ data['network']['common']['overlay']['reserved_end'] }}
     - type: static
-      start: {{ data['common']['overlay']['static_start'] }}
-      end: {{ data['common']['overlay']['static_end'] }}
+      start: {{ data['network']['common']['overlay']['static_start'] }}
+      end: {{ data['network']['common']['overlay']['static_end'] }}
 ...
 ---
 schema: 'drydock/Network/v1'
@@ -143,17 +143,17 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  vlan: {{ data['common']['ksn']['vlan'] }}
+  vlan: {{ data['network']['common']['ksn']['vlan'] }}
   mtu: 9100
-  cidr: {{ data['common']['ksn']['nw'] }}
+  cidr: {{ data['network']['common']['ksn']['nw'] }}
 {% set flag = [0] %}
-{% for route in data['common']['ksn']['routes'] %}
+{% for route in data['network']['common']['ksn']['routes'] %}
 {% if flag[0] == 0 %}
   routes:
 {% endif %}
 {% if flag.append(flag.pop() + 1) %} {% endif %}
     - subnet: {{ route }}
-      gateway: {{ data['common']['ksn']['gw'] }}
+      gateway: {{ data['network']['common']['ksn']['gw'] }}
       metric: 100
 {% endfor %}
 {% if flag[0] == 0 %}
@@ -161,10 +161,10 @@ data:
 {% endif %}
   ranges:
     - type: reserved
-      start: {{ data['common']['ksn']['reserved_start'] }}
-      end: {{ data['common']['ksn']['reserved_end'] }}
+      start: {{ data['network']['common']['ksn']['reserved_start'] }}
+      end: {{ data['network']['common']['ksn']['reserved_end'] }}
     - type: static
-      start: {{ data['common']['ksn']['static_start'] }}
-      end: {{ data['common']['ksn']['static_end'] }}
+      start: {{ data['network']['common']['ksn']['static_start'] }}
+      end: {{ data['network']['common']['ksn']['static_end'] }}
 ...
 

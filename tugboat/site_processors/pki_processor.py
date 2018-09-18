@@ -28,10 +28,10 @@ class PkiProcessor(BaseProcessor):
         BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
-        yaml_data = self.get_yaml_data(raw_data)
-        self.baremetal_data = yaml_data['baremetal']
-        self.ingress = yaml_data['network']['ingress']
-        self.dir_name = yaml_data['region_name']
+        self.yaml_data = self.get_yaml_data(raw_data)
+        self.baremetal_data = self.yaml_data['baremetal']
+        self.ingress = self.yaml_data['network']['ingress']
+        self.dir_name = self.yaml_data['region_name']
 
     @staticmethod
     def read_file(file_name):
@@ -63,14 +63,13 @@ class PkiProcessor(BaseProcessor):
             for rack in self.baremetal_data:
                 for host in self.baremetal_data[rack]:
                     data[host] = self.baremetal_data[rack][host]
-            # data = self.baremetal_data[rack]
             outfile = '{}{}.yaml'.format(file_path, "pki-catalogue")
             self.logger.debug("Dict dump to %s:\n%s", template,
                               pprint.pformat(data))
             try:
                 out = open(outfile, "w")
                 # pylint: disable=maybe-no-member
-                template_name.stream(data=data).dump(out)
+                template_name.stream(data=self.yaml_data).dump(out)
                 self.logger.info('Rendered {}'.format(outfile))
                 out.close()
             except IOError as ioe:

@@ -1,4 +1,4 @@
-{% for rack_key in data['rack'].keys()%}
+{% for rack_key in data['network']['rack'].keys()%}
 ---
 schema: 'drydock/NetworkLink/v1'
 metadata:
@@ -32,15 +32,15 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  cidr: {{ data['rack'][rack_key]['oob']['nw'] }}
+  cidr: {{ data['network']['rack'][rack_key]['oob']['nw'] }}
   routes:
     - subnet: '0.0.0.0/0'
-      gateway: {{ data['rack'][rack_key]['oob']['gw'] }}
+      gateway: {{ data['network']['rack'][rack_key]['oob']['gw'] }}
       metric: 100
   ranges:
     - type: static
-      start: {{ data['rack'][rack_key]['oob']['static_start'] }}
-      end: {{ data['rack'][rack_key]['oob']['static_end'] }}
+      start: {{ data['network']['rack'][rack_key]['oob']['static_start'] }}
+      end: {{ data['network']['rack'][rack_key]['oob']['static_end'] }}
 ...
 
 ---
@@ -74,26 +74,26 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  cidr: {{ data['rack'][rack_key]['pxe']['nw'] }}
-{% if not data['rack'][rack_key]['is_genesis'] %}
+  cidr: {{ data['network']['rack'][rack_key]['pxe']['nw'] }}
+{% if not data['network']['rack'][rack_key]['is_genesis'] %}
   dhcp_relay:
-    upstream_target: {{ data['dns']['dhcp_relay'] }}
+    upstream_target: {{ data['network']['dns']['dhcp_relay'] }}
 {% endif %}
   routes:
-{% for other_subnet in data['rack'][rack_key]['pxe']['routes'] %}
+{% for other_subnet in data['network']['rack'][rack_key]['pxe']['routes'] %}
     - subnet: {{ other_subnet }}
-      gateway: {{ data['rack'][rack_key]['pxe']['gw'] }}
+      gateway: {{ data['network']['rack'][rack_key]['pxe']['gw'] }}
       metric: 100
 {% endfor %}
   ranges:
     - type: reserved
-      start: {{ data['rack'][rack_key]['pxe']['reserved_start'] }}
-      end: {{ data['rack'][rack_key]['pxe']['reserved_end'] }}
+      start: {{ data['network']['rack'][rack_key]['pxe']['reserved_start'] }}
+      end: {{ data['network']['rack'][rack_key]['pxe']['reserved_end'] }}
     - type: static
-      start: {{ data['rack'][rack_key]['pxe']['static_start'] }}
-      end: {{ data['rack'][rack_key]['pxe']['static_end'] }}
+      start: {{ data['network']['rack'][rack_key]['pxe']['static_start'] }}
+      end: {{ data['network']['rack'][rack_key]['pxe']['static_end'] }}
     - type: dhcp
-      start: {{ data['rack'][rack_key]['pxe']['dhcp_start'] }}
-      end: {{ data['rack'][rack_key]['pxe']['dhcp_end'] }}
+      start: {{ data['network']['rack'][rack_key]['pxe']['dhcp_start'] }}
+      end: {{ data['network']['rack'][rack_key]['pxe']['dhcp_end'] }}
 ...
 {%endfor%}
