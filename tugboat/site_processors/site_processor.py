@@ -15,6 +15,7 @@
 import yaml
 import pkg_resources
 import os
+import netaddr
 import logging
 import pprint
 
@@ -23,14 +24,13 @@ from jinja2 import FileSystemLoader
 from .base import BaseProcessor
 
 
-class SoftwareProcessor:
+
+class SiteProcessor(BaseProcessor):
     def __init__(self, file_name):
         BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
-        yaml_data = self.get_yaml_data(raw_data)
-        self.data = yaml_data
-        self.dir_name = yaml_data['region_name']
+        self.yaml_data = self.get_yaml_data(raw_data)
 
     @staticmethod
     def read_file(file_name):
@@ -40,15 +40,28 @@ class SoftwareProcessor:
 
     @staticmethod
     def get_yaml_data(data):
+        """ load yaml data """
         yaml_data = yaml.safe_load(data)
         return yaml_data
 
     def render_template(self):
+        """
+        The function renders network config yaml from j2 templates.
+        Network configs common to all racks (i.e oam, overlay, storage,
+        ksn) are generated in a single file. Rack specific
+        configs( pxe and oob) are generated per rack.
+        """
         template_software_dir = pkg_resources.resource_filename(
-            'tugboat', 'templates/software/')
+            'tugboat', 'templates/')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        outfile_path = 'pegleg_manifests/site/{}/software'.format(
-            self.dir_name)
+        self.logger.debug("Template dif abspath:%s", template_dir_abspath)
+
+        """ Get sitetype and set Hardware profile accordingly """
+        hardware_profile = {}
+        for key in self.rules_data['hardware_profile']:
+            if self.yaml_data["sitetype"] == key:
+                hardware_profile = self.rules_data['hardware_profile'][key]
+        self.yaml_data['hw_profile'] = hardware_profile
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
@@ -56,23 +69,25 @@ class SoftwareProcessor:
                     autoescape=False,
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
-                self.logger.info("template :{}".format(filename))
+                j2_env.filters['get_role_wise_nodes'] = self.get_role_wise_nodes
                 templatefile = os.path.join(dirpath, filename)
-                outfile_j2 = outfile_path + templatefile.split(
-                    'templates/software', 1)[1]
-                outfile = outfile_j2.split('.j2')[0]
-                outfile_dir = os.path.dirname(outfile)
+                outdirs = dirpath.split('templates')[1]
+                outfile_path = 'pegleg_manifests/site/{}{}'.format(
+                    self.yaml_data['region_name'], outdirs )
+                outfile_yaml = templatefile.split('.j2')[0].split('/')[-1]
+                outfile = outfile_path +'/'+ outfile_yaml
+                outfile_dir = os.path.dirname(outfile) 
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-                self.logger.debug("Dict dump to %s:\n%s", filename,
-                                  pprint.pformat(self.data))
+                self.logger.info("Rendering {}".format(template_j2))
                 try:
                     out = open(outfile, "w")
-                    # pylint: disable=maybe-no-member
-                    template_j2.stream(data=self.data).dump(out)
+                    template_j2.stream(
+                        data=self.yaml_data).dump(out)
                     self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
                     raise SystemExit("Error when generating {:s}:\n{:s}"
                                      .format(outfile, ioe.strerror))
+
