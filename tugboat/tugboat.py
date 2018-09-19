@@ -16,21 +16,8 @@ import click
 
 from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
 
-from tugboat.site_processors.baremetal_processor import BaremetalProcessor
-from tugboat.site_processors.deployment_processor import DeploymentProcessor
-from tugboat.site_processors.network_processor import NetworkProcessor
-from tugboat.site_processors.pki_processor import PkiProcessor
-from tugboat.site_processors.profile_processor import ProfileProcessor
-from tugboat.site_processors.site_definition_processor import (
-    SiteDeifinitionProcessor)
-from tugboat.site_processors.software_processor import SoftwareProcessor
+from tugboat.site_processors.site_processor import SiteProcessor 
 import logging
-
-PROCESSORS = [
-    BaremetalProcessor, DeploymentProcessor, NetworkProcessor, PkiProcessor,
-    ProfileProcessor, SiteDeifinitionProcessor, SoftwareProcessor
-]
-
 
 def generate_intermediary_file(excel, spec, sitetype, all_param=None):
     """ Generate intermediary file """
@@ -47,10 +34,9 @@ def generate_intermediary_file(excel, spec, sitetype, all_param=None):
 def generate_manifest_files(intermediary):
     """ Generate manifests """
     if intermediary:
+        processor_engine = SiteProcessor(intermediary)
         print('Generating manifest files')
-        for processor in PROCESSORS:
-            processor_engine = processor(intermediary)
-            processor_engine.render_template()
+        processor_engine.render_template()
     else:
         logging.error('Please pass intermediary file')
 
