@@ -1,5 +1,6 @@
-{% for host in data.keys()%}
-{% if data[host]['type'] != 'genesis' %}
+{% for rack in data['baremetal'].keys() %}
+{% for host in data['baremetal'][rack].keys()%}
+{% if data['baremetal'][rack][host]['type'] != 'genesis' %}
 ---
 schema: 'drydock/BaremetalNode/v1'
 metadata:
@@ -9,30 +10,31 @@ metadata:
     abstract: false
     layer: site
   storagePolicy: cleartext
-{% set rack = data[host]['rack'] %}
+{% set rack = data['baremetal'][rack][host]['rack'] %}
 data:
-  host_profile: {{data[host]['host_profile']}}_{{ rack }}
+  host_profile: {{data['baremetal'][rack][host]['host_profile']}}_{{ rack }}
   addressing:
     - network: {{ rack }}_oob
-      address: {{ data[host]['ip']['oob'] }}
-    - network: {{ data[host]['region'] }}_oam
-      address: {{ data[host]['ip']['oam'] }}
+      address: {{ data['baremetal'][rack][host]['ip']['oob'] }}
+    - network: {{ data['region_name'] }}_oam
+      address: {{ data['baremetal'][rack][host]['ip']['oam'] }}
     - network: {{ rack }}_pxe
-      address: {{ data[host]['ip']['pxe'] }}
-    - network: {{ data[host]['region']  }}_storage
-      address: {{ data[host]['ip']['storage'] }}
-    - network: {{ data[host]['region'] }}_ksn
-      address: {{ data[host]['ip']['ksn'] }}
-    - network: {{ data[host]['region']  }}_overlay
-      address: {{ data[host]['ip']['overlay'] }}
+      address: {{ data['baremetal'][rack][host]['ip']['pxe'] }}
+    - network: {{ data['region_name'] }}_storage
+      address: {{ data['baremetal'][rack][host]['ip']['storage'] }}
+    - network: {{ data['region_name'] }}_ksn
+      address: {{ data['baremetal'][rack][host]['ip']['ksn'] }}
+    - network: {{ data['region_name'] }}_overlay
+      address: {{ data['baremetal'][rack][host]['ip']['overlay'] }}
   metadata:
-    rack: {{ data[host]['region']|upper }}R{{rack[-2:] }}
+    rack: {{ data['region_name']|upper }}R{{rack[-2:] }}
     tags:
-{% if data[host]['type'] == 'compute' %}
+{% if data['baremetal'][rack][host]['type'] == 'compute' %}
         - 'workers'
 {% else %}
         - 'masters'
 {% endif %}
 ...
 {%endif%}
+{%endfor%}
 {%endfor%}

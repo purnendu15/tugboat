@@ -27,11 +27,7 @@ class BaremetalProcessor(BaseProcessor):
         BaseProcessor.__init__(self, file_name)
         self.logger = logging.getLogger(__name__)
         raw_data = self.read_file(file_name)
-        yaml_data = self.get_yaml_data(raw_data)
-        self.baremetal_data = yaml_data['baremetal']
-        self.ingress = yaml_data['network']['ingress']
-        self.dir_name = yaml_data['region_name']
-        self.region = self.dir_name
+        self.yaml_data = self.get_yaml_data(raw_data)
 
     @staticmethod
     def read_file(file_name):
@@ -57,44 +53,40 @@ class BaremetalProcessor(BaseProcessor):
                 loader=FileSystemLoader(template_dir),
                 trim_blocks=True)
             file_path = 'pegleg_manifests/site/{}/baremetal/'.format(
-                self.dir_name)
+                self.yaml_data["region_name"])
             if not os.path.exists(file_path):
                 os.makedirs(file_path)
             """ Rendering baremetal node configs for each host/rack"""
             if template == 'rack':
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
-                for rack in self.baremetal_data:
-                    data = self.baremetal_data[rack]
-                    for hosts in data.keys():
-                        data[hosts]['region'] = self.dir_name
-                    outfile = '{}{}.yaml'.format(file_path, rack)
-                    self.logger.debug("Dict dump to %s:\n%s", template,
-                                      pprint.pformat(data))
-                    try:
-                        out = open(outfile, "w")
-                        # pylint: disable=maybe-no-member
-                        template_name.stream(data=data).dump(out)
-                        self.logger.info('Rendered {}'.format(outfile))
-                        out.close()
-                    except IOError as ioe:
-                        self.logger.error("IOError during file operation")
-                        raise SystemExit("Error when generating {:s}:\n{:s}"
-                                         .format(outfile, ioe.strerror))
+                outfile = '{}{}.yaml'.format(file_path, template)
+                """
+                self.logger.debug("Dict dump to %s:\n%s", template,
+                                  pprint.pformat(data))
+                """
+                try:
+                    out = open(outfile, "w")
+                    # pylint: disable=maybe-no-member
+                    template_name.stream(data=self.yaml_data).dump(out)
+                    self.logger.info('Rendered {}'.format(outfile))
+                    out.close()
+                except IOError as ioe:
+                    self.logger.error("IOError during file operation")
+                    raise SystemExit("Error when generating {:s}:\n{:s}"
+                                     .format(outfile, ioe.strerror))
             elif template == 'calico-ip-rules':
                 """ Rendering baremetal node configs for ksn """
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
-                    'bootaction/'.format(self.dir_name)
+                    'bootaction/'.format(self.yaml_data["region_name"])
                 if not os.path.exists(file_path):
                     os.makedirs(file_path)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s", template,
-                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
-                    template_name.stream(data=data).dump(out)
+                    template_name.stream(data=self.yaml_data).dump(out)
                     self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
@@ -103,28 +95,15 @@ class BaremetalProcessor(BaseProcessor):
             elif template == 'promjoin':
                 """ Rendering baremetal node configs for promjoin """
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
-                    'bootaction/'.format(self.dir_name)
+                    'bootaction/'.format(self.yaml_data["region_name"])
                 if not os.path.exists(file_path):
                     os.makedirs(file_path)
-
-                data = {
-                    'hosts': [],
-                    'ingress': self.ingress,
-                    'region': self.region,
-                }
-                for rack in self.baremetal_data:
-                    for host in self.baremetal_data[rack]:
-                        if self.baremetal_data[rack][host]['type'] !=\
-                           'genesis':
-                            data['hosts'].append(host)
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s", template,
-                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
-                    template_name.stream(data=data).dump(out)
+                    template_name.stream(data=self.yaml_data).dump(out)
                     self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
@@ -133,18 +112,16 @@ class BaremetalProcessor(BaseProcessor):
             elif template == 'sriov-blacklist':
                 """ Rendering baremetal node configs for sriov nodes"""
                 file_path = 'pegleg_manifests/site/{}/baremetal/' \
-                    'bootaction/'.format(self.dir_name)
+                    'bootaction/'.format(self.yaml_data["region_name"])
                 if not os.path.exists(file_path):
                     os.makedirs(file_path)
 
                 template_name = j2_env.get_template(
                     '{}.yaml.j2'.format(template))
                 outfile = '{}{}.yaml'.format(file_path, template)
-                self.logger.debug("Dict dump to %s\n%s", template,
-                                  pprint.pformat(data))
                 try:
                     out = open(outfile, "w")
-                    template_name.stream(data=data).dump(out)
+                    template_name.stream(data=self.yaml_data).dump(out)
                     self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
