@@ -526,6 +526,10 @@ class GenerateYamlFromExcel(ParserEngine):
             'dhcp_relay': self.dhcp_relay,
         }
         self.data['network']['ldap'] = self.dns_ntp_ldap_data['ldap']
+
+
+        self.data['network']['ldap']['domain'] = \
+                self.data['network']['ldap']['base_url'].split('.')[1]
         self.data['network']['bgp'] = self.rules_data['bgp']
         self.data['network']['bgp']['public_service_cidr'] =\
                 self.data['network']['ingress']
