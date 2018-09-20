@@ -527,6 +527,13 @@ class GenerateYamlFromExcel(ParserEngine):
         }
         self.data['network']['ldap'] = self.dns_ntp_ldap_data['ldap']
         self.data['network']['bgp'] = self.rules_data['bgp']
+        self.data['network']['bgp']['public_service_cidr'] =\
+                self.data['network']['ingress']
+        subnet = \
+                netaddr.IPNetwork(
+                    self.data['network']['bgp']['public_service_cidr'])
+        ips = list(subnet)
+        self.data['network']['bgp']['ingress_vip'] = str(ips[1])
 
     def get_deployment_configuration(self):
         """ Get deployment configuration from self.rules_data['py """
