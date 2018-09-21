@@ -1,0 +1,48 @@
+###########################
+# Global Tugboat Settings #
+###########################
+---
+
+host_types:
+    - genesis
+    - controllers
+    - computes
+    
+template_dir: 'templates/'
+process_dir: 
+    - baremetal
+    
+private_network_types:
+    pxe: 'pxe'
+    storage: 'storage'
+    calico: 'ksn'
+    overlay: 'overlay'
+state_codes:
+    New Jersey: 'NJ'
+    Texas: 'TX'
+ips_to_leave: 12
+oob_ips_to_leave: 10
+
+baremetal_templates:
+    - rack
+    - calico-ip-rules
+    - promjoin
+    - sriov-blacklist
+
+pki_templates:
+    - pki-catalogue
+    
+site_definition_templates:
+    - site_definition
+
+hostprofile_templates:
+    - profile
+network_templates:
+    - common-addresses
+    - physical/rack
+gateway_offset : 1
+deployment_manifest : 'full-site'
+    
+ldap_protocol : 'ldap'
+
+...
