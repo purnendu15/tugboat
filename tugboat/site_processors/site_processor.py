@@ -26,23 +26,9 @@ from .base import BaseProcessor
 
 
 class SiteProcessor(BaseProcessor):
-    def __init__(self, file_name):
-        BaseProcessor.__init__(self, file_name)
+    def __init__(self, intermediary_yaml):
         self.logger = logging.getLogger(__name__)
-        raw_data = self.read_file(file_name)
-        self.yaml_data = self.get_yaml_data(raw_data)
-
-    @staticmethod
-    def read_file(file_name):
-        with open(file_name, 'r') as f:
-            raw_data = f.read()
-        return raw_data
-
-    @staticmethod
-    def get_yaml_data(data):
-        """ load yaml data """
-        yaml_data = yaml.safe_load(data)
-        return yaml_data
+        self.yaml_data = intermediary_yaml
 
     def render_template(self):
         """
@@ -55,13 +41,6 @@ class SiteProcessor(BaseProcessor):
             'tugboat', 'templates/')
         template_dir_abspath = os.path.dirname(template_software_dir)
         self.logger.debug("Template dif abspath:%s", template_dir_abspath)
-
-        """ Get sitetype and set Hardware profile accordingly """
-        hardware_profile = {}
-        for key in self.rules_data['hardware_profile']:
-            if self.yaml_data["sitetype"] == key:
-                hardware_profile = self.rules_data['hardware_profile'][key]
-        self.yaml_data['hw_profile'] = hardware_profile
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:

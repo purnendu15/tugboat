@@ -23,31 +23,24 @@ from .utils.excel_parser import ExcelParser
 from collections import OrderedDict 
 
 
-class GenerateYamlFromExcel(ParserEngine):
+class ProcessInputFiles(ParserEngine):
     def __init__(self, file_name, excel_specs, sitetype):
-        """ Load rules.yaml """
-        rules_dir = pkg_resources.resource_filename('tugboat', 'config/')
-        rules_file = rules_dir + 'rules.yaml'
-        rules_data = self.read_file(rules_file)
-        self.rules_data = self.get_yaml_data(rules_data)
+        """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
-        self.logger.info("Getting parsed data from excel")
-        self.HOST_TYPES = self.rules_data['host_types']
-        self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
-        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
-        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
-        parsed_data = self.get_parsed_data(file_name, excel_specs)
-        self.logger.debug("yaml data:\n%s", pprint.pformat(parsed_data))
-        self.ipmi_data = parsed_data['ipmi_data'][0]
-        self.hostnames = parsed_data['ipmi_data'][1]
-        self.private_network_data = self.get_private_network_data(
-            parsed_data['network_data'])
-        self.public_network_data = self.get_public_network_data(
-            parsed_data['network_data'])
-        self.dns_ntp_ldap_data = self.get_dns_ntp_ldap_data(
-            parsed_data['network_data'])
-        self.location_data = self.get_location_data(
-            parsed_data['location_data'])
+        self.file_name = file_name
+        self.excel_specs = excel_specs
+        self.sitetype = sitetype
+        self.prepare_data_structure_for_intermediary_yaml()
+
+
+    @staticmethod
+    def read_file(file_name):
+        with open(file_name, 'r') as f:
+            raw_data = f.read()
+        return raw_data
+
+
+    def prepare_data_structure_for_intermediary_yaml(self):
         self.host_type = {}
         self.data = {
             'network': {},
@@ -58,6 +51,7 @@ class GenerateYamlFromExcel(ParserEngine):
             'ceph': {},
             'location': {},
             'sitetype': '',
+            'hw_profile': {},
         }
         self.service_ip = ''
         self.region_name = ''
@@ -66,30 +60,29 @@ class GenerateYamlFromExcel(ParserEngine):
         self.network_data = {
             'assigned_subnets': {},
         }
-        #self.racks = {}
-        self.racks = OrderedDict()  
-        self.sitetype = sitetype
+        self.racks = OrderedDict()
+        self.parsed_xl_data = {}
 
-    @staticmethod
-    def read_file(file_name):
-        with open(file_name, 'r') as f:
-            raw_data = f.read()
-        return raw_data
+    def collect_rules(self):
+        """ Load rules.yaml """
+        rules_dir = pkg_resources.resource_filename('tugboat', 'config/')
+        rules_file = rules_dir + 'rules.yaml'
+        rules_data = self.read_file(rules_file)
+        self.rules_data = yaml.safe_load(rules_data)
+        self.HOST_TYPES = self.rules_data['host_types']
+        self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
+        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
+        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
 
-    @staticmethod
-    def get_yaml_data(data):
-        """ Load Yaml data """
-        yaml_data = yaml.safe_load(data)
-        return yaml_data
 
-    def get_parsed_data(self, file_name, excel_specs):
+    def get_parsed_raw_data_from_excel(self):
         """
         Get a data dictionary by reading the input excel files
         and excel specs. The excel specs contains metadata for reading
         the excel information
         """
-        parser = ExcelParser(file_name, excel_specs)
-        return parser.get_data()
+        parser = ExcelParser(self.file_name, self.excel_specs)
+        self.parsed_xl_data = parser.get_data()
 
     def get_private_network_data(self, raw_data):
         """
@@ -436,15 +429,28 @@ class GenerateYamlFromExcel(ParserEngine):
             }
         return oob_network_data
 
+    def assign_design_spec_data(self):
+        """ Assign Design Spec data to internal datastructures """
+        self.logger.info("Assigning network data")
+        self.ipmi_data = self.parsed_xl_data['ipmi_data'][0]
+        self.hostnames = self.parsed_xl_data['ipmi_data'][1]
+        self.private_network_data = self.get_private_network_data(
+            self.parsed_xl_data['network_data'])
+        self.public_network_data = self.get_public_network_data(
+            self.parsed_xl_data['network_data'])
+        self.dns_ntp_ldap_data = self.get_dns_ntp_ldap_data(
+            self.parsed_xl_data['network_data'])
+        self.location_data = self.get_location_data(
+            self.parsed_xl_data['location_data'])
+
     def assign_network_data(self):
         """
         Create derived network data with information from xl and static
         configuration and then store them into the dictionary
         """
-        self.logger.info("Assigning network data")
         rack_data = {}
-        rackwise_subnets = self.get_rackwise_subnet()
         common_subnets = {}
+        rackwise_subnets = self.get_rackwise_subnet()
         rackwise_oob_data = self.get_rackwise_oob_data()
         for rack in rackwise_subnets:
             for net_type in rackwise_subnets[rack]:
@@ -526,8 +532,6 @@ class GenerateYamlFromExcel(ParserEngine):
             'dhcp_relay': self.dhcp_relay,
         }
         self.data['network']['ldap'] = self.dns_ntp_ldap_data['ldap']
-
-
         self.data['network']['ldap']['domain'] = \
                 self.data['network']['ldap']['base_url'].split('.')[1]
         self.data['network']['bgp'] = self.rules_data['bgp']
@@ -594,9 +598,18 @@ class GenerateYamlFromExcel(ParserEngine):
         ips = list(ingress_subnet)
         self.data['conf']['ingress'] = '{}/32'.format(str(ips[1]))
 
+    def assign_hardware_profile(self):
+        """ Get sitetype and set Hardware profile accordingly """
+        hardware_profile = {}
+        for key in self.rules_data['hardware_profile']:
+           if self.data["sitetype"] == key:
+                hardware_profile = self.rules_data['hardware_profile'][key]
+        self.data['hw_profile'] = hardware_profile
+
     def generate_intermediary_yaml(self):
-        """ Pre-processing before yaml generation """
-        self.logger.info("Pre-processing before yaml generation")
+        """ Generating intermediary yaml """
+        self.logger.info("Generating intermediary yaml")
+        self.assign_design_spec_data()
         self.get_rack_data()
         self.get_rackwise_subnet()
         self.assign_private_ip_to_hosts()
@@ -610,13 +623,16 @@ class GenerateYamlFromExcel(ParserEngine):
         self.assign_conf_data()
         self.assign_location_data()
         self.assign_sitetype()
+        self.assign_hardware_profile()
+        self.intermediary_yaml = self.data
+        return self.intermediary_yaml
 
-    def generate_yaml(self):
-        """ Generating intermediary yaml """
-        self.logger.info("Generating intermediary yaml")
-        self.generate_intermediary_yaml()
-        yaml_data = yaml.dump(self.data, default_flow_style=False)
+    def dump_intermediary_file(self):
+        """ Dumping intermediary yaml """
+        self.logger.info("Dumping intermediary yaml")
         intermediary_file = "{}_intermediary.yaml".format(self.region_name)
+        yaml_file =  yaml.dump(self.data, default_flow_style=False)
         with open(intermediary_file, 'w') as f:
-            f.write(yaml_data)
-        return intermediary_file
+            f.write(yaml_file)
+        f.close()
+

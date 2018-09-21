@@ -25,17 +25,6 @@ class BaseProcessor:
         rules_data = self.read_file(rules_file)
         self.rules_data = self.get_yaml_data(rules_data)
 
-    @staticmethod
-    def read_file(file_name):
-        with open(file_name, 'r') as f:
-            raw_data = f.read()
-        return raw_data
-
-    @staticmethod
-    def get_yaml_data(data):
-        yaml_data = yaml.safe_load(data)
-        return yaml_data
-
     def render_template(self, template):
         pass
 
