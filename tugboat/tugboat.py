@@ -44,8 +44,8 @@ def generate_manifest_files(intermediary):
     '--excel',
     '-x',
     type=click.Path(exists=True),
-    help='Path to engineering excel file, to be passed with '
-    'generate_intermediary')
+    help=
+    'Path to engineering excel file, to be passed with generate_intermediary')
 @click.option(
     '--exel_spec',
     '-s',
