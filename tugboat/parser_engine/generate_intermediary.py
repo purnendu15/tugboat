@@ -63,12 +63,28 @@ class ProcessInputFiles(ParserEngine):
         self.racks = OrderedDict()
         self.parsed_xl_data = {}
 
-    def collect_rules(self):
-        """ Load rules.yaml """
-        rules_dir = pkg_resources.resource_filename('tugboat', 'config/')
-        rules_file = rules_dir + 'rules.yaml'
-        rules_data = self.read_file(rules_file)
-        self.rules_data = yaml.safe_load(rules_data)
+
+    def apply_design_rules(self, site_config):
+        """ The function applies global and site specific design rules to
+        a common design rule
+        """
+        """ Load and save global tugboat design rules.yaml """
+        global_config_dir = pkg_resources.resource_filename('tugboat', 'config/')
+        global_config_file = global_config_dir + 'global_config.yaml'
+        global_config_data = self.read_file(global_config_file)
+        global_config_yaml = yaml.safe_load(global_config_data)
+
+        """ Load site specific design rules """
+        site_config_data = self.read_file(site_config) 
+        site_config_yaml = yaml.safe_load(site_config_data) 
+
+        """ combine global and site design rules """
+        rules_data = {}
+        rules_data.update(global_config_yaml)
+        rules_data.update(site_config_yaml)
+
+        self.rules_data = rules_data
+
         self.HOST_TYPES = self.rules_data['host_types']
         self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
         self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']

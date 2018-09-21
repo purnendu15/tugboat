@@ -1,3 +1,4 @@
+import json
 # Copyright 2018 AT&T Intellectual Property.  All other rights reserved.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +13,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
 import jsonschema
 import pkg_resources
 import re
@@ -47,15 +47,6 @@ class ExcelParser():
         """ Compare the strings """
         return bool(re.search(self.sanitize(string1), self.sanitize(string2)))
 
-    def validate_sheet(self, spec, sheet):
-        """ Check if the sheet is correct or not """
-        ws = self.wb[sheet]
-        header_row = self.excel_specs['specs'][spec]['header_row']
-        ipmi_header = self.excel_specs['specs'][spec]['ipmi_address_header']
-        ipmi_column = self.excel_specs['specs'][spec]['ipmi_address_col']
-        header_value = ws.cell(row=header_row, column=ipmi_column).value
-        return bool(self.compare(ipmi_header, header_value))
-
     def find_correct_spec(self):
         """ Find the correct spec """
         for spec in self.excel_specs['specs']:
@@ -63,8 +54,7 @@ class ExcelParser():
             for sheet in self.wb.sheetnames:
                 if self.compare(sheet_name, sheet):
                     self.excel_specs['specs'][spec]['ipmi_sheet_name'] = sheet
-                    if self.validate_sheet(spec, sheet):
-                        return spec
+                    return spec
         raise NoSpecMatched(self.excel_specs)
 
     def get_ipmi_data(self):
@@ -224,11 +214,11 @@ class ExcelParser():
         ntp_col = self.excel_specs['specs'][self.spec]['ntp_col']
         domain_row = self.excel_specs['specs'][self.spec]['domain_row']
         domain_col = self.excel_specs['specs'][self.spec]['domain_col']
-        ldap_subdomain_row = self.excel_specs['specs'][self.spec][
-            'ldap_subdomain_row']
+        login_domain_row = self.excel_specs['specs'][self.spec][
+            'login_domain_row']
         ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
-        ldap_group_row = self.excel_specs['specs'][self.spec]['ldap_group_row']
-        ldap_url_row = self.excel_specs['specs'][self.spec]['ldap_url_row']
+        global_group = self.excel_specs['specs'][self.spec]['global_group']
+        ldap_search_url_row = self.excel_specs['specs'][self.spec]['ldap_search_url_row']
         dns_servers = ws.cell(row=dns_row, column=dns_col).value
         ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value
         try:
@@ -265,11 +255,11 @@ class ExcelParser():
             'domain': ws.cell(row=domain_row, column=domain_col).value,
             'ldap': {
                 'subdomain':
-                ws.cell(row=ldap_subdomain_row, column=ldap_col).value,
+                ws.cell(row=login_domain_row, column=ldap_col).value,
                 'common_name':
-                ws.cell(row=ldap_group_row, column=ldap_col).value,
+                ws.cell(row=global_group, column=ldap_col).value,
                 'url':
-                ws.cell(row=ldap_url_row, column=ldap_col).value,
+                ws.cell(row=ldap_search_url_row, column=ldap_col).value,
             }
         }
         self.logger.debug(
@@ -283,16 +273,16 @@ class ExcelParser():
         ws = self.wb[sheet_name]
         corridor_row = self.excel_specs['specs'][self.spec]['corridor_row']
         column = self.excel_specs['specs'][self.spec]['column']
-        name_row = self.excel_specs['specs'][self.spec]['name_row']
-        state_row = self.excel_specs['specs'][self.spec]['state_row']
-        country_row = self.excel_specs['specs'][self.spec]['country_row']
-        clli_row = self.excel_specs['specs'][self.spec]['clli_row']
+        site_name_row = self.excel_specs['specs'][self.spec]['site_name_row']
+        state_name_row = self.excel_specs['specs'][self.spec]['state_name_row']
+        country_name_row = self.excel_specs['specs'][self.spec]['country_name_row']
+        clli_name_row = self.excel_specs['specs'][self.spec]['clli_name_row']
         return {
             'corridor': ws.cell(row=corridor_row, column=column).value,
-            'name': ws.cell(row=name_row, column=column).value,
-            'state': ws.cell(row=state_row, column=column).value,
-            'country': ws.cell(row=country_row, column=column).value,
-            'physical_location_id': ws.cell(row=clli_row, column=column).value,
+            'name': ws.cell(row=site_name_row, column=column).value,
+            'state': ws.cell(row=state_name_row, column=column).value,
+            'country': ws.cell(row=country_name_row, column=column).value,
+            'physical_location_id': ws.cell(row=clli_name_row, column=column).value,
         }
 
     def validate_data(self, data):

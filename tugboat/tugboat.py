@@ -48,7 +48,7 @@ def generate_manifest_files(intermediary):
     help='Path to engineering excel file, to be passed with '
     'generate_intermediary')
 @click.option(
-    '--spec',
+    '--exel_spec',
     '-s',
     type=click.Path(exists=True),
     help='Path to excel spec, to be passed with generate_intermediary')
@@ -66,6 +66,12 @@ def generate_manifest_files(intermediary):
     show_default=True,
     help='Specify the sitetype \'5ec\' or \'nc\'')
 @click.option(
+    '--site_config',
+    '-d',
+    required=True,
+    type=click.Path(exists=True),
+    help='Path to the site specific yaml file')
+@click.option(
     '--loglevel',
     '-l',
     default=20,
@@ -78,9 +84,10 @@ def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
     excel = kwargs['excel']
-    spec = kwargs['spec']
+    exel_spec = kwargs['exel_spec']
     intermediary = kwargs['intermediary']
     sitetype = kwargs['sitetype']
+    site_config = kwargs['site_config']
     loglevel = kwargs['loglevel']
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
@@ -97,15 +104,17 @@ def main(*args, **kwargs):
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
-    process_input_ob = ProcessInputFiles(excel,spec,sitetype)
+    process_input_ob = ProcessInputFiles(excel,exel_spec,sitetype)
 
     """ Collects rules.yaml data """
-    process_input_ob.collect_rules()
+    process_input_ob.apply_design_rules(site_config)
     """ Parses the design spec supplied to raw yaml """
     logger.info("Parsing raw data from design spec")
     process_input_ob.get_parsed_raw_data_from_excel()
     logger.info("Generating Intermediary File")
     intermediary_yaml = {}
+
+    """ Check if mandatory params exists """
 
     if generate_intermediary and generate_manifests:
         logger.info("Generating Intermediary File")
@@ -123,7 +132,8 @@ def main(*args, **kwargs):
         logger.info("Loading intermediary")
         with open(intermediary, 'r') as intermediary_file:
             raw_data = intermediary_file.read()
-            intermediary_yaml = intermediary_yaml(raw_data)
+            yaml_data = yaml.safe_load(raw_data)
+            intermediary_yaml = raw_data 
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
 
