@@ -12,18 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
-import pkg_resources
-
 
 class BaseProcessor:
     def __init__(self, file_name):
-        # raw_data = self.read_file(file_name)
-        # self.yaml_data = self.get_yaml_data(raw_data)
-        rules_dir = pkg_resources.resource_filename('tugboat', 'config/')
-        rules_file = rules_dir + 'rules.yaml'
-        rules_data = self.read_file(rules_file)
-        self.rules_data = self.get_yaml_data(rules_data)
+        pass
 
     def render_template(self, template):
         pass

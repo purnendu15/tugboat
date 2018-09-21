@@ -12,17 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
 import pkg_resources
 import os
-import netaddr
 import logging
-import pprint
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from .base import BaseProcessor
-
 
 
 class SiteProcessor(BaseProcessor):
@@ -48,25 +44,25 @@ class SiteProcessor(BaseProcessor):
                     autoescape=False,
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
-                j2_env.filters['get_role_wise_nodes'] = self.get_role_wise_nodes
+                j2_env.filters['get_role_wise_nodes']\
+                        = self.get_role_wise_nodes
                 templatefile = os.path.join(dirpath, filename)
                 outdirs = dirpath.split('templates')[1]
                 outfile_path = 'pegleg_manifests/site/{}{}'.format(
-                    self.yaml_data['region_name'], outdirs )
+                    self.yaml_data['region_name'], outdirs)
                 outfile_yaml = templatefile.split('.j2')[0].split('/')[-1]
-                outfile = outfile_path +'/'+ outfile_yaml
-                outfile_dir = os.path.dirname(outfile) 
+                outfile = outfile_path + '/' + outfile_yaml
+                outfile_dir = os.path.dirname(outfile)
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
                 self.logger.info("Rendering {}".format(template_j2))
                 try:
                     out = open(outfile, "w")
-                    template_j2.stream(
-                        data=self.yaml_data).dump(out)
+                    template_j2.stream(data=self.yaml_data).dump(out)
                     self.logger.info('Rendered {}'.format(outfile))
                     out.close()
                 except IOError as ioe:
-                    raise SystemExit("Error when generating {:s}:\n{:s}"
-                                     .format(outfile, ioe.strerror))
-
+                    raise SystemExit(
+                        "Error when generating {:s}:\n{:s}".format(
+                            outfile, ioe.strerror))

@@ -67,12 +67,12 @@ class ExcelParser():
         row = self.excel_specs['specs'][self.spec]['start_row']
         end_row = self.excel_specs['specs'][self.spec]['end_row']
         hostname_col = self.excel_specs['specs'][self.spec]['hostname_col']
-        ipmi_address_col = self.excel_specs['specs'][self.spec][
-            'ipmi_address_col']
-        host_profile_col = self.excel_specs['specs'][self.spec][
-            'host_profile_col']
-        ipmi_gateway_col = self.excel_specs['specs'][self.spec][
-            'ipmi_gateway_col']
+        ipmi_address_col = self.excel_specs['specs'][self.
+                                                     spec]['ipmi_address_col']
+        host_profile_col = self.excel_specs['specs'][self.
+                                                     spec]['host_profile_col']
+        ipmi_gateway_col = self.excel_specs['specs'][self.
+                                                     spec]['ipmi_gateway_col']
         previous_server_gateway = None
         while row <= end_row:
             hostname = self.sanitize(
@@ -89,10 +89,9 @@ class ExcelParser():
             tmp_host_profile = ws.cell(row=row, column=host_profile_col).value
             try:
                 if tmp_host_profile is None:
-                    raise RuntimeError(
-                        "No value read from {} ".format(self.file_name) +
-                        "sheet:{} row:{}, col:{}".format(self.spec, row,
-                                                         host_profile_col))
+                    raise RuntimeError("No value read from {} ".format(
+                        self.file_name) + "sheet:{} row:{}, col:{}".format(
+                            self.spec, row, host_profile_col))
             except RuntimeError as rerror:
                 self.logger.critical(rerror)
                 sys.exit("Tugboat exited!!")
@@ -214,27 +213,24 @@ class ExcelParser():
         ntp_col = self.excel_specs['specs'][self.spec]['ntp_col']
         domain_row = self.excel_specs['specs'][self.spec]['domain_row']
         domain_col = self.excel_specs['specs'][self.spec]['domain_col']
-        login_domain_row = self.excel_specs['specs'][self.spec][
-            'login_domain_row']
+        login_domain_row = self.excel_specs['specs'][self.
+                                                     spec]['login_domain_row']
         ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
         global_group = self.excel_specs['specs'][self.spec]['global_group']
-        ldap_search_url_row = self.excel_specs['specs'][self.spec]['ldap_search_url_row']
+        ldap_search_url_row = self.excel_specs['specs'][
+            self.spec]['ldap_search_url_row']
         dns_servers = ws.cell(row=dns_row, column=dns_col).value
         ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value
         try:
             if dns_servers is None:
-                raise RuntimeError("No value read for dns_server from File:" +
-                                   "{} Sheet:'{}' Row:{} Col:{}".format(
-                                       self.file_name,
-                                       sheet_name,
-                                       dns_row,
-                                       dns_col))
-                raise RuntimeError("No value read for ntp_server from File:" +
-                                   "{} Sheet:'{}' Row:{} Col:{}".format(
-                                       self.file_name,
-                                       sheet_name,
-                                       ntp_row,
-                                       ntp_col))
+                raise RuntimeError(
+                    "No value read for dns_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name, dns_row, dns_col))
+                raise RuntimeError(
+                    "No value read for ntp_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name, ntp_row, ntp_col))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
             sys.exit("Tugboat exited!!")
@@ -254,12 +250,11 @@ class ExcelParser():
             'ntp': ntp_servers,
             'domain': ws.cell(row=domain_row, column=domain_col).value,
             'ldap': {
-                'subdomain':
-                ws.cell(row=login_domain_row, column=ldap_col).value,
-                'common_name':
-                ws.cell(row=global_group, column=ldap_col).value,
-                'url':
-                ws.cell(row=ldap_search_url_row, column=ldap_col).value,
+                'subdomain': ws.cell(row=login_domain_row,
+                                     column=ldap_col).value,
+                'common_name': ws.cell(row=global_group,
+                                       column=ldap_col).value,
+                'url': ws.cell(row=ldap_search_url_row, column=ldap_col).value,
             }
         }
         self.logger.debug(
@@ -275,14 +270,20 @@ class ExcelParser():
         column = self.excel_specs['specs'][self.spec]['column']
         site_name_row = self.excel_specs['specs'][self.spec]['site_name_row']
         state_name_row = self.excel_specs['specs'][self.spec]['state_name_row']
-        country_name_row = self.excel_specs['specs'][self.spec]['country_name_row']
+        country_name_row = self.excel_specs['specs'][self.
+                                                     spec]['country_name_row']
         clli_name_row = self.excel_specs['specs'][self.spec]['clli_name_row']
         return {
-            'corridor': ws.cell(row=corridor_row, column=column).value,
-            'name': ws.cell(row=site_name_row, column=column).value,
-            'state': ws.cell(row=state_name_row, column=column).value,
-            'country': ws.cell(row=country_name_row, column=column).value,
-            'physical_location_id': ws.cell(row=clli_name_row, column=column).value,
+            'corridor':
+            ws.cell(row=corridor_row, column=column).value,
+            'name':
+            ws.cell(row=site_name_row, column=column).value,
+            'state':
+            ws.cell(row=state_name_row, column=column).value,
+            'country':
+            ws.cell(row=country_name_row, column=column).value,
+            'physical_location_id':
+            ws.cell(row=clli_name_row, column=column).value,
         }
 
     def validate_data(self, data):
@@ -300,9 +301,7 @@ class ExcelParser():
             self.logger.error(
                 "Validation Failed with following error:" +
                 "\n{}\n Please check excel spec settings(row,col)".format(
-                    e.message
-                )
-            )
+                    e.message))
             sys.exit(1)
         self.logger.info("Data validation\
                          OK!")
@@ -318,31 +317,25 @@ class ExcelParser():
 
         try:
             if ipmi_header_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        ipmi_header_sheet_name, self.file_name))
+                raise RuntimeError("SheetName '{}' not found in '{}'".format(
+                    ipmi_header_sheet_name, self.file_name))
             if private_ip_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        private_ip_sheet_name, self.file_name))
+                raise RuntimeError("SheetName '{}' not found in '{}'".format(
+                    private_ip_sheet_name, self.file_name))
             if public_ip_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        public_ip_sheet_name, self.file_name))
+                raise RuntimeError("SheetName '{}' not found in '{}'".format(
+                    public_ip_sheet_name, self.file_name))
             if dns_ntp_ldap_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        dns_ntp_ldap_sheet_name, self.file_name))
+                raise RuntimeError("SheetName '{}' not found in '{}'".format(
+                    dns_ntp_ldap_sheet_name, self.file_name))
             if location_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        location_sheet_name, self.file_name))
+                raise RuntimeError("SheetName '{}' not found in '{}'".format(
+                    location_sheet_name, self.file_name))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
             sys.exit("Tugboat exited!!")
-        self.logger.info(
-            "Sheet name in excel spec validated with'{}'".format(
-                self.file_name))
+        self.logger.info("Sheet name in excel spec validated with'{}'".format(
+            self.file_name))
 
     def get_data(self):
         """ Create a dict with combined data """

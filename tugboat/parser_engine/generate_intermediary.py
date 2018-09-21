@@ -20,7 +20,7 @@ import pkg_resources
 import netaddr
 from .base import ParserEngine
 from .utils.excel_parser import ExcelParser
-from collections import OrderedDict 
+from collections import OrderedDict
 
 
 class ProcessInputFiles(ParserEngine):
@@ -32,13 +32,11 @@ class ProcessInputFiles(ParserEngine):
         self.sitetype = sitetype
         self.prepare_data_structure_for_intermediary_yaml()
 
-
     @staticmethod
     def read_file(file_name):
         with open(file_name, 'r') as f:
             raw_data = f.read()
         return raw_data
-
 
     def prepare_data_structure_for_intermediary_yaml(self):
         self.host_type = {}
@@ -63,21 +61,19 @@ class ProcessInputFiles(ParserEngine):
         self.racks = OrderedDict()
         self.parsed_xl_data = {}
 
-
     def apply_design_rules(self, site_config):
         """ The function applies global and site specific design rules to
         a common design rule
         """
         """ Load and save global tugboat design rules.yaml """
-        global_config_dir = pkg_resources.resource_filename('tugboat', 'config/')
+        global_config_dir = pkg_resources.resource_filename(
+            'tugboat', 'config/')
         global_config_file = global_config_dir + 'global_config.yaml'
         global_config_data = self.read_file(global_config_file)
         global_config_yaml = yaml.safe_load(global_config_data)
-
         """ Load site specific design rules """
-        site_config_data = self.read_file(site_config) 
-        site_config_yaml = yaml.safe_load(site_config_data) 
-
+        site_config_data = self.read_file(site_config)
+        site_config_yaml = yaml.safe_load(site_config_data)
         """ combine global and site design rules """
         rules_data = {}
         rules_data.update(global_config_yaml)
@@ -89,7 +85,6 @@ class ProcessInputFiles(ParserEngine):
         self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
         self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
         self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
-
 
     def get_parsed_raw_data_from_excel(self):
         """
@@ -190,8 +185,8 @@ class ProcessInputFiles(ParserEngine):
             else:
                 url = self.dns_ntp_ldap_data[type_]['url']
                 base_url = url.split('//')[1]
-                url = '{}://{}'.format(
-                    self.rules_data['ldap_protocol'], base_url)
+                url = '{}://{}'.format(self.rules_data['ldap_protocol'],
+                                       base_url)
                 self.dns_ntp_ldap_data[type_]['base_url'] = base_url
                 self.dns_ntp_ldap_data[type_]['url'] = url
 
@@ -286,8 +281,9 @@ class ProcessInputFiles(ParserEngine):
                     subnet = rackwise_subnets[rack][net_type]
                     ips = list(subnet)
                     for i in range(len(rackwise_hosts[rack])):
-                        self.ipmi_data[rackwise_hosts[rack][i]][
-                            net_type] = str(ips[i + self.IPS_TO_LEAVE + 1])
+                        self.ipmi_data[rackwise_hosts[rack]
+                                       [i]][net_type] = str(
+                                           ips[i + self.IPS_TO_LEAVE + 1])
                     mid = len(ips) // 2
                     if net_type not in self.network_data['assigned_subnets']:
                         self.network_data['assigned_subnets'][net_type] = []
@@ -297,8 +293,9 @@ class ProcessInputFiles(ParserEngine):
                     subnet = rackwise_subnets['common'][net_type]
                     ips = list(subnet)
                     for i in range(len(rackwise_hosts[rack])):
-                        self.ipmi_data[rackwise_hosts[rack][i]][
-                            net_type] = str(ips[i + self.IPS_TO_LEAVE + 1 + j])
+                        self.ipmi_data[rackwise_hosts[rack]
+                                       [i]][net_type] = str(
+                                           ips[i + self.IPS_TO_LEAVE + 1 + j])
                     mid = len(ips) // 2
                 static_start = str(ips[self.IPS_TO_LEAVE + 1])
                 reserved_start = str(ips[1])
@@ -475,8 +472,9 @@ class ProcessInputFiles(ParserEngine):
                     nw = str(rackwise_subnets[rack][net_type])
                     gw = str(ips[self.rules_data['gateway_offset']])
                     routes = [
-                        subnet for subnet in self.network_data[
-                            'assigned_subnets'][net_type] if subnet != nw
+                        subnet for subnet in self.
+                        network_data['assigned_subnets'][net_type]
+                        if subnet != nw
                     ]
                     rackwise_subnets[rack][net_type] = {
                         'nw':
@@ -562,8 +560,8 @@ class ProcessInputFiles(ParserEngine):
     def get_deployment_configuration(self):
         """ Get deployment configuration from self.rules_data['py """
         self.logger.info("Getting deployment config")
-        self.data[
-            'deployment_manifest'] = self.rules_data['deployment_manifest']
+        self.data['deployment_manifest'] = self.rules_data[
+            'deployment_manifest']
 
     def get_host_profile_wise_racks(self):
         """
@@ -591,13 +589,11 @@ class ProcessInputFiles(ParserEngine):
         self.logger.info("Assigning rack to host profile")
         host_profile_wise_racks = self.get_host_profile_wise_racks()
         for host_profile in host_profile_wise_racks:
-            rack_list = list(
-                host_profile_wise_racks[host_profile]['racks'])
+            rack_list = list(host_profile_wise_racks[host_profile]['racks'])
             host_profile_wise_racks[host_profile]['racks'] = rack_list
             for key in self.rules_data['hostprofile_interfaces'][host_profile]:
-                host_profile_wise_racks[host_profile][
-                    key] = self.rules_data[
-                        'hostprofile_interfaces'][host_profile][key]
+                host_profile_wise_racks[host_profile][key] = self.rules_data[
+                    'hostprofile_interfaces'][host_profile][key]
         self.data['profiles'] = host_profile_wise_racks
 
     def assign_ceph_data(self):
@@ -618,7 +614,7 @@ class ProcessInputFiles(ParserEngine):
         """ Get sitetype and set Hardware profile accordingly """
         hardware_profile = {}
         for key in self.rules_data['hardware_profile']:
-           if self.data["sitetype"] == key:
+            if self.data["sitetype"] == key:
                 hardware_profile = self.rules_data['hardware_profile'][key]
         self.data['hw_profile'] = hardware_profile
 
@@ -647,8 +643,7 @@ class ProcessInputFiles(ParserEngine):
         """ Dumping intermediary yaml """
         self.logger.info("Dumping intermediary yaml")
         intermediary_file = "{}_intermediary.yaml".format(self.region_name)
-        yaml_file =  yaml.dump(self.data, default_flow_style=False)
+        yaml_file = yaml.dump(self.data, default_flow_style=False)
         with open(intermediary_file, 'w') as f:
             f.write(yaml_file)
         f.close()
-
