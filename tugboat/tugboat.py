@@ -58,13 +58,6 @@ def generate_manifest_files(intermediary):
     help='Path to intermediary file, \
     to be passed with generate_manifests')
 @click.option(
-    '--sitetype',
-    '-S',
-    default='nc',
-    multiple=False,
-    show_default=True,
-    help='Specify the sitetype \'5ec\' or \'nc\'')
-@click.option(
     '--site_config',
     '-d',
     required=True,
@@ -84,7 +77,6 @@ def main(*args, **kwargs):
     excel = kwargs['excel']
     exel_spec = kwargs['exel_spec']
     intermediary = kwargs['intermediary']
-    sitetype = kwargs['sitetype']
     site_config = kwargs['site_config']
     loglevel = kwargs['loglevel']
     logger = logging.getLogger('tugboat')
@@ -102,7 +94,7 @@ def main(*args, **kwargs):
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
-    process_input_ob = ProcessInputFiles(excel, exel_spec, sitetype)
+    process_input_ob = ProcessInputFiles(excel, exel_spec)
     """ Collects rules.yaml data """
     process_input_ob.apply_design_rules(site_config)
     """ Parses the design spec supplied to raw yaml """

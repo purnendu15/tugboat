@@ -24,12 +24,11 @@ from collections import OrderedDict
 
 
 class ProcessInputFiles(ParserEngine):
-    def __init__(self, file_name, excel_specs, sitetype):
+    def __init__(self, file_name, excel_specs):
         """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
         self.file_name = file_name
         self.excel_specs = excel_specs
-        self.sitetype = sitetype
         self.prepare_data_structure_for_intermediary_yaml()
 
     @staticmethod
@@ -85,6 +84,7 @@ class ProcessInputFiles(ParserEngine):
         self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
         self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
         self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
+        self.sitetype = self.rules_data['sitetype']
 
     def get_parsed_raw_data_from_excel(self):
         """
