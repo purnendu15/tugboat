@@ -294,8 +294,6 @@ class ExcelParser():
         with open(schema_file, 'r') as f:
             json_schema = json.load(f)
         try:
-            with open('data2.json', 'w') as outfile:
-                json.dump(data, outfile, sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             self.logger.error(
