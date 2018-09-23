@@ -557,11 +557,6 @@ class ProcessInputFiles(ParserEngine):
         ips = list(subnet)
         self.data['network']['bgp']['ingress_vip'] = str(ips[1])
 
-    def get_deployment_configuration(self):
-        """ Get deployment configuration from self.rules_data['py """
-        self.logger.info("Getting deployment config")
-        self.data['deployment_manifest'] = self.rules_data[
-            'deployment_manifest']
 
     def get_host_profile_wise_racks(self):
         """
@@ -628,7 +623,6 @@ class ProcessInputFiles(ParserEngine):
         self.assign_public_ip_to_host()
         self.assign_ip()
         self.assign_network_data()
-        self.get_deployment_configuration()
         self.assign_racks_to_host_profile()
         self.assign_region_name()
         self.assign_ceph_data()
