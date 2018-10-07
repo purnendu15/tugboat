@@ -8,12 +8,12 @@ metadata:
     layer: site
   storagePolicy: cleartext
 data:
-  ksn:
-    ip_autodetection_method: interface=bond1.{{ data['network']['common']['ksn']['vlan']}}
+  calico:
+    ip_autodetection_method: interface=bond1.{{ data['network']['common']['calico']['vlan']}}
     etcd:
       service_ip: 10.96.232.136
     ip_rule:
-      gateway: {{ data['network']['common']['ksn']['gw']}}
+      gateway: {{ data['network']['common']['calico']['gw']}}
       overlap_cidr: 10.96.0.0/15 
     bgp:
       ipv4:
@@ -38,7 +38,7 @@ data:
 {% for rack in data['baremetal'] %}
 {% for host  in data['baremetal'][rack] %}
 {% if data['baremetal'][rack][host]['type'] == 'genesis' %}
-    ip: {{ data['baremetal'][rack][host]['ip']['ksn'] }}
+    ip: {{ data['baremetal'][rack][host]['ip']['calico'] }}
 {% endif %}
 {% endfor %}
 {% endfor %}
@@ -50,38 +50,11 @@ data:
     etcd_service_ip: 10.96.0.2
     pod_cidr: 172.26.0.0/15
     service_cidr: 10.96.0.0/16
-    apiserver_port: 6443
-    haproxy_port: 6553
-    service_node_port_range: 30000-35357
-
-  etcd:
-    container_port: 2379
-    haproxy_port: 2378
 
   masters:
 {% for host in (data|get_role_wise_nodes)['masters'] %}
     - hostname: {{ host }}
 {% endfor %}
-
-  workers:
-{% for host in (data|get_role_wise_nodes)['workers'] %}
-    - hostname: {{ host }}
-{% endfor %}
-
-  proxy:
-    http: {{ data['network']['proxy']['http'] }}
-    https: {{ data['network']['proxy']['https'] }}
-    no_proxy: '10.96.0.1,*.cluster.local'
-
-  node_ports:
-    drydock_api: 30000
-    maas_api: 30001
-    maas_proxy: 31800 # hardcoded in maas
-    shipyard_api: 30003
-    airflow_web: 30004
-
-  ntp:
-    servers_joined: {{ data['network']['ntp']['servers'] }}
 
   ldap:
     base_url: {{ data['network']['ldap']['base_url'] }}
@@ -91,8 +64,6 @@ data:
     subdomain: {{ data['network']['ldap']['subdomain'] }}
     domain: {{ data['network']['ldap']['domain'] }}
 
-  domain:
-    url: {{ data['network']['dns']['domain']| lower() }}
 
   storage:
     ceph:

@@ -21,26 +21,26 @@ metadata:
 data:
   hardware_profile: {{data['hw_profile']['hw_type']}}
   oob:
-    network: {{ rackname }}_oob
+    network: oob
     account: root
-  primary_network: {{ data['region_name'] }}_oam
+  primary_network: oam
   interfaces:
     pxe:
-      device_link: {{rackname}}_pxe
+      device_link: pxe
       slaves:
         - pxe_nic01
       networks:
-        - {{rackname}}_pxe
+        - pxe
     bond1:
       device_link: bond1
       slaves:
         - gp_nic01
         - gp_nic02
       networks:
-      - {{ data['region_name'] }}_oam
-      - {{ data['region_name'] }}_overlay
-      - {{ data['region_name'] }}_storage
-      - {{ data['region_name'] }}_ksn
+      - oam
+      - overlay
+      - storage
+      - calico
 {% if profile_name == data['hw_profile']['profile_name']['compute']  %}
     {{data['hw_profile']['sriov_itf']['itf1'][0]}}:
       slaves:

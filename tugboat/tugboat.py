@@ -43,6 +43,7 @@ def generate_manifest_files(intermediary):
 @click.option(
     '--excel',
     '-x',
+    multiple=True,
     type=click.Path(exists=True),
     help=
     'Path to engineering excel file, to be passed with generate_intermediary')
@@ -74,8 +75,8 @@ def generate_manifest_files(intermediary):
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
-    excel = kwargs['excel']
-    exel_spec = kwargs['exel_spec']
+    filenames = kwargs['excel']
+    spec = kwargs['exel_spec']
     intermediary = kwargs['intermediary']
     site_config = kwargs['site_config']
     loglevel = kwargs['loglevel']
@@ -94,7 +95,7 @@ def main(*args, **kwargs):
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
-    process_input_ob = ProcessInputFiles(excel, exel_spec)
+    process_input_ob = ProcessInputFiles(filenames, spec)
     """ Collects rules.yaml data """
     process_input_ob.apply_design_rules(site_config)
     """ Parses the design spec supplied to raw yaml """

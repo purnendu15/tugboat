@@ -15,7 +15,7 @@ process_dir:
 private_network_types:
     pxe: 'pxe'
     storage: 'storage'
-    calico: 'ksn'
+    calico: 'calico'
     overlay: 'overlay'
 state_codes:
     New Jersey: 'NJ'

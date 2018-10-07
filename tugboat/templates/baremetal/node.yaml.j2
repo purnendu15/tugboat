@@ -14,17 +14,17 @@ metadata:
 data:
   host_profile: {{data['baremetal'][rack][host]['host_profile']}}_{{ rack }}
   addressing:
-    - network: {{ rack }}_oob
+    - network: oob
       address: {{ data['baremetal'][rack][host]['ip']['oob'] }}
-    - network: {{ data['region_name'] }}_oam
+    - network: oam
       address: {{ data['baremetal'][rack][host]['ip']['oam'] }}
     - network: {{ rack }}_pxe
       address: {{ data['baremetal'][rack][host]['ip']['pxe'] }}
-    - network: {{ data['region_name'] }}_storage
+    - network: storage
       address: {{ data['baremetal'][rack][host]['ip']['storage'] }}
-    - network: {{ data['region_name'] }}_ksn
-      address: {{ data['baremetal'][rack][host]['ip']['ksn'] }}
-    - network: {{ data['region_name'] }}_overlay
+    - network: calico
+      address: {{ data['baremetal'][rack][host]['ip']['calico'] }}
+    - network: overlay
       address: {{ data['baremetal'][rack][host]['ip']['overlay'] }}
   metadata:
     rack: {{ data['region_name']|upper }}R{{rack[-2:] }}

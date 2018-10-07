@@ -30,7 +30,7 @@ class SiteProcessor(BaseProcessor):
         """
         The function renders network config yaml from j2 templates.
         Network configs common to all racks (i.e oam, overlay, storage,
-        ksn) are generated in a single file. Rack specific
+        calico) are generated in a single file. Rack specific
         configs( pxe and oob) are generated per rack.
         """
         template_software_dir = pkg_resources.resource_filename(
