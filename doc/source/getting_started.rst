@@ -78,6 +78,14 @@ Path to excel spec, to be passed with generate_intermediary.
 
 Path to intermediary file, to be passed with generate_manifests.
 
+**-d / --site_config**
+
+Path to site specific config file, to be passed with generate_manifests.
+
+**-l / --loglevel**
+
+Log level for tugboat. It is INFO:20 by defualt
+
 **-h / --help**
 
 Show the options and exit.
@@ -87,13 +95,9 @@ Usage:
 ::
 
     # Generate intermediary yaml and site manifests as separate steps
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_intermediary
-    ./tugboat.sh --intermediary <intermediary_file> --generate_manifests
+    # Generate Manifest & Intermediary: tugboat -mg -x <DesignSpec> -s <excel spec>
+    # Generate Manifest with Intermediary: tugboat -m -i <intermediary>
 
-    (OR)
-
-    # Generate site manifests in a single command
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_manifests
 
 
 .. _site definition libraries: https://airship-pegleg.readthedocs.io/en/latest/artifacts.html#definition-library-layout

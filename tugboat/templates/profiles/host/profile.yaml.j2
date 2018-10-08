@@ -1,18 +1,16 @@
+{% for rackname in data['baremetal'].keys() %}
+{% for profile_name in data['profiles'].keys() %}
 ---
 schema: drydock/HostProfile/v1
 metadata:
   schema: metadata/Document/v1
-  name: {{ data['profile_name'] }}_{{ data['rack'] }}
+  name: {{ profile_name }}_{{ rackname }}
   storagePolicy: cleartext
   layeringDefinition:
     abstract: false
     layer: site
     parentSelector:
-{% if data['profile_name'] == data['hw_profile']['profile_name']['compute']  %}
-      hosttype: {{data['hw_profile']['host_type']['compute']}}
-{% else %}
-      hosttype: {{data['hw_profile']['host_type']['ctrl']}}
-{% endif %}
+      hosttype: {{ data['sitetype'] }}-{{ profile_name }}-type
     actions:
       - method: replace
         path: .interfaces
@@ -21,33 +19,29 @@ metadata:
       - method: merge
         path: .
 data:
-{% if data['profile_name'] == data['hw_profile']['profile_name']  %}
-  hardware_profile: {{data['hw_profile']['hw_type']['compute']}}
-{% else %}
-  hardware_profile: {{data['hw_profile']['hw_type']['ctrl']}}
-{% endif %}
+  hardware_profile: {{data['hw_profile']['hw_type']}}
   oob:
-    network: {{ data['rack'] }}_oob
+    network: oob
     account: root
-  primary_network: {{ data['region'] }}_oam
+  primary_network: oam
   interfaces:
     pxe:
-      device_link: {{data['rack']}}_pxe
+      device_link: pxe
       slaves:
         - pxe_nic01
       networks:
-        - {{data['rack']}}_pxe
+        - pxe
     bond1:
       device_link: bond1
       slaves:
         - gp_nic01
         - gp_nic02
       networks:
-      - {{ data['region'] }}_oam
-      - {{ data['region'] }}_overlay
-      - {{ data['region'] }}_storage
-      - {{ data['region'] }}_ksn
-{% if data['profile_name'] == data['hw_profile']['profile_name']['compute']  %}
+      - oam
+      - overlay
+      - storage
+      - calico
+{% if profile_name == data['hw_profile']['profile_name']['compute']  %}
     {{data['hw_profile']['sriov_itf']['itf1'][0]}}:
       slaves:
         - {{data['hw_profile']['sriov_itf']['itf1'][1]}}
@@ -92,7 +86,7 @@ data:
               mountpoint: '/var'
               fstype: 'ext4'
               mount_options: 'defaults'
-{% if data['profile']['type'] == 'controller' %}
+{% if data['profiles'][profile_name]['type'] == 'controller' %}
       cephjournal:
         partitions:
           - name: 'cephj'
@@ -101,7 +95,7 @@ data:
               mountpoint: '/var/lib/ceph/journal'
               fstype: 'xfs'
               mount_options: 'defaults'
-{% elif data['profile']['type'] == 'compute' %}
+{% elif data['profiles'][profile_name]['type'] == 'compute' %}
       ephemeral:
         partitions:
           - name: 'nova'
@@ -126,4 +120,5 @@ data:
       default_hugepagesz: 'hardwareprofile:hugepages.dpdk.size'
       isolcpus: 'hardwareprofile:cpuset.kvm'
 ...
-
+{% endfor %}
+{% endfor %}

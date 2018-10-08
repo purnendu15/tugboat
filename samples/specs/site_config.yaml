@@ -1,59 +1,24 @@
-###########################
-# Global Tugboat Settings #
-###########################
+##################################
+# Site Specific Tugboat Settings #
+##################################
 ---
-
-host_types:
-    - genesis
-    - controllers
-    - computes
-    
-template_dir: 'templates/'
-process_dir: 
-    - baremetal
-    
-private_network_types:
-    pxe: 'pxe'
-    storage: 'storage'
-    calico: 'ksn'
-    overlay: 'overlay'
-state_codes:
-    New Jersey: 'NJ'
-    Texas: 'TX'
-ips_to_leave: 12
-oob_ips_to_leave: 10
-
-baremetal_templates:
-    - rack
-    - calico-ip-rules
-    - promjoin
-    - sriov-blacklist
-
-pki_templates:
-    - pki-catalogue
-    
-site_definition_templates:
-    - site_definition
-
-hostprofile_templates:
-    - profile
-network_templates:
-    - common-addresses
-    - physical/rack
+sitetype: nc
 proxy:
     http: 'http://one.proxy.att.com:8080'
     https: 'http://one.proxy.att.com:8080'
 
 no_proxy : '10.96.0.2,10.96.232.136,artifacts-nc.mtn29.cci.att.com,docker-nc.mtn29.cci.att.com,docker-open-nc.mtn29.cci.att.com,10.96.0.1,cluster.local,svc.cluster.local,,localhost,127.0.0.1,10.0.0.0/8'
-gateway_offset : 1
-deployment_manifest : 'full-site'
-bgp :
-    peers:
-    - '172.29.0.2' 
-    - '172.29.0.3'
-    asnumber: 64671
-    peer_asnumber: 64688
-    
+ceph :
+    osd_count : 6
+    osd_count_fullsite : 24
+    osd : 
+    - 'sdc'
+    - 'sdd'
+    - 'sde'
+    - 'sdf' 
+    - 'sdg'
+    - 'sdh'
+
 hostprofile_interfaces :
     cp:
         networks: 
@@ -84,29 +49,20 @@ hostprofile_interfaces :
                 - 'gp_nic01'
                 - 'gp_nic02'
             p1p1: 'sriov_nic01'
-            p3p2: 'sriov_nic02'                         
-            
-ldap_protocol : 'ldap'
+            p3p2: 'sriov_nic02'  
+bgp :
+    peers:
+    - '172.29.0.2' 
+    - '172.29.0.3'
+    asnumber: 64671
+    peer_asnumber: 64688
 
-ceph :
-    osd_count : 6
-    osd_count_fullsite : 24
-    osd : 
-    - 'sdc'
-    - 'sdd'
-    - 'sde'
-    - 'sdf' 
-    - 'sdg'
-    - 'sdh'
-    
 hardware_profile :
     nc :
         host_type :
             ctrl : 'nc-cp'
             compute : 'nc-ns-r740'
-        hw_type :
-            ctrl : 'dell_r740_purley_nc'
-            compute : 'dell_r740_purley_nc'
+        hw_type : 'dell_r740_purley_nc'
         profile_name :
             ctrl : 'cp'
             compute : 'nsb'
@@ -121,9 +77,7 @@ hardware_profile :
         host_type : 
             ctrl : '5ec-cp'
             compute : '5ec-ns-r640'
-        hw_type : 
-            ctrl : 'dell_r640_purley_5ec'
-            compute : 'dell_r640_purley_5ec'
+        hw_type : 'dell_r640_purley_5ec'
         profile_name :
             ctrl : 'cp'
             compute : 'nsb'
@@ -134,8 +88,6 @@ hardware_profile :
              itf2 :
              - 'p3p2'
              - 'sriov_nic02'
-
-
 conf :
     nova:
         vcpu_pin_set : '4-43,48-55'
@@ -355,9 +307,8 @@ conf :
               trusted : "true"
             - physical_network : "sriovnet2"
               address : "0000:d8:0d.7"
-              trusted : "true"              
+              trusted : "true"   
     neutron:
         network_vlan_ranges: ' oam:100:1000,sriovnet1:105:109,sriovnet2:121:124'
-
-            
 ...
+

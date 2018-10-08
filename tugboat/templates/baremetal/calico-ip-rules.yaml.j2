@@ -13,7 +13,7 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .ksn.ip_rule.gateway
+        path: .calico.ip_rule.gateway
       dest:
         path: .assets[0].data
         pattern: DH_SUB_GATEWAY_IP
@@ -27,14 +27,14 @@ metadata:
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .ksn.bgp.ipv4.public_service_cidr
+        path: .calico.bgp.ipv4.public_service_cidr
       dest:
         path: .assets[0].data
         pattern: DH_SUB_INGRESS_CIDR
     - src:
         schema: pegleg/CommonAddresses/v1
         name: common-addresses
-        path: .ksn.ip_rule.overlap_cidr
+        path: .calico.ip_rule.overlap_cidr
       dest:
         path: .assets[0].data
         pattern: DH_SUB_OVERLAP_CIDR

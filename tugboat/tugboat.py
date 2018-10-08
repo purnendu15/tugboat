@@ -13,46 +13,20 @@
 # limitations under the License.
 
 import click
-
-from tugboat.parser_engine.generate_intermediary import GenerateYamlFromExcel
-
-from tugboat.site_processors.baremetal_processor import BaremetalProcessor
-from tugboat.site_processors.deployment_processor import DeploymentProcessor
-from tugboat.site_processors.network_processor import NetworkProcessor
-from tugboat.site_processors.pki_processor import PkiProcessor
-from tugboat.site_processors.profile_processor import ProfileProcessor
-from tugboat.site_processors.site_definition_processor import (
-    SiteDeifinitionProcessor)
-from tugboat.site_processors.software_processor import SoftwareProcessor
+import yaml
+from tugboat.parser_engine.generate_intermediary import ProcessInputFiles
+from tugboat.site_processors.site_processor import SiteProcessor
 import logging
-
-PROCESSORS = [
-    BaremetalProcessor, DeploymentProcessor, NetworkProcessor, PkiProcessor,
-    ProfileProcessor, SiteDeifinitionProcessor, SoftwareProcessor
-]
-
-
-def generate_intermediary_file(excel, spec, sitetype, all_param=None):
-    """ Generate intermediary file """
-    if excel and spec and sitetype:
-        parser = GenerateYamlFromExcel(excel, spec, sitetype)
-        intermediary = parser.generate_yaml()
-        print('Generating intermediary file {}'.format(intermediary))
-    else:
-        print('Please pass engineering excel and spec file')
-    if all_param:
-        return intermediary
 
 
 def generate_manifest_files(intermediary):
     """ Generate manifests """
     if intermediary:
+        processor_engine = SiteProcessor(intermediary)
         print('Generating manifest files')
-        for processor in PROCESSORS:
-            processor_engine = processor(intermediary)
-            processor_engine.render_template()
+        processor_engine.render_template()
     else:
-        logging.error('Please pass intermediary file')
+        logging.error('Intermediary not found')
 
 
 @click.command()
@@ -60,7 +34,7 @@ def generate_manifest_files(intermediary):
     '--generate_intermediary',
     '-g',
     is_flag=True,
-    help='Generate intermediary file from passed excel and excel spec')
+    help='Dump intermediary file from passed excel and excel spec')
 @click.option(
     '--generate_manifests',
     '-m',
@@ -69,11 +43,12 @@ def generate_manifest_files(intermediary):
 @click.option(
     '--excel',
     '-x',
+    multiple=True,
     type=click.Path(exists=True),
-    help='Path to engineering excel file, to be passed with '
-    'generate_intermediary')
+    help=
+    'Path to engineering excel file, to be passed with generate_intermediary')
 @click.option(
-    '--spec',
+    '--exel_spec',
     '-s',
     type=click.Path(exists=True),
     help='Path to excel spec, to be passed with generate_intermediary')
@@ -84,12 +59,11 @@ def generate_manifest_files(intermediary):
     help='Path to intermediary file, \
     to be passed with generate_manifests')
 @click.option(
-    '--sitetype',
-    '-S',
-    default='nc',
-    multiple=False,
-    show_default=True,
-    help='Specify the sitetype \'5ec\' or \'nc\'')
+    '--site_config',
+    '-d',
+    required=True,
+    type=click.Path(exists=True),
+    help='Path to the site specific yaml file')
 @click.option(
     '--loglevel',
     '-l',
@@ -98,14 +72,13 @@ def generate_manifest_files(intermediary):
     show_default=True,
     help='Loglevel NOTSET:0 ,DEBUG:10,\
     INFO:20, WARNING:30, ERROR:40, CRITICAL:50')
-
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
-    excel = kwargs['excel']
-    spec = kwargs['spec']
+    filenames = kwargs['excel']
+    spec = kwargs['exel_spec']
     intermediary = kwargs['intermediary']
-    sitetype = kwargs['sitetype']
+    site_config = kwargs['site_config']
     loglevel = kwargs['loglevel']
     logger = logging.getLogger('tugboat')
     # Set default log level to INFO
@@ -122,31 +95,49 @@ def main(*args, **kwargs):
     Generate intermediary and manifests files using the
     engineering package excel and respective excel spec.
     """
+    process_input_ob = ProcessInputFiles(filenames, spec)
+    """ Collects rules.yaml data """
+    process_input_ob.apply_design_rules(site_config)
+    """ Parses the design spec supplied to raw yaml """
+    logger.info("Parsing raw data from design spec")
+    process_input_ob.get_parsed_raw_data_from_excel()
+    logger.info("Generating Intermediary File")
+    intermediary_yaml = {}
+    """ Check if mandatory params exists """
+
     if generate_intermediary and generate_manifests:
-        logger.info("Generate Intermediary File")
-        intermediary = generate_intermediary_file(
-            excel, spec, sitetype, all_param=True)
-        logger.info("Generate Manifest File")
-        generate_manifest_files(intermediary)
+        logger.info("Generating Intermediary File")
+        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+        process_input_ob.dump_intermediary_file()
+        logger.info("Generatng Manifests")
+        generate_manifest_files(intermediary_yaml)
 
+    elif generate_manifests and intermediary:
+        """
+        Generating manifest with the supplied intermediary
+        In this case supplied design spec and excel-spec
+        is not required
+        """
+        logger.info("Loading intermediary")
+        with open(intermediary, 'r') as intermediary_file:
+            raw_data = intermediary_file.read()
+            yaml_data = yaml.safe_load(raw_data)
+            intermediary_yaml = yaml_data
+        logger.info("Generatng Manifests")
+        generate_manifest_files(intermediary_yaml)
     elif generate_intermediary:
-        logger.info("Generate Intermediary File")
-        intermediary = generate_intermediary_file(
-            excel, spec, sitetype, all_param=True)
-        logger.info("Intermediary File Generated: {}".format(intermediary))
-
-    elif generate_manifests:
-        logger.info("Generate Manifest File")
-        intermediary = generate_intermediary_file(
-            excel, spec, sitetype, all_param=True)
-        generate_manifest_files(intermediary)
-
+        logger.info("Generating Intermediary File")
+        intermediary_yaml = process_input_ob.generate_intermediary_file()
+        process_input_ob.dump_intermediary_file()
     else:
-        print('No options passed')
+        print('No suitable options passed')
         print("Usage Instructions:")
-        print("Generate Manifests:\ntugboat -m -x <DesignSpec> -s <excel spec>") 
-        print("Generate Intermediary:\ntugboat -g -x <DesignSpec> -s <excel spec>") 
-        print("Generate Manifest & Intermediary:\ntugboat -mg -x <DesignSpec> -s <excel spec>") 
+        print("Generate Intermediary:\ntugboat" +
+              "-g -x <DesignSpec> -s <excel spec>")
+        print("Generate Manifest & Intermediary" +
+              ":\ntugboat -mg -x <DesignSpec> -s <excel spec>")
+        print("Generate Manifest with supplied Intermediary" +
+              ":\ntugboat -m -i  <intemediary_file>")
 
     logger.info("Tugboat Execution Completed")
 

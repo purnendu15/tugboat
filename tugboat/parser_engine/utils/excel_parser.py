@@ -19,7 +19,7 @@ import re
 import sys
 import yaml
 from openpyxl import load_workbook
-
+from openpyxl import Workbook
 from ..check_exceptions import (
     NoSpecMatched, )
 import logging
@@ -35,8 +35,14 @@ class ExcelParser():
         with open(excel_specs, 'r') as f:
             spec_raw_data = f.read()
         self.excel_specs = yaml.safe_load(spec_raw_data)
-        self.wb = load_workbook(file_name, data_only=True)
-        self.spec = None
+        """ 
+        A combined design spec, returns a workbok object after combining
+        all the inputs excel specs
+        """
+        combined_design_spec = self.combine_excel_design_specs(file_name)
+        self.wb_combined = combined_design_spec
+        self.filenames = file_name
+        self.spec = 'xl_spec'
 
     @staticmethod
     def sanitize(string):
@@ -49,18 +55,19 @@ class ExcelParser():
 
     def validate_sheet(self, spec, sheet):
         """ Check if the sheet is correct or not """
-        ws = self.wb[sheet]
+        ws = self.wb_combined[sheet]
         header_row = self.excel_specs['specs'][spec]['header_row']
         ipmi_header = self.excel_specs['specs'][spec]['ipmi_address_header']
         ipmi_column = self.excel_specs['specs'][spec]['ipmi_address_col']
         header_value = ws.cell(row=header_row, column=ipmi_column).value
+        import pdb; pdb.set_trace()
         return bool(self.compare(ipmi_header, header_value))
 
     def find_correct_spec(self):
         """ Find the correct spec """
         for spec in self.excel_specs['specs']:
             sheet_name = self.excel_specs['specs'][spec]['ipmi_sheet_name']
-            for sheet in self.wb.sheetnames:
+            for sheet in self.wb_combined.sheetnames:
                 if self.compare(sheet_name, sheet):
                     self.excel_specs['specs'][spec]['ipmi_sheet_name'] = sheet
                     if self.validate_sheet(spec, sheet):
@@ -71,9 +78,13 @@ class ExcelParser():
         """ Read IPMI data from the sheet """
         ipmi_data = {}
         hosts = []
-        self.spec = self.find_correct_spec()
-        sheet_name = self.excel_specs['specs'][self.spec]['ipmi_sheet_name']
-        ws = self.wb[sheet_name]
+        #self.spec = self.find_correct_spec()
+        provided_sheetname = self.excel_specs['specs'][self.spec]['ipmi_sheet_name']
+        workbook_object, extracted_sheetname = self.get_xl_obj_and_sheetname(provided_sheetname)
+        if workbook_object != None:
+            ws = workbook_object[extracted_sheetname]
+        else:
+            ws = self.wb_combined[provided_sheetname]
         row = self.excel_specs['specs'][self.spec]['start_row']
         end_row = self.excel_specs['specs'][self.spec]['end_row']
         hostname_col = self.excel_specs['specs'][self.spec]['hostname_col']
@@ -139,8 +150,12 @@ class ExcelParser():
 
     def get_private_network_data(self):
         """ Read network data from the private ip sheet """
-        sheet_name = self.excel_specs['specs'][self.spec]['private_ip_sheet']
-        ws = self.wb[sheet_name]
+        provided_sheetname = self.excel_specs['specs'][self.spec]['private_ip_sheet']
+        workbook_object, extracted_sheetname = self.get_xl_obj_and_sheetname(provided_sheetname)
+        if workbook_object != None:
+            ws = workbook_object[extracted_sheetname]
+        else:
+            ws = self.wb_combined[provided_sheetname]
         vlan_data = self.get_private_vlan_data(ws)
         network_data = {}
         row = self.excel_specs['specs'][self.spec]['net_start_row']
@@ -171,6 +186,8 @@ class ExcelParser():
             old_vlan = vlan
             row += 1
         for network in network_data:
+            network_data[network]['is_common'] = True
+            """
             if len(network_data[network]['subnet']) > 1:
                 network_data[network]['is_common'] = False
             else:
@@ -178,13 +195,18 @@ class ExcelParser():
         self.logger.debug(
             "private network data extracted from\
                           excel:\n%s", pprint.pformat(network_data))
+            """
         return network_data
 
     def get_public_network_data(self):
         """ Read public network data from public ip data """
         network_data = {}
-        sheet_name = self.excel_specs['specs'][self.spec]['public_ip_sheet']
-        ws = self.wb[sheet_name]
+        provided_sheetname = self.excel_specs['specs'][self.spec]['public_ip_sheet']
+        workbook_object, extracted_sheetname = self.get_xl_obj_and_sheetname(provided_sheetname)
+        if workbook_object != None:
+            ws = workbook_object[extracted_sheetname]
+        else:
+            ws = self.wb_combined[provided_sheetname]
         oam_row = self.excel_specs['specs'][self.spec]['oam_ip_row']
         oam_col = self.excel_specs['specs'][self.spec]['oam_ip_col']
         oam_vlan_col = self.excel_specs['specs'][self.spec]['oam_vlan_col']
@@ -216,35 +238,36 @@ class ExcelParser():
     def get_dns_ntp_ldap_data(self):
         """ Read dns, ntp and ldap data from build notes sheet """
         dns_ntp_ldap_data = {}
-        sheet_name = self.excel_specs['specs'][self.spec]['dns_ntp_ldap_sheet']
-        ws = self.wb[sheet_name]
+        provided_sheetname = self.excel_specs['specs'][self.spec]['dns_ntp_ldap_sheet']
+        workbook_object, extracted_sheetname = self.get_xl_obj_and_sheetname(provided_sheetname)
+        if workbook_object != None:
+            ws = workbook_object[extracted_sheetname]
+        else:
+            ws = self.wb_combined[provided_sheetname]
         dns_row = self.excel_specs['specs'][self.spec]['dns_row']
         dns_col = self.excel_specs['specs'][self.spec]['dns_col']
         ntp_row = self.excel_specs['specs'][self.spec]['ntp_row']
         ntp_col = self.excel_specs['specs'][self.spec]['ntp_col']
         domain_row = self.excel_specs['specs'][self.spec]['domain_row']
         domain_col = self.excel_specs['specs'][self.spec]['domain_col']
-        ldap_subdomain_row = self.excel_specs['specs'][self.spec][
-            'ldap_subdomain_row']
+        login_domain_row = self.excel_specs['specs'][self.
+                                                     spec]['login_domain_row']
         ldap_col = self.excel_specs['specs'][self.spec]['ldap_col']
-        ldap_group_row = self.excel_specs['specs'][self.spec]['ldap_group_row']
-        ldap_url_row = self.excel_specs['specs'][self.spec]['ldap_url_row']
+        global_group = self.excel_specs['specs'][self.spec]['global_group']
+        ldap_search_url_row = self.excel_specs['specs'][
+            self.spec]['ldap_search_url_row']
         dns_servers = ws.cell(row=dns_row, column=dns_col).value
         ntp_servers = ws.cell(row=ntp_row, column=ntp_col).value
         try:
             if dns_servers is None:
-                raise RuntimeError("No value read for dns_server from File:" +
-                                   "{} Sheet:'{}' Row:{} Col:{}".format(
-                                       self.file_name,
-                                       sheet_name,
-                                       dns_row,
-                                       dns_col))
-                raise RuntimeError("No value read for ntp_server from File:" +
-                                   "{} Sheet:'{}' Row:{} Col:{}".format(
-                                       self.file_name,
-                                       sheet_name,
-                                       ntp_row,
-                                       ntp_col))
+                raise RuntimeError(
+                    "No value read for dns_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name, dns_row, dns_col))
+                raise RuntimeError(
+                    "No value read for ntp_server from File:" +
+                    "{} Sheet:'{}' Row:{} Col:{}".format(
+                        self.file_name, sheet_name, ntp_row, ntp_col))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
             sys.exit("Tugboat exited!!")
@@ -264,12 +287,11 @@ class ExcelParser():
             'ntp': ntp_servers,
             'domain': ws.cell(row=domain_row, column=domain_col).value,
             'ldap': {
-                'subdomain':
-                ws.cell(row=ldap_subdomain_row, column=ldap_col).value,
-                'common_name':
-                ws.cell(row=ldap_group_row, column=ldap_col).value,
-                'url':
-                ws.cell(row=ldap_url_row, column=ldap_col).value,
+                'subdomain': ws.cell(row=login_domain_row,
+                                     column=ldap_col).value,
+                'common_name': ws.cell(row=global_group,
+                                       column=ldap_col).value,
+                'url': ws.cell(row=ldap_search_url_row, column=ldap_col).value,
             }
         }
         self.logger.debug(
@@ -279,20 +301,30 @@ class ExcelParser():
 
     def get_location_data(self):
         """ Read location data from the site and zone sheet """
-        sheet_name = self.excel_specs['specs'][self.spec]['location_sheet']
-        ws = self.wb[sheet_name]
+        provided_sheetname = self.excel_specs['specs'][self.spec]['location_sheet']
+        workbook_object, extracted_sheetname = self.get_xl_obj_and_sheetname(provided_sheetname)
+        if workbook_object != None:
+            ws = workbook_object[extracted_sheetname]
+        else:
+            ws = self.wb_combined[provided_sheetname]
         corridor_row = self.excel_specs['specs'][self.spec]['corridor_row']
         column = self.excel_specs['specs'][self.spec]['column']
-        name_row = self.excel_specs['specs'][self.spec]['name_row']
-        state_row = self.excel_specs['specs'][self.spec]['state_row']
-        country_row = self.excel_specs['specs'][self.spec]['country_row']
-        clli_row = self.excel_specs['specs'][self.spec]['clli_row']
+        site_name_row = self.excel_specs['specs'][self.spec]['site_name_row']
+        state_name_row = self.excel_specs['specs'][self.spec]['state_name_row']
+        country_name_row = self.excel_specs['specs'][self.
+                                                     spec]['country_name_row']
+        clli_name_row = self.excel_specs['specs'][self.spec]['clli_name_row']
         return {
-            'corridor': ws.cell(row=corridor_row, column=column).value,
-            'name': ws.cell(row=name_row, column=column).value,
-            'state': ws.cell(row=state_row, column=column).value,
-            'country': ws.cell(row=country_row, column=column).value,
-            'physical_location_id': ws.cell(row=clli_row, column=column).value,
+            'corridor':
+            ws.cell(row=corridor_row, column=column).value,
+            'name':
+            ws.cell(row=site_name_row, column=column).value,
+            'state':
+            ws.cell(row=state_name_row, column=column).value,
+            'country':
+            ws.cell(row=country_name_row, column=column).value,
+            'physical_location_id':
+            ws.cell(row=clli_name_row, column=column).value,
         }
 
     def validate_data(self, data):
@@ -303,16 +335,12 @@ class ExcelParser():
         with open(schema_file, 'r') as f:
             json_schema = json.load(f)
         try:
-            with open('data2.json', 'w') as outfile:
-                json.dump(data, outfile, sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             self.logger.error(
                 "Validation Failed with following error:" +
                 "\n{}\n Please check excel spec settings(row,col)".format(
-                    e.message
-                )
-            )
+                    e.message))
             sys.exit(1)
         self.logger.info("Data validation\
                          OK!")
@@ -320,39 +348,36 @@ class ExcelParser():
     def validate_sheet_names_with_spec(self):
         spec = list(self.excel_specs['specs'].keys())[0]
         spec_item = self.excel_specs['specs'][spec]
+        sheet_name_list = []
         ipmi_header_sheet_name = spec_item['ipmi_sheet_name']
+        sheet_name_list.append(ipmi_header_sheet_name) 
         private_ip_sheet_name = spec_item['private_ip_sheet']
+        sheet_name_list.append(private_ip_sheet_name) 
         public_ip_sheet_name = spec_item['public_ip_sheet']
+        sheet_name_list.append(public_ip_sheet_name) 
         dns_ntp_ldap_sheet_name = spec_item['dns_ntp_ldap_sheet']
+        sheet_name_list.append(dns_ntp_ldap_sheet_name) 
         location_sheet_name = spec_item['location_sheet']
-
+        sheet_name_list.append(location_sheet_name) 
         try:
-            if ipmi_header_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        ipmi_header_sheet_name, self.file_name))
-            if private_ip_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        private_ip_sheet_name, self.file_name))
-            if public_ip_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        public_ip_sheet_name, self.file_name))
-            if dns_ntp_ldap_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        dns_ntp_ldap_sheet_name, self.file_name))
-            if location_sheet_name not in self.wb.sheetnames:
-                raise RuntimeError(
-                    "SheetName '{}' not found in '{}'".format(
-                        location_sheet_name, self.file_name))
+            for sheetname in sheet_name_list:
+                workbook_object, extracted_sheetname = \
+                self.get_xl_obj_and_sheetname(sheetname)
+                if workbook_object != None:
+                    wb = workbook_object
+                    sheetname = extracted_sheetname
+                else:
+                    wb = self.wb_combined
+
+                if sheetname not in wb.sheetnames:
+                    raise RuntimeError(
+                        "SheetName '{}' not found ".format(sheetname))
         except RuntimeError as rerror:
             self.logger.critical(rerror)
             sys.exit("Tugboat exited!!")
+
         self.logger.info(
-            "Sheet name in excel spec validated with'{}'".format(
-                self.file_name))
+            "Sheet name in excel spec validated with")
 
     def get_data(self):
         """ Create a dict with combined data """
@@ -376,3 +401,30 @@ class ExcelParser():
         }
         self.validate_data(data)
         return data
+
+    def combine_excel_design_specs(self, filenames):
+        design_spec = Workbook()
+        for exel_file in filenames:
+            loaded_workbook = load_workbook(exel_file, data_only=True)
+            for names in loaded_workbook.sheetnames:
+                design_spec_worksheet = design_spec.create_sheet(names)
+                loaded_workbook_ws = loaded_workbook[names]
+                for row in loaded_workbook_ws:
+                    for cell in row:
+                        design_spec_worksheet[cell.coordinate].value = cell.value
+        return design_spec
+
+    def get_xl_obj_and_sheetname(self, sheetname):
+
+        """
+        The logic confirms if the sheetname is specified for example as:
+            "MTN57a_AEC_Network_Design_v1.6.xlsx:Public IPs"
+        """
+        if (re.search('.xlsx',sheetname) or re.search('.xls',sheetname)):
+            """ Extract file name """
+            source_xl_file = sheetname.split(':')[0]
+            wb = load_workbook(source_xl_file, data_only=True)
+            return [wb, sheetname.split(':')[1]]
+        else:
+            return [None, sheetname]
+
