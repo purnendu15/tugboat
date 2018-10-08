@@ -226,40 +226,31 @@ class ProcessInputFiles(ParserEngine):
         Extract subnet information for private and public networks
         for each rack
         """
-        """ Temp hack start """ 
-        sitetype = 'nocruiser'
-        """ Temp hack end """ 
         self.logger.info("Getting rackwise subnet")
         rackwise_subnets = {}
         rackwise_subnets['common'] = {}
         self.format_network_data()
-        if sitetype != 'cruiser':
-            racks = [self.racks[rack] for rack in self.racks]
-            sorted_racks = sorted(racks)
-            for rack in sorted_racks:
-                rackwise_subnets[rack] = {}
-            for net_type in self.private_network_data:
-                if not self.private_network_data[net_type]['is_common']:
-                    i = 0
-                    subnets = self.private_network_data[net_type]['subnet']
-                    for subnet in subnets:
-                        subnet = netaddr.IPNetwork(subnet)
-                        if net_type not in rackwise_subnets[sorted_racks[i]]:
-                            rackwise_subnets[sorted_racks[i]][net_type] = ''
-                        rackwise_subnets[sorted_racks[i]][net_type] = subnet
-                        i += 1
-                        if i >= len(sorted_racks):
-                            break
-                else:
-                    rackwise_subnets['common'][net_type] = netaddr.IPNetwork(
-                        self.private_network_data[net_type]['subnet'][0])
-            self.logger.debug("rackwise subnets:\n%s",
-                          pprint.pformat(rackwise_subnets))
-        else:
-            for net_type in self.private_network_data:
+        racks = [self.racks[rack] for rack in self.racks]
+        sorted_racks = sorted(racks)
+        for rack in sorted_racks:
+            rackwise_subnets[rack] = {}
+        for net_type in self.private_network_data:
+            if not self.private_network_data[net_type]['is_common']:
+                i = 0
+                subnets = self.private_network_data[net_type]['subnet']
+                for subnet in subnets:
+                    subnet = netaddr.IPNetwork(subnet)
+                    if net_type not in rackwise_subnets[sorted_racks[i]]:
+                        rackwise_subnets[sorted_racks[i]][net_type] = ''
+                    rackwise_subnets[sorted_racks[i]][net_type] = subnet
+                    i += 1
+                    if i >= len(sorted_racks):
+                        break
+            else:
                 rackwise_subnets['common'][net_type] = netaddr.IPNetwork(
                     self.private_network_data[net_type]['subnet'][0])
-
+        self.logger.debug("rackwise subnets:\n%s",
+                          pprint.pformat(rackwise_subnets))
         return rackwise_subnets
 
     def get_rackwise_hosts(self):
@@ -482,8 +473,9 @@ class ProcessInputFiles(ParserEngine):
                     nw = str(rackwise_subnets[rack][net_type])
                     gw = str(ips[self.rules_data['gateway_offset']])
                     routes = [
-                        subnet for subnet in self.network_data[
-                            'assigned_subnets'][net_type] if subnet != nw
+                        subnet for subnet in self.
+                        network_data['assigned_subnets'][net_type]
+                        if subnet != nw
                     ]
                     rackwise_subnets[rack][net_type] = {
                         'nw':
@@ -508,8 +500,9 @@ class ProcessInputFiles(ParserEngine):
                     nw = str(rackwise_subnets['common'][net_type])
                     gw = str(ips[self.rules_data['gateway_offset']])
                     routes = [
-                        subnet for subnet in  self.private_network_data[
-                            net_type]['subnet'] if subnet != nw
+                        subnet for subnet in self.
+                        private_network_data[net_type]['subnet']
+                        if subnet != nw
                     ]
                     racks = sorted(self.racks.keys())
                     rack = self.racks[racks[0]]
@@ -530,8 +523,6 @@ class ProcessInputFiles(ParserEngine):
                         self.network_data[rack][net_type]['reserved_start'],
                         'reserved_end':
                         self.network_data[rack][net_type]['reserved_end'],
-
-                            
                     }
                     if net_type == 'pxe':
                         common_subnets[net_type]['dhcp_start'] =\
@@ -576,8 +567,8 @@ class ProcessInputFiles(ParserEngine):
     def get_deployment_configuration(self):
         """ Get deployment configuration from self.rules_data['py """
         self.logger.info("Getting deployment config")
-        self.data[
-            'deployment_manifest'] = self.rules_data['deployment_manifest']
+        self.data['deployment_manifest'] = self.rules_data[
+            'deployment_manifest']
 
     def get_host_profile_wise_racks(self):
         """
