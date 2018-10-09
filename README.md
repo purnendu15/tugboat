@@ -54,17 +54,28 @@ Generate manifests from the generated intermediary file
 **-x / --excel PATH**
 
 Path to engineering excel file, to be passed with generate_intermediary.
+One can specify multiple files here for example:  -x <file1> -x<file2>
 
 **-s / --spec PATH**
 
-Path to excel spec, to be passed with generate_intermediary.
+Path to excel spec. To be passed with generate_intermediary.
+The excel spec specifies worksheet and specific cells to refer
+for data extraction from a engineering  excel file. When using
+multiple such files, one can specify filename:sheetname in 
+excel spec to identify specifc sections depending upon the
+file name. 
 
 **-i / --intermediary**
 
 Path to intermediary file, to be passed with generate_manifests.
 
-**-S / --sitetype**
-Specify site type, '5ec' or 'nc'. It is nc by default
+**-d / --site_config**
+Site specific configurations
+
+
+**-l / --loglevel**
+Specify log-level.Loglevel NOTSET:0 ,DEBUG:10,    INFO:20,
+WARNING:30, ERROR:40, CRITICAL:50  [default:20]
 
 **-h / --help**
 
@@ -75,11 +86,11 @@ Usage:
 ::
 
     # Generate intermediary yaml and site manifests as separate steps
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_intermediary
+    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_intermediary --site_config <site_config_file>
     ./tugboat.sh --intermediary <intermediary_file> --generate_manifests
 
     (OR)
 
     # Generate site manifests in a single command
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_manifests
+    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_manifests --site_config <site_config_file>
 
