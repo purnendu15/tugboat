@@ -61,7 +61,6 @@ def generate_manifest_files(intermediary):
 @click.option(
     '--site_config',
     '-d',
-    required=True,
     type=click.Path(exists=True),
     help='Path to the site specific yaml file')
 @click.option(
@@ -91,21 +90,27 @@ def main(*args, **kwargs):
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Tugboat start")
-    """
-    Generate intermediary and manifests files using the
-    engineering package excel and respective excel spec.
-    """
-    process_input_ob = ProcessInputFiles(filenames, spec)
-    """ Collects rules.yaml data """
-    process_input_ob.apply_design_rules(site_config)
-    """ Parses the design spec supplied to raw yaml """
-    logger.info("Parsing raw data from design spec")
-    process_input_ob.get_parsed_raw_data_from_excel()
-    logger.info("Generating Intermediary File")
     intermediary_yaml = {}
     """ Check if mandatory params exists """
-
     if generate_intermediary and generate_manifests:
+        """
+        Generate intermediary and manifests files using the
+        engineering package excel and respective excel spec.
+        """
+
+        """ Check if site_config is present. If not return
+        error"""
+        if site_config == None:
+            logging.error('Site Config not found')
+            return
+
+
+        process_input_ob = ProcessInputFiles(filenames, spec)
+        """ Collects rules.yaml data """
+        process_input_ob.apply_design_rules(site_config)
+        """ Parses the design spec supplied to raw yaml """
+        logger.info("Parsing raw data from design spec")
+        process_input_ob.get_parsed_raw_data_from_excel()
         logger.info("Generating Intermediary File")
         intermediary_yaml = process_input_ob.generate_intermediary_yaml()
         process_input_ob.dump_intermediary_file()
@@ -125,10 +130,28 @@ def main(*args, **kwargs):
             intermediary_yaml = yaml_data
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
+
     elif generate_intermediary:
+
+        """ Generate Intermediary only"""
+
+        """ Check if site_config is present. If not return
+        error """
+
+        if site_config == None:
+            logging.error('Site Config not found')
+            return
+
+        process_input_ob = ProcessInputFiles(filenames, spec)
+        """ Collects rules.yaml data """
+        process_input_ob.apply_design_rules(site_config)
+        """ Parses the design spec supplied to raw yaml """
+        logger.info("Parsing raw data from design spec")
+        process_input_ob.get_parsed_raw_data_from_excel()
         logger.info("Generating Intermediary File")
-        intermediary_yaml = process_input_ob.generate_intermediary_file()
+        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
         process_input_ob.dump_intermediary_file()
+
     else:
         print('No suitable options passed')
         print("Usage Instructions:")

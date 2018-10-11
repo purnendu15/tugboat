@@ -18,6 +18,7 @@ import pkg_resources
 import re
 import sys
 import yaml
+from .base import InputParser
 from openpyxl import load_workbook
 from openpyxl import Workbook
 from ..check_exceptions import (
@@ -26,7 +27,7 @@ import logging
 import pprint
 
 
-class ExcelParser():
+class ExcelParser(InputParser):
     """ Parse data from excel into a dict """
 
     def __init__(self, file_name, excel_specs):
