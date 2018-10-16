@@ -85,12 +85,17 @@ Usage:
 
 ::
 
+
+    # Generate intermediary yaml and site manifests as single step
+    tugboat --generate_intermediary --generate_manifests --excel <file> --spec <excel_spec_file>  --site_config <site_cfg>
+
+
     # Generate intermediary yaml and site manifests as separate steps
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_intermediary --site_config <site_config_file>
-    ./tugboat.sh --intermediary <intermediary_file> --generate_manifests
+    tugboat --generate_intermediary --excel <excel_file> --spec <excel_spec_file>  --site_config <site_config_file>
+    tugboat --intermediary <intermediary_file> --generate_manifests
 
     (OR)
 
-    # Generate site manifests in a single command
-    ./tugboat.sh --excel <excel_file> --spec <excel_spec_file> --generate_manifests --site_config <site_config_file>
+    # Generate intermediary yaml only
+    tugboat --generate_intermediary --excel <file> --spec <excel_spec_file>  --site_config <site_cfg>
 
