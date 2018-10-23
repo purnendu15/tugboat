@@ -44,8 +44,8 @@ class SiteProcessor(BaseProcessor):
                     autoescape=False,
                     loader=FileSystemLoader(dirpath),
                     trim_blocks=True)
-                j2_env.filters['get_role_wise_nodes']\
-                        = self.get_role_wise_nodes
+                j2_env.filters[
+                    'get_role_wise_nodes'] = self.get_role_wise_nodes
                 templatefile = os.path.join(dirpath, filename)
                 outdirs = dirpath.split('templates')[1]
                 outfile_path = 'pegleg_manifests/site/{}{}'.format(

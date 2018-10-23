@@ -12,8 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-TUGBOAT_BUILD_CTX  ?= .
-IMAGE_NAME        ?= tugboat
+SPYGLASS_BUILD_CTX  ?= .
+IMAGE_NAME        ?= spyglass
 IMAGE_PREFIX      ?= att-comdev
 DOCKER_REGISTRY   ?= quay.io
 IMAGE_TAG         ?= latest
@@ -28,15 +28,15 @@ export
 
 # Build all docker images for this project
 .PHONY: images
-images: build_tugboat
+images: build_spyglass
 
 # Run an image locally and exercise simple tests
 .PHONY: run_images
-run_images: run_tugboat
+run_images: run_spyglass
 
-.PHONY: run_tugboat
-run_tugboat: build_tugboat
-	tools/tugboat.sh --help
+.PHONY: run_spyglass
+run_spyglass: build_spyglass
+	tools/spyglass.sh --help
 
 .PHONY: security
 security:
@@ -50,10 +50,10 @@ lint: py_lint
 .PHONY: format
 format: py_format
 
-.PHONY: build_tugboat
-build_tugboat:
+.PHONY: build_spyglass
+build_spyglass:
 ifeq ($(USE_PROXY), true)
-	docker build -t $(IMAGE) --network=host --label $(LABEL) -f images/tugboat/Dockerfile \
+	docker build -t $(IMAGE) --network=host --label $(LABEL) -f images/spyglass/Dockerfile \
 		--build-arg FROM=$(PYTHON_BASE_IMAGE) \
 		--build-arg http_proxy=$(PROXY) \
 		--build-arg https_proxy=$(PROXY) \
@@ -61,11 +61,11 @@ ifeq ($(USE_PROXY), true)
 		--build-arg HTTPS_PROXY=$(PROXY) \
 		--build-arg no_proxy=$(NO_PROXY) \
 		--build-arg NO_PROXY=$(NO_PROXY) \
-		--build-arg ctx_base=$(TUGBOAT_BUILD_CTX) .
+		--build-arg ctx_base=$(SPYGLASS_BUILD_CTX) .
 else
-	docker build -t $(IMAGE) --network=host --label $(LABEL) -f images/tugboat/Dockerfile \
+	docker build -t $(IMAGE) --network=host --label $(LABEL) -f images/spyglass/Dockerfile \
 		--build-arg FROM=$(PYTHON_BASE_IMAGE) \
-		--build-arg ctx_base=$(TUGBOAT_BUILD_CTX) .
+		--build-arg ctx_base=$(SPYGLASS_BUILD_CTX) .
 endif
 ifeq ($(PUSH_IMAGE), true)
 	docker push $(IMAGE)

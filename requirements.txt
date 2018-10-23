@@ -1,6 +1,7 @@
 jinja2==2.9.6
+jsonschema
 netaddr
 openpyxl==2.5.4
 pyyaml==3.12
-jsonschema
+requests
 

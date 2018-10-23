@@ -15,7 +15,7 @@
       under the License.
 
 =====================
-Tugboat Documentation
+Spyglass Documentation
 =====================
 
 Overview
@@ -25,12 +25,3 @@ Overview
    :maxdepth: 2
 
    getting_started
-
-Design
-------
-
-.. toctree::
-   :maxdepth: 2
-
-   excelspec_design
-
