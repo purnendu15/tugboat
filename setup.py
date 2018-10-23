@@ -16,9 +16,9 @@ from setuptools import setup
 from setuptools import find_packages
 
 setup(
-    name='tugboat',
+    name='spyglass',
     version='0.0.1',
-    description='Generate Airship specific yaml manifest from Excel',
+    description='Generate Airship specific yaml manifests from data sources',
     url='http://github.com/att-comdev/tugboat',
     python_requires='>=3.5.0',
     license='Apache 2.0',
@@ -33,7 +33,10 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'tugboat=tugboat.tugboat:main',
+            'spyglass=spyglass.spyglass:main',
+        ],
+        'data_extractor_plugins': [
+            'formation=spyglass.data_extractor.formation:FormationPlugin'
         ]
     },
     include_package_data=True,

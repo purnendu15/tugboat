@@ -18,87 +18,12 @@
 Getting Started
 ===============
 
-What is Tugboat?
+What is Spyglass?
 ----------------
 
-Tugboat is a tool to generate Airship site manifest files from an excel
-based engineering spec. The tool accepts Excel sheet and corresponding
-excel specification as inputs and generates the site level manifests. As
-an optional step it can generate an intermediary yaml which contain all
-the information that will be rendered to generate Airship site manifests.
-This optional step will help the deployment engineer to modify any data
-if required.
+TODO
 
 Basic Usage
 -----------
 
-Before using Tugboat, you must:
-
-1. Clone the Tugboat repository:
-
-.. code-block:: console
-
-    git clone https://github.com/att-comdev/tugboat
-
-2. Install the required packages in tugboat/:
-
-.. code-block:: console
-
-     pip3 install -r tugboat/requirements.txt
-
-3. To run the tool:
-
-.. code-block:: console
-
-    export WORKSPACE=<dir where excelspecs are placed>
-    export IMAGE=<docker_image>
-    tugboat/tools/tugboat.sh <command> <options>
-
-CLI Options
------------
-
-
-**-g / --generate_intermediary**
-
-Generate intermediary file from passed excel and excel spec.
-
-**-m / --generate_manifests**
-
-Generate manifests from the generated intermediary file
-
-**-x / --excel PATH**
-
-Path to engineering excel file, to be passed with generate_intermediary.
-
-**-s / --spec PATH**
-
-Path to excel spec, to be passed with generate_intermediary.
-
-**-i / --intermediary**
-
-Path to intermediary file, to be passed with generate_manifests.
-
-**-d / --site_config**
-
-Path to site specific config file, to be passed with generate_manifests.
-
-**-l / --loglevel**
-
-Log level for tugboat. It is INFO:20 by defualt
-
-**-h / --help**
-
-Show the options and exit.
-
-Usage:
-
-::
-
-    # Generate intermediary yaml and site manifests as separate steps
-    # Generate Manifest & Intermediary: tugboat -mg -x <DesignSpec> -s <excel spec>
-    # Generate Manifest with Intermediary: tugboat -m -i <intermediary>
-
-
-
-.. _site definition libraries: https://airship-pegleg.readthedocs.io/en/latest/artifacts.html#definition-library-layout
-
+TODO
