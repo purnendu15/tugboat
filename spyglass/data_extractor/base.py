@@ -280,7 +280,6 @@ class BaseDataSourcePlugin(object):
             # Prepare temp dict for each host and append it to baremetal
             # at a rack level
             temp_host = {}
-            temp_host['rack'] = rack_name
             temp_host['host_profile'] = host['host_profile']
 
             # Get Host IPs from plugin
@@ -322,10 +321,47 @@ class BaseDataSourcePlugin(object):
 
         return baremetal
 
-    def extract_location_information(self):
+    def extract_site_information(self):
+        """Get site information from plugin
+
+        :returns: dict of site information
+
+        :rtpe: dict
+
+        Return dict should be in the format
+        {
+          'name': '',
+          'country': '',
+          'state': '',
+          'corridor': '',
+          'sitetype': '',
+          'dns': [],
+          'ntp': [],
+          'ldap': {},
+          'domain': None
+        }
+        """
         LOG.info("Extract location information from plugin")
+        site_info = {}
+
+        # Extract location information
         location_data = self.get_location_information(self.region)
-        return location_data
+        if location_data is not None:
+            site_info = location_data
+
+        dns_data = self.get_dns_servers(self.region)
+        site_info['dns'] = dns_data
+
+        ntp_data = self.get_ntp_servers(self.region)
+        site_info['ntp'] = ntp_data
+
+        ldap_data = self.get_ldap_information(self.region)
+        site_info['ldap'] = ldap_data
+
+        domain_data = self.get_domain_name(self.region)
+        site_info['domain'] = domain_data
+
+        return site_info
 
     def extract_network_information(self):
         """Get network information from plugin
@@ -337,66 +373,34 @@ class BaseDataSourcePlugin(object):
 
         Return dict should be in the format
         {
-          'public': {
+          'vlan_networks': {
             'oam': {},
             'ingress': {},
             'oob': {}
-          },
-          'private': {
             'calico': {},
             'storage': {},
             'pxe': {},
             'overlay': {}
-          },
-          'dns_ntp_ldap': {
-            'dns': [],
-            'ntp': [],
-            'ldap': {},
-            'domain': None
           }
         }
         """
         LOG.info("Extract network information from plugin")
         network_data = {}
-        dns_data = self.get_dns_servers(self.region)
-        ntp_data = self.get_ntp_servers(self.region)
-        ldap_data = self.get_ldap_information(self.region)
-        domain_data = self.get_domain_name(self.region)
-
-        network_data['dns_ntp_ldap'] = {}
-        network_data['dns_ntp_ldap']['dns'] = dns_data
-        network_data['dns_ntp_ldap']['domain'] = domain_data
-        network_data['dns_ntp_ldap']['ldap'] = ldap_data
-        network_data['dns_ntp_ldap']['ntp'] = ntp_data
-
         networks = self.get_networks(self.region)
 
         # We are interested in only the below networks mentioned in
-        # private_networks_to_scan, public_networks_to_scan, so look
-        # for these networks from the data returned by plugin
-        private_networks_to_scan = ['calico', 'overlay', 'pxe', 'storage']
-        public_networks_to_scan = ['oam', 'oob', 'ingress']
-        network_data['private'] = {}
-        network_data['public'] = {}
+        # networks_to_scan, so look for these networks from the data
+        # returned by plugin
+        networks_to_scan = ['calico', 'overlay', 'pxe', 'storage', 'oom', 'oob', 'ingress']
+        network_data['vlan_networks'] = {}
 
-        for net in private_networks_to_scan:
-            tmp_net = {}
-            if net in networks:
-                tmp_net['is_common'] = True
-                tmp_net['subnet'] = net['subnet']
-                tmp_net['vlan'] = net['vlan']
-
-            network_data['private'][net] = tmp_net
-            LOG.info("Update vlan information for network %s: vlan %s" %
-                     (net, tmp_net.get('vlan', None)))
-
-        for net in public_networks_to_scan:
+        for net in networks_to_scan:
             tmp_net = {}
             if net in networks:
                 tmp_net['subnet'] = net['subnet']
                 tmp_net['vlan'] = net['vlan']
 
-            network_data['public'][net] = tmp_net
+            network_data['vlan_networks'][net] = tmp_net
             LOG.info("Update vlan information for network %s: vlan %s" %
                      (net, tmp_net.get('vlan', None)))
 
@@ -411,7 +415,7 @@ class BaseDataSourcePlugin(object):
         LOG.info("Extract data from plugin")
         site_data = {}
         site_data['baremetal'] = self.extract_baremetal_information()
-        site_data['location_data'] = self.extract_location_information()
+        site_data['site_info'] = self.extract_site_information()
         site_data['network_data'] = self.extract_network_information()
         self.site_data = site_data
         LOG.info("Site data updated successfully")
