@@ -32,9 +32,9 @@ def generate_manifest_files(intermediary):
 
 @click.command()
 @click.option(
-    '--site',
+    '--sitetype',
     '-s',
-    help='Specify the site for which manifests to be generated')
+    help='Specify the sitetype for which manifests to be generated')
 @click.option(
     '--type', '-t', help='Specify the plugin type formation or tugboat')
 @click.option('--formation_url', '-f', help='Specify the formation url')
@@ -65,7 +65,7 @@ def generate_manifest_files(intermediary):
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
-    site = kwargs['site']
+    sitetype = kwargs['sitetype']
     loglevel = kwargs['loglevel']
     logger = logging.getLogger('spyglass')
     # Set default log level to INFO
@@ -107,7 +107,7 @@ def main(*args, **kwargs):
                 raw_data = config.read()
                 additional_config_data = yaml.safe_load(raw_data)
 
-    data_extractor = plugin_class(site)
+    data_extractor = plugin_class(sitetype)
     data_extractor.set_config_opts(plugin_conf)
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
@@ -116,7 +116,7 @@ def main(*args, **kwargs):
     Initialize ProcessInput object. This object initializes data structures
     so that at a later stage they can be used to store intermediary yaml data
     """
-    process_input_ob = ProcessInput()
+    process_input_ob = ProcessInput(site)
     # Parses the raw input received from formation
     process_input_ob.load_extracted_data_from_formation(
         data_extractor.site_data)

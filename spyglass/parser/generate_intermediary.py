@@ -26,10 +26,11 @@ import pdb
 
 
 class ProcessInput():
-    def __init__(self):
-        """ Save file_name and exel_spec """
+    def __init__(self, sitetype):
+        """ Initialize data structures """
         self.logger = logging.getLogger(__name__)
         self.prepare_data_structure_for_intermediary_yaml()
+        self.sitetype = sitetype
         self.formation = FormationPlugin()
 
     @staticmethod
@@ -39,7 +40,6 @@ class ProcessInput():
         return raw_data
 
     def prepare_data_structure_for_intermediary_yaml(self):
-        self.host_type = {}
         self.data = {
             'network': {},
             'baremetal': {},
@@ -48,6 +48,7 @@ class ProcessInput():
             'site_info': {},
         }
         self.genesis_node = ''
+        self.sitetype = ''
         self.generic_data_object = {}
 
     def save_design_rules(self, site_config):
@@ -120,6 +121,7 @@ class ProcessInput():
 
         self.logger.info("Assigning site info data")
         self.data['site_info'] = self.generic_data_object['site_info']
+        self.data['site_info']['sitetype'] = self.sitetype
         self.logger.debug("Assigned site_info data:{}".format(
             pprint.pformat(self.data['site_info'])))
 
