@@ -17,6 +17,18 @@ import logging
 import pkg_resources
 import yaml
 
+from spyglass.parser.generate_intermediary import ProcessInput
+
+
+def generate_manifest_files(intermediary):
+    """ Generate manifests """
+    if intermediary:
+        processor_engine = SiteProcessor(intermediary)
+        print('Generating manifest files')
+        processor_engine.render_template()
+    else:
+        logging.error('Intermediary not found')
+
 
 @click.command()
 @click.option(
@@ -100,6 +112,28 @@ def main(*args, **kwargs):
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
     print(data_extractor.site_data)
+    """
+    Initialize ProcessInput object. This object initializes data structures
+    so that at a later stage they can be used to store intermediary yaml data
+    """
+    process_input_ob = ProcessInput()
+    # Parses the raw input received from formation
+    process_input_ob.load_extracted_data_from_formation(
+        data_extractor.site_data)
+
+    if generate_manifests:
+        logger.info("Generating Intermediary File")
+        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+        if generate_intermediary:
+            process_input_ob.dump_intermediary_file()
+        logger.info("Generatng Manifests")
+        generate_manifest_files(intermediary_yaml)
+    else:
+        print('No suitable options passed')
+        print("Usage Instructions:")
+        print("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
+        print("Generate Manifest & Intermediary" +
+              ":\ntugboat -mg -d <site config>")
 
     logger.info("Spyglass Execution Completed")
 
