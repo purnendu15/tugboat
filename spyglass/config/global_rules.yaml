@@ -2,6 +2,20 @@
 # Global Tugboat Settings #
 ###########################
 ---
+rules = {
+        'rule1':{
+          'ips_to_leave':
+            {
+              'oob':10
+              'pxe':15
+            },
+          'offset':
+            {
+               'gw': 1
+            },
+          }}
+
+
 #Rule_1
 ips_to_leave: 12
 oob_ips_to_leave: 10

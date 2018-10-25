@@ -13,25 +13,18 @@
 # limitations under the License.
 
 import yaml
-import re
 import logging
 import pkg_resources
 import netaddr
-from .base import Parser
-from collections import OrderedDict
-from spyglass.data_extractor.formation import FormationPlugin
-
 import pprint
-import pdb
 
 
-class ProcessInput():
+class ProcessDataSource():
     def __init__(self, sitetype):
-        """ Initialize data structures """
+        """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
         self.prepare_data_structure_for_intermediary_yaml()
-        self.sitetype = sitetype
-        self.formation = FormationPlugin()
+        self.data['region_name'] = sitetype
 
     @staticmethod
     def read_file(file_name):
@@ -40,6 +33,7 @@ class ProcessInput():
         return raw_data
 
     def prepare_data_structure_for_intermediary_yaml(self):
+        self.host_type = {}
         self.data = {
             'network': {},
             'baremetal': {},
@@ -47,27 +41,22 @@ class ProcessInput():
             'storage': {},
             'site_info': {},
         }
-        self.genesis_node = ''
         self.sitetype = ''
+        self.genesis_node = ''
         self.generic_data_object = {}
+        self.vlan_network_data = {}
 
     def save_design_rules(self, site_config):
-        #The function saves global design rules
+        # The function saves global design rules
         self.logger.info("Apply Design Rules")
-        global_config_dir = pkg_resources.resource_filename(
+        global_rules_dir = pkg_resources.resource_filename(
             'tugboat', 'config/')
-        global_config_file = global_config_dir + 'global_config.yaml'
-        global_config_data = self.read_file(global_config_file)
-        global_config_yaml = yaml.safe_load(global_config_data)
-        """ combine global and site design rules """
+        global_rules_file = global_rules_dir + 'global_rules.yaml'
+        global_rules_data = self.read_file(global_rules_file)
+        global_rules_yaml = yaml.safe_load(global_rules_data)
         rules_data = {}
-        rules_data.update(global_config_yaml)
+        rules_data.update(global_rules_yaml)
         self.rules_data = rules_data
-        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
-        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
-        """ Set deployment configuration from self.rules_data """
-        self.data['deployment_manifest'] = self.rules_data[
-            'deployment_manifest']
         self.logger.debug("Extracted Rules:{}".format(
             pprint.pformat(self.rules_data)))
 
@@ -77,7 +66,7 @@ class ProcessInput():
         """
         self.logger.info("Getting rackwise subnet")
         network_subnets = {}
-        #self.format_network_data()
+        # self.format_network_data()
         for net_type in self.data['network']['vlan_network_data']:
             # One of the type is ingress and we don't want that here
             if (net_type != 'ingress'):
@@ -93,7 +82,7 @@ class ProcessInput():
         return network_subnets
 
     def set_genesis_node_details(self):
-        #Returns the genesis node details
+        # Returns the genesis node details
         self.logger.info("Getting Genesis Node Details")
         for racks in self.data['baremetal'].keys():
             rack_hosts = self.data['baremetal'][racks]
@@ -119,22 +108,17 @@ class ProcessInput():
         self.logger.debug("Assigned network data{}".format(
             pprint.pformat(self.data['network'])))
 
+        # Set siteinfo
         self.logger.info("Assigning site info data")
         self.data['site_info'] = self.generic_data_object['site_info']
-        self.data['site_info']['sitetype'] = self.sitetype
         self.logger.debug("Assigned site_info data:{}".format(
             pprint.pformat(self.data['site_info'])))
 
+        # Set Storage data
         self.logger.info("Assigning storage data")
         self.data['storage'] = self.generic_data_object['storage']
         self.logger.debug("Assigned storage data:{}".format(
             pprint.pformat(self.data['storage'])))
-
-        self.logger.info("Assigning Region Name")
-        self.data['region_name'] = self.generic_data_object['site_info'][
-            'region_name']
-        self.logger.debug("Assigned region name:{}".format(
-            pprint.pformat(self.data['region_name'])))
 
     def create_derived_network_data(self):
         """
@@ -142,8 +126,7 @@ class ProcessInput():
         configuration and then store them into the dictionary
         """
         self.logger.info("Assigning network data")
-        self.data['network'][
-            'vlan_network_data'] = self.apply_network_design_rules()
+        self.data['network']['vlan_network_data'] = self.vlan_network_data
 
         # dhcp relay is set as pxe ip of the genesis node
         self.data['site_info']['dns']['dhcp_relay'] = {}
@@ -162,9 +145,8 @@ class ProcessInput():
 
         self.data['network']['bgp'] = self.generic_data_object['network_data'][
             'bgp']
-        subnet = \
-                netaddr.IPNetwork(
-                    self.data['network']['vlan_network_data']['ingress'])
+        subnet = netaddr.IPNetwork(
+            self.data['network']['vlan_network_data']['ingress'])
         ips = list(subnet)
         self.data['network']['bgp']['ingress_vip'] = str(ips[1])
         self.data['network']['bgp']['public_service_cidr'] = self.data[
@@ -195,28 +177,63 @@ class ProcessInput():
             "Host profile wise racks:{}".format(host_profile_wise_racks))
         return host_profile_wise_racks
 
-    def apply_network_design_rules(self):
+    def apply_design_rules(self):
+        self.logger.info("Apply design rules")
+        for rule in self.rules_data.keys():
+            rule_name = self.rules_data[rule]['name']
+            function_str = "apply_rule_" + rule_name
+            rule_data = self.rules_data[rule][rule_name]
+            function = getattr(self, function_str)
+            function(rule_data)
+            self.logger.info("Applying rule:{} by calling:{}".format(
+                rule_name, function_str))
+
+    def apply_rule_host_profile_interfaces(self, rule_data):
+        # Nothing to do as of now
+        pass
+
+    def apply_rule_hardware_profile(self, rule_data):
+        # Nothing to do as of now
+        pass
+
+    def apply_rule_ip_alloc_offset(self, rule_data):
+        """
+        This rule is applied to incoming network data from
+        source while creating ip ranges for vlan networks
+        """
         self.logger.info("Apply network design rules")
         # Assign common network profile for each network type
         vlan_network_data = {}
         # Assign the ingress subnet as it will get overwritten
         vlan_network_data['ingress'] = self.data['network'][
             'vlan_network_data']['ingress']
+
+        # Collect Rules
+        default_ip_offset = rule_data['default']
+        oob_ip_offset = rule_data['oob']
+        gw_ip_offset = rule_data['gw']
+
         # Assign private  network profile
         network_subnets = self.get_network_subnets()
         for net_type in network_subnets:
+            if net_type == 'oob':
+                ip_offset = oob_ip_offset
+            else:
+                ip_offset = default_ip_offset
             self.logger.info("net_types:{}".format(net_type))
             vlan_network_data[net_type] = {}
             subnet = network_subnets[net_type]
             ips = list(subnet)
             self.logger.info("net_type:{} subnet:{}".format(net_type, subnet))
+
             vlan_network_data[net_type]['nw'] = str(network_subnets[net_type])
-            vlan_network_data[net_type]['gw'] = str(
-                ips[self.rules_data['gateway_offset']])
+
+            vlan_network_data[net_type]['gw'] = str(ips[gw_ip_offset])
+
             vlan_network_data[net_type]['reserved_start'] = str(ips[1])
-            vlan_network_data[net_type]['reserved_end'] = str(
-                ips[self.IPS_TO_LEAVE])
-            static_start = str(ips[self.IPS_TO_LEAVE + 1])
+            vlan_network_data[net_type]['reserved_end'] = str(ips[ip_offset])
+
+            static_start = str(ips[ip_offset + 1])
             static_end = str(ips[-2])
 
             if net_type == 'pxe':
@@ -224,15 +241,18 @@ class ProcessInput():
                 static_end = str(ips[mid - 1])
                 dhcp_start = str(ips[mid])
                 dhcp_end = str(ips[-2])
+
                 vlan_network_data[net_type]['dhcp_start'] = dhcp_start
                 vlan_network_data[net_type]['dhcp_end'] = dhcp_end
-            # Review this logic TBD
+
             vlan_network_data[net_type]['static_start'] = static_start
             vlan_network_data[net_type]['static_end'] = static_end
+
             # There is no vlan for oob network
             if (net_type != 'oob'):
                 vlan_network_data[net_type]['vlan'] = self.data['network'][
                     'vlan_network_data'][net_type]['vlan']
+
             # OAM have default routes. Only for cruiser. TBD
             if (net_type == 'oam'):
                 routes = ["0.0.0.0/0"]
@@ -242,9 +262,9 @@ class ProcessInput():
 
         self.logger.debug("vlan network data:%s\n",
                           pprint.pformat(vlan_network_data))
-        return vlan_network_data
+        self.vlan_network_data = vlan_network_data
 
-    def load_extracted_data_from_formation(extracted_data):
+    def load_extracted_data_from_formation(self, extracted_data):
         self.logger.info("Load extracted data from formation")
         self.generic_data_object = extracted_data
         self.logger.debug("Dump extracted data from formation:\n%s",
@@ -253,8 +273,8 @@ class ProcessInput():
     def dump_intermediary_file(self):
         """ Dumping intermediary yaml """
         self.logger.info("Dumping intermediary yaml")
-        intermediary_file = \
-        "{}_intermediary.yaml".format(self.data['region_name'])
+        intermediary_file = "{}_intermediary.yaml".format(
+            self.data['region_name'])
         yaml_file = yaml.dump(self.data, default_flow_style=False)
         with open(intermediary_file, 'w') as f:
             f.write(yaml_file)
@@ -264,6 +284,7 @@ class ProcessInput():
         """ Generating intermediary yaml """
         self.logger.info("Generating intermediary yaml")
         self.save_generic_data_object()
+        self.apply_design_rules()
         self.set_genesis_node_details()
         self.create_derived_network_data()
         self.intermediary_yaml = self.data

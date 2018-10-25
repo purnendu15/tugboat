@@ -17,7 +17,8 @@ import logging
 import pkg_resources
 import yaml
 
-from spyglass.parser.generate_intermediary import ProcessInput
+from spyglass.parser.generate_intermediary import ProcessDataSource
+from spyglass.site_processors.site_processor import SiteProcessor
 
 
 def generate_manifest_files(intermediary):
@@ -32,9 +33,9 @@ def generate_manifest_files(intermediary):
 
 @click.command()
 @click.option(
-    '--sitetype',
+    '--site',
     '-s',
-    help='Specify the sitetype for which manifests to be generated')
+    help='Specify the site for which manifests to be generated')
 @click.option(
     '--type', '-t', help='Specify the plugin type formation or tugboat')
 @click.option('--formation_url', '-f', help='Specify the formation url')
@@ -65,7 +66,7 @@ def generate_manifest_files(intermediary):
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     generate_manifests = kwargs['generate_manifests']
-    sitetype = kwargs['sitetype']
+    site = kwargs['site']
     loglevel = kwargs['loglevel']
     logger = logging.getLogger('spyglass')
     # Set default log level to INFO
@@ -73,8 +74,9 @@ def main(*args, **kwargs):
     # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
-    formatter = logging.Formatter('(%(name)s)[%(levelname)s]%(filename)s' +
-                                  '[%(lineno)d]:(%(funcName)s)\n:%(message)s')
+    formatter = logging.Formatter(
+        '(%(name)s)[%(levelname)s]%(filename)s [%(lineno)d]:(%(funcName)s)\n:%(message)s'
+    )
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Spyglass start")
@@ -107,16 +109,16 @@ def main(*args, **kwargs):
                 raw_data = config.read()
                 additional_config_data = yaml.safe_load(raw_data)
 
-    data_extractor = plugin_class(sitetype)
+    data_extractor = plugin_class(site)
     data_extractor.set_config_opts(plugin_conf)
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
     print(data_extractor.site_data)
     """
-    Initialize ProcessInput object. This object initializes data structures
+    Initialize ProcessDataSource object. This object initializes data structures
     so that at a later stage they can be used to store intermediary yaml data
     """
-    process_input_ob = ProcessInput(site)
+    process_input_ob = ProcessDataSource(site)
     # Parses the raw input received from formation
     process_input_ob.load_extracted_data_from_formation(
         data_extractor.site_data)
