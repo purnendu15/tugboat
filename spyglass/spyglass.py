@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import click
 import logging
 import pkg_resources
+import click
 import yaml
 
 from spyglass.parser.generate_intermediary import ProcessDataSource
@@ -25,7 +25,7 @@ def generate_manifest_files(intermediary):
     """ Generate manifests """
     if intermediary:
         processor_engine = SiteProcessor(intermediary)
-        print('Generating manifest files')
+        self.logger.info('Generating manifest files')
         processor_engine.render_template()
     else:
         logging.error('Intermediary not found')
@@ -113,14 +113,14 @@ def main(*args, **kwargs):
     data_extractor.set_config_opts(plugin_conf)
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
-    print(data_extractor.site_data)
+    self.logger.info(data_extractor.site_data)
+
     """
-    Initialize ProcessDataSource object. This object initializes data structures
-    so that at a later stage they can be used to store intermediary yaml data
+    Initialize ProcessDataSource object to process received data
     """
     process_input_ob = ProcessDataSource(site)
-    # Parses the raw input received from formation
-    process_input_ob.load_extracted_data_from_formation(
+    # Parses the raw input received from data source
+    process_input_ob.load_extracted_data_from_data_source(
         data_extractor.site_data)
 
     if generate_manifests:
@@ -131,10 +131,10 @@ def main(*args, **kwargs):
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
     else:
-        print('No suitable options passed')
-        print("Usage Instructions:")
-        print("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
-        print("Generate Manifest & Intermediary" +
+        self.logger.info('No suitable options passed')
+        self.logger.info("Usage Instructions:")
+        self.logger.info("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
+        self.logger.info("Generate Manifest & Intermediary" +
               ":\ntugboat -mg -d <site config>")
 
     logger.info("Spyglass Execution Completed")

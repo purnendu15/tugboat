@@ -23,7 +23,7 @@ class ProcessDataSource():
     def __init__(self, sitetype):
         """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
-        self.prepare_data_structure_for_intermediary_yaml()
+        self.initialize_intermediary_yaml()
         self.data['region_name'] = sitetype
 
     @staticmethod
@@ -32,7 +32,7 @@ class ProcessDataSource():
             raw_data = f.read()
         return raw_data
 
-    def prepare_data_structure_for_intermediary_yaml(self):
+    def initialize_intermediary_yaml(self):
         self.host_type = {}
         self.data = {
             'network': {},
@@ -49,13 +49,13 @@ class ProcessDataSource():
     def save_design_rules(self, site_config):
         # The function saves global design rules
         self.logger.info("Apply Design Rules")
-        global_rules_dir = pkg_resources.resource_filename(
+        rules_dir = pkg_resources.resource_filename(
             'tugboat', 'config/')
-        global_rules_file = global_rules_dir + 'global_rules.yaml'
-        global_rules_data = self.read_file(global_rules_file)
-        global_rules_yaml = yaml.safe_load(global_rules_data)
+        rules_file = rules_dir + 'rules.yaml'
+        rules_data = self.read_file(rules_file)
+        rules_yaml = yaml.safe_load(rules_data)
         rules_data = {}
-        rules_data.update(global_rules_yaml)
+        rules_data.update(rules_yaml)
         self.rules_data = rules_data
         self.logger.debug("Extracted Rules:{}".format(
             pprint.pformat(self.rules_data)))
@@ -134,7 +134,7 @@ class ProcessDataSource():
             'pxe']
 
         # The incoming URL is in the form 'incoming_url':
-        # 'url:ldap://its-ad-ldap.atttest.com'
+        # 'url:ldap://ldapdemo.example.com'
         self.data['site_info']['ldap'] = self.generic_data_object['site_info'][
             'ldap']
         incoming_url = self.data['site_info']['ldap']['incoming_url']
@@ -154,28 +154,6 @@ class ProcessDataSource():
         self.logger.debug("Updated network data:\n{}".format(
             pprint.pformat(self.data['network'])))
 
-    def get_host_profile_wise_racks(self):
-        """
-        Extracting rack information per host profile and
-        associating them with each profile(compute or controller)
-        """
-        self.logger.info("Extracting rack information per host profile ")
-        host_profile_wise_racks = {}
-        rackwise_host_data = self.data['baremetal']
-        for rack in rackwise_host_data:
-            for host in rackwise_host_data[rack]:
-                host_data = rackwise_host_data[rack][host]
-                host_profile = host_data['host_profile']
-                if host_profile not in host_profile_wise_racks:
-                    host_profile_wise_racks[host_profile] = {
-                        'racks': set(),
-                    }
-                host_profile_wise_racks[host_profile]['racks'].add(rack)
-                host_profile_wise_racks[host_profile][
-                    'type'] = rackwise_host_data[rack][host]['type']
-        self.logger.debug(
-            "Host profile wise racks:{}".format(host_profile_wise_racks))
-        return host_profile_wise_racks
 
     def apply_design_rules(self):
         self.logger.info("Apply design rules")
@@ -264,10 +242,10 @@ class ProcessDataSource():
                           pprint.pformat(vlan_network_data))
         self.vlan_network_data = vlan_network_data
 
-    def load_extracted_data_from_formation(self, extracted_data):
-        self.logger.info("Load extracted data from formation")
+    def load_extracted_data_from_data_source(self, extracted_data):
+        self.logger.info("Load extracted data from data source")
         self.generic_data_object = extracted_data
-        self.logger.debug("Dump extracted data from formation:\n%s",
+        self.logger.debug("Dump extracted data from data source:\n%s",
                           pprint.pformat(extracted_data))
 
     def dump_intermediary_file(self):

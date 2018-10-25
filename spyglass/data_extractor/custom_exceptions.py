@@ -11,15 +11,17 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logger
 import sys
 
 
 class BaseError(Exception):
     def __init__(self, msg):
+        self.logger = logging.getLogger(__name__)
         self.msg = msg
 
     def display_error(self):
-        print(self.msg)
+        self.logger.info(self.msg)
         sys.exit(1)
 
 
