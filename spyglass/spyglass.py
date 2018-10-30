@@ -113,7 +113,7 @@ def main(*args, **kwargs):
     data_extractor.set_config_opts(plugin_conf)
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
-    self.logger.info(data_extractor.site_data)
+    logger.info(data_extractor.site_data)
 
     """
     Initialize ProcessDataSource object to process received data
@@ -131,10 +131,10 @@ def main(*args, **kwargs):
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
     else:
-        self.logger.info('No suitable options passed')
-        self.logger.info("Usage Instructions:")
-        self.logger.info("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
-        self.logger.info("Generate Manifest & Intermediary" +
+        logger.info('No suitable options passed')
+        logger.info("Usage Instructions:")
+        logger.info("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
+        logger.info("Generate Manifest & Intermediary" +
               ":\ntugboat -mg -d <site config>")
 
     logger.info("Spyglass Execution Completed")
