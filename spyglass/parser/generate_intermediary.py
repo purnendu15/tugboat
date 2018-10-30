@@ -41,24 +41,10 @@ class ProcessDataSource():
             'storage': {},
             'site_info': {},
         }
-        self.sitetype = ''
-        self.genesis_node = ''
+        self.sitetype = None
+        self.genesis_node = None
         self.generic_data_object = {}
         self.vlan_network_data = {}
-
-    def save_design_rules(self, site_config):
-        # The function saves global design rules
-        self.logger.info("Apply Design Rules")
-        rules_dir = pkg_resources.resource_filename(
-            'tugboat', 'config/')
-        rules_file = rules_dir + 'rules.yaml'
-        rules_data = self.read_file(rules_file)
-        rules_yaml = yaml.safe_load(rules_data)
-        rules_data = {}
-        rules_data.update(rules_yaml)
-        self.rules_data = rules_data
-        self.logger.debug("Extracted Rules:{}".format(
-            pprint.pformat(self.rules_data)))
 
     def get_network_subnets(self):
         """
@@ -75,7 +61,7 @@ class ProcessDataSource():
                     [net_type]))
                 network_subnets[net_type] = netaddr.IPNetwork(
                     self.data['network']['vlan_network_data'][net_type]
-                    ['subnet'][0])
+                    ['subnet'])
 
         self.logger.debug("rackwise subnets:\n%s",
                           pprint.pformat(network_subnets))
@@ -127,12 +113,6 @@ class ProcessDataSource():
         """
         self.logger.info("Assigning network data")
         self.data['network']['vlan_network_data'] = self.vlan_network_data
-
-        # dhcp relay is set as pxe ip of the genesis node
-        self.data['site_info']['dns']['dhcp_relay'] = {}
-        self.data['site_info']['dns']['dhcp_relay'] = self.genesis_node['ip'][
-            'pxe']
-
         # The incoming URL is in the form 'incoming_url':
         # 'url:ldap://ldapdemo.example.com'
         self.data['site_info']['ldap'] = self.generic_data_object['site_info'][
@@ -145,24 +125,32 @@ class ProcessDataSource():
 
         self.data['network']['bgp'] = self.generic_data_object['network_data'][
             'bgp']
+        # TODO(pg710r) Enhance to support multiple ingress subnet
         subnet = netaddr.IPNetwork(
             self.data['network']['vlan_network_data']['ingress'])
         ips = list(subnet)
+        # TODO(pg710r) Include code to derive ingress_vip using rules
         self.data['network']['bgp']['ingress_vip'] = str(ips[1])
-        self.data['network']['bgp']['public_service_cidr'] = self.data[
-            'network']['vlan_network_data']['ingress']
+        self.data['network']['bgp']['public_service_cidr'] = self.data['network']['vlan_network_data']['ingress']
         self.logger.debug("Updated network data:\n{}".format(
             pprint.pformat(self.data['network'])))
 
 
     def apply_design_rules(self):
         self.logger.info("Apply design rules")
-        for rule in self.rules_data.keys():
-            rule_name = self.rules_data[rule]['name']
+        rules_dir = pkg_resources.resource_filename(
+            'spyglass', 'config/')
+        rules_file = rules_dir + 'rules.yaml'
+        rules_data_raw = self.read_file(rules_file)
+        rules_yaml = yaml.safe_load(rules_data_raw)
+        rules_data = {}
+        rules_data.update(rules_yaml)
+        for rule in rules_data.keys():
+            rule_name = rules_data[rule]['name']
             function_str = "apply_rule_" + rule_name
-            rule_data = self.rules_data[rule][rule_name]
+            rule_data_name = rules_data[rule][rule_name]
             function = getattr(self, function_str)
-            function(rule_data)
+            function(rule_data_name)
             self.logger.info("Applying rule:{} by calling:{}".format(
                 rule_name, function_str))
 
@@ -183,8 +171,7 @@ class ProcessDataSource():
         # Assign common network profile for each network type
         vlan_network_data = {}
         # Assign the ingress subnet as it will get overwritten
-        vlan_network_data['ingress'] = self.data['network'][
-            'vlan_network_data']['ingress']
+        vlan_network_data['ingress'] = self.data['network']['vlan_network_data']['ingress']['subnet'][0]
 
         # Collect Rules
         default_ip_offset = rule_data['default']
@@ -247,6 +234,12 @@ class ProcessDataSource():
         self.generic_data_object = extracted_data
         self.logger.debug("Dump extracted data from data source:\n%s",
                           pprint.pformat(extracted_data))
+        formation_file = "formation_file.yaml"
+        yaml_file = yaml.dump(extracted_data, default_flow_style=False)
+        with open(formation_file, 'w') as f:
+            f.write(yaml_file)
+        f.close()
+
 
     def dump_intermediary_file(self):
         """ Dumping intermediary yaml """

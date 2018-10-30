@@ -34,7 +34,7 @@ class SiteProcessor(BaseProcessor):
         configs( pxe and oob) are generated per rack.
         """
         template_software_dir = pkg_resources.resource_filename(
-            'tugboat', 'templates/')
+            'spyglass', 'templates/')
         template_dir_abspath = os.path.dirname(template_software_dir)
         self.logger.debug("Template dif abspath:%s", template_dir_abspath)
 

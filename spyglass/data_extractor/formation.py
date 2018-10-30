@@ -243,7 +243,6 @@ class FormationPlugin(BaseDataSourcePlugin):
         zone_id = self._get_zone_id_by_name(zone)
         region_api = swagger_client.RegionApi(self.formation_api_client)
         regions = region_api.zones_zone_id_regions_get(zone_id)
-
         regions_list = []
         for region in regions:
             region_name = region.name
@@ -305,7 +304,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         vlan_api = swagger_client.VlansApi(self.formation_api_client)
         vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
             zone_id, region_id)
-
+        print("in get_networks",vlans)
         vlans_list = []
         for vlan_ in vlans:
             tmp_vlan = {}
@@ -337,11 +336,16 @@ class FormationPlugin(BaseDataSourcePlugin):
             device_id = self._get_device_id_by_name(host)
             vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
                 zone_id, device_id)
+
+            print("in get_ips",vlans)
             ip_[host] = {}
             for vlan_ in vlans:
                 name = vlan_.vlan.name
                 ipv4 = vlan_.vlan.ipv4[0].ip
-                ip_[host][name] = {'ipv4': ipv4}
+                # TODD(pg710r) This code needs to extended to support ipv4
+                # and ipv6
+                # ip_[host][name] = {'ipv4': ipv4}
+                ip_[host][name] = ipv4
 
         return ip_
 

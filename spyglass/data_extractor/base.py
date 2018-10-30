@@ -373,7 +373,7 @@ class BaseDataSourcePlugin(object):
 
         Return dict should be in the format
         {
-          'vlan_networks': {
+          'vlan_network_data': {
             'oam': {},
             'ingress': {},
             'oob': {}
@@ -391,16 +391,16 @@ class BaseDataSourcePlugin(object):
         # We are interested in only the below networks mentioned in
         # networks_to_scan, so look for these networks from the data
         # returned by plugin
-        networks_to_scan = ['calico', 'overlay', 'pxe', 'storage', 'oom', 'oob', 'ingress']
-        network_data['vlan_networks'] = {}
+        networks_to_scan = ['calico', 'overlay', 'pxe', 'storage', 'oam', 'oob', 'ingress']
+        network_data['vlan_network_data'] = {}
 
-        for net in networks_to_scan:
+        for net in networks:
             tmp_net = {}
-            if net in networks:
+            if net['name'] in networks_to_scan:
                 tmp_net['subnet'] = net['subnet']
                 tmp_net['vlan'] = net['vlan']
 
-            network_data['vlan_networks'][net] = tmp_net
+            network_data['vlan_network_data'][net['name']] = tmp_net
             LOG.info("Update vlan information for network %s: vlan %s" %
                      (net, tmp_net.get('vlan', None)))
 
