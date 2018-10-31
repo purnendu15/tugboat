@@ -21,7 +21,7 @@ import yaml
 
 class ProcessDataSource():
     def __init__(self, sitetype):
-        """ Save file_name and exel_spec """
+        # Initialize intermediary and save site type
         self.logger = logging.getLogger(__name__)
         self._initialize_intermediary()
         self.region_name = sitetype
@@ -44,13 +44,9 @@ class ProcessDataSource():
         self.sitetype = None
         self.genesis_node = None
         self.region_name = None
-        self.generic_data_object = {}
-        self.vlan_network_data = {}
 
     def _get_network_subnets(self):
-        """
-        Extract subnet information for private and public networks
-        """
+        # Extract subnet information for networks
         self.logger.info("Getting rackwise subnet")
         network_subnets = {}
         # self.format_network_data()
@@ -82,7 +78,7 @@ class ProcessDataSource():
 
     def _create_derived_network_data(self):
         """
-        Create derived network data with information from xl and static
+        Create derived network data with information from data source
         configuration and then store them into the dictionary
         """
         self.logger.info("Assigning network data")
@@ -99,6 +95,10 @@ class ProcessDataSource():
             pprint.pformat(self.data['network'])))
 
     def _apply_design_rules(self):
+        """
+        Applies design rules from rules.yaml to create a subnet address,
+        gateway ip, ranges for dhcp and static ip address
+        """
         self.logger.info("Apply design rules")
         rules_dir = pkg_resources.resource_filename('spyglass', 'config/')
         rules_file = rules_dir + 'rules.yaml'
@@ -125,21 +125,38 @@ class ProcessDataSource():
 
     def _apply_rule_ip_alloc_offset(self, rule_data):
         """
-        This rule is applied to incoming network data from
-        source while creating ip ranges for vlan networks
+        This rule is applied to incoming network data to determine
+        network address, gateway ip and other address ranges
         """
         self.logger.info("Apply network design rules")
-        # Assign common network profile for each network type
         vlan_network_data = {}
 
         # Collect Rules
         default_ip_offset = rule_data['default']
         oob_ip_offset = rule_data['oob']
         gateway_ip_offset = rule_data['gateway']
+        ingress_vip_offset = rule_data['ingress_vip']
+        # static_ip_end_offset for non pxe network
+        static_ip_end_offset = rule_data['static_ip_end']
+        # dhcp_ip_end_offset for pxe network
+        dhcp_ip_end_offset = rule_data['dhcp_ip_end']
 
+        # Set ingress vip and CIDR for bgp
+        self.logger.info("Applying rules to network bgp data")
+        subnet = netaddr.IPNetwork(
+            self.data['network']['vlan_network_data']['ingress']['subnet'][0])
+        ips = list(subnet)
+        self.data['network']['bgp']['ingress_vip'] = str(
+            ips[ingress_vip_offset])
+        self.data['network']['bgp']['public_service_cidr'] = self.data[
+            'network']['vlan_network_data']['ingress']['subnet'][0]
+        self.logger.debug("Updated network bgp data:\n{}".format(
+            pprint.pformat(self.data['network']['bgp'])))
+
+        self.logger.info("Applying rules to vlan network data")
         # Assign private network profile
         network_subnets = self._get_network_subnets()
-
+        # Apply rules to vlan networks
         for net_type in network_subnets:
             if net_type == 'oob':
                 ip_offset = oob_ip_offset
@@ -161,13 +178,13 @@ class ProcessDataSource():
             vlan_network_data[net_type]['reserved_end'] = str(ips[ip_offset])
 
             static_start = str(ips[ip_offset + 1])
-            static_end = str(ips[-2])
+            static_end = str(ips[static_ip_end_offset])
 
             if net_type == 'pxe':
                 mid = len(ips) // 2
                 static_end = str(ips[mid - 1])
                 dhcp_start = str(ips[mid])
-                dhcp_end = str(ips[-2])
+                dhcp_end = str(ips[dhcp_ip_end_offset])
 
                 vlan_network_data[net_type]['dhcp_start'] = dhcp_start
                 vlan_network_data[net_type]['dhcp_end'] = dhcp_end
@@ -199,9 +216,9 @@ class ProcessDataSource():
         self.data = extracted_data
         self.logger.debug("Dump extracted data from data source:\n%s",
                           pprint.pformat(extracted_data))
-        formation_file = "formation_file.yaml"
-        yaml_file = yaml.dump(extracted_data, default_flow_style=False)
-        with open(formation_file, 'w') as f:
+        extracted_file = "extracted_file.yaml"
+        yaml_file = yaml.dump(extracted_file, default_flow_style=False)
+        with open(extracted_file, 'w') as f:
             f.write(yaml_file)
         f.close()
         # Append region_data supplied from CLI to self.data
@@ -222,6 +239,6 @@ class ProcessDataSource():
         self.logger.info("Generating intermediary yaml")
         self._apply_design_rules()
         self._get_genesis_node_details()
-        self._create_derived_network_data()
+        # self._create_derived_network_data()
         self.intermediary_yaml = self.data
         return self.intermediary_yaml

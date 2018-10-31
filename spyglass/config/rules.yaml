@@ -2,13 +2,14 @@
 # Global Rules            #
 ###########################
 #Rule1:  ip_alloc_offset
-#        Specifies the number of ip addresses
-#        to offset from subnet allocation pool
-#        while allocating it to host.
-#        for vlan it is set to 12 as default.
-#        for oob it is 10
-#        for all gateway ip addresss it is set
-#        to 1.
+#        Specifies the number of ip addresses to offset from
+#        the start of subnet allocation pool while allocating it to host.
+#        -for vlan it is set to 12 as default.
+#        -for oob it is 10
+#        -for all gateway ip addresss it is set to 1.
+#        -for ingress vip it is 1
+#        -for static end (non pxe) it is -1( means one but last ip of the pool)
+#        -for dhcp end (pxe only) it is -2( 3rd from the last ip of the pool)
 #Rule2:  host_profile_interfaces.
 #        Specifies the network interfaces type and
 #        and their names for a particular hw profile
@@ -23,6 +24,9 @@ rule_ip_alloc_offset:
     default: 12
     oob: 10
     gateway: 1
+    ingress_vip: 1
+    static_ip_end: -2
+    dhcp_ip_end: -2
 rule_host_profile_interfaces:
   name: host_profile_interfaces
   host_profile_interfaces:
