@@ -24,7 +24,7 @@ class ProcessDataSource():
         """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
         self.initialize_intermediary_yaml()
-        self.data['region_name'] = sitetype
+        self.region_name = sitetype
 
     @staticmethod
     def read_file(file_name):
@@ -43,6 +43,7 @@ class ProcessDataSource():
         }
         self.sitetype = None
         self.genesis_node = None
+        self.region_name = None
         self.generic_data_object = {}
         self.vlan_network_data = {}
 
@@ -79,60 +80,21 @@ class ProcessDataSource():
         self.logger.debug("Genesis Node Details:{}".format(
             pprint.pformat(self.genesis_node)))
 
-    def save_generic_data_object(self):
-        """ Assign Design Spec data to internal data structures """
-        self.logger.info("Saving incoming data to local data structures")
-        self.logger.info("Assigning baremetal data")
-        # Baremetal data is used as is from plugin
-        self.data['baremetal'] = self.generic_data_object['baremetal']
-        self.logger.debug("Assigned baremetal data{}".format(
-            pprint.pformat(self.data['baremetal'])))
-
-        # Set network data
-        self.logger.info("Assigning network data")
-        self.data['network'] = self.generic_data_object['network_data']
-        self.logger.debug("Assigned network data{}".format(
-            pprint.pformat(self.data['network'])))
-
-        # Set siteinfo
-        self.logger.info("Assigning site info data")
-        self.data['site_info'] = self.generic_data_object['site_info']
-        self.logger.debug("Assigned site_info data:{}".format(
-            pprint.pformat(self.data['site_info'])))
-
-        # Set Storage data
-        self.logger.info("Assigning storage data")
-        self.data['storage'] = self.generic_data_object['storage']
-        self.logger.debug("Assigned storage data:{}".format(
-            pprint.pformat(self.data['storage'])))
-
     def create_derived_network_data(self):
         """
         Create derived network data with information from xl and static
         configuration and then store them into the dictionary
         """
         self.logger.info("Assigning network data")
-        self.data['network']['vlan_network_data'] = self.vlan_network_data
-        # The incoming URL is in the form 'incoming_url':
-        # 'url:ldap://ldapdemo.example.com'
-        self.data['site_info']['ldap'] = self.generic_data_object['site_info'][
-            'ldap']
-        incoming_url = self.data['site_info']['ldap']['incoming_url']
-        self.data['site_info']['ldap']['url'] = incoming_url.split('url:')[1]
-        self.data['site_info']['ldap']['domain'] = incoming_url.split('.')[1]
-        self.data['site_info']['ldap']['base_url'] = incoming_url.split(
-            '//')[1]
 
-        self.data['network']['bgp'] = self.generic_data_object['network_data'][
-            'bgp']
         # TODO(pg710r) Enhance to support multiple ingress subnet
         subnet = netaddr.IPNetwork(
-            self.data['network']['vlan_network_data']['ingress'])
+            self.data['network']['vlan_network_data']['ingress']['subnet'][0])
         ips = list(subnet)
         # TODO(pg710r) Include code to derive ingress_vip using rules
         self.data['network']['bgp']['ingress_vip'] = str(ips[1])
         self.data['network']['bgp']['public_service_cidr'] = self.data[
-            'network']['vlan_network_data']['ingress']
+            'network']['vlan_network_data']['ingress']['subnet'][0]
         self.logger.debug("Updated network data:\n{}".format(
             pprint.pformat(self.data['network'])))
 
@@ -169,17 +131,15 @@ class ProcessDataSource():
         self.logger.info("Apply network design rules")
         # Assign common network profile for each network type
         vlan_network_data = {}
-        # Assign the ingress subnet as it will get overwritten
-        vlan_network_data['ingress'] = self.data['network'][
-            'vlan_network_data']['ingress']['subnet'][0]
 
         # Collect Rules
         default_ip_offset = rule_data['default']
         oob_ip_offset = rule_data['oob']
-        gw_ip_offset = rule_data['gw']
+        gateway_ip_offset = rule_data['gateway']
 
-        # Assign private  network profile
+        # Assign private network profile
         network_subnets = self.get_network_subnets()
+
         for net_type in network_subnets:
             if net_type == 'oob':
                 ip_offset = oob_ip_offset
@@ -191,9 +151,11 @@ class ProcessDataSource():
             ips = list(subnet)
             self.logger.info("net_type:{} subnet:{}".format(net_type, subnet))
 
-            vlan_network_data[net_type]['nw'] = str(network_subnets[net_type])
+            vlan_network_data[net_type]['network'] = str(
+                network_subnets[net_type])
 
-            vlan_network_data[net_type]['gw'] = str(ips[gw_ip_offset])
+            vlan_network_data[net_type]['gateway'] = str(
+                ips[gateway_ip_offset])
 
             vlan_network_data[net_type]['reserved_start'] = str(ips[1])
             vlan_network_data[net_type]['reserved_end'] = str(ips[ip_offset])
@@ -225,13 +187,16 @@ class ProcessDataSource():
                 routes = []
             vlan_network_data[net_type]['routes'] = routes
 
+            # Update network data to self.data
+            self.data['network']['vlan_network_data'][
+                net_type] = vlan_network_data[net_type]
+
         self.logger.debug("vlan network data:%s\n",
                           pprint.pformat(vlan_network_data))
-        self.vlan_network_data = vlan_network_data
 
     def load_extracted_data_from_data_source(self, extracted_data):
         self.logger.info("Load extracted data from data source")
-        self.generic_data_object = extracted_data
+        self.data = extracted_data
         self.logger.debug("Dump extracted data from data source:\n%s",
                           pprint.pformat(extracted_data))
         formation_file = "formation_file.yaml"
@@ -239,6 +204,8 @@ class ProcessDataSource():
         with open(formation_file, 'w') as f:
             f.write(yaml_file)
         f.close()
+        # Append region_data supplied from CLI to self.data
+        self.data['region_name'] = self.region_name
 
     def dump_intermediary_file(self):
         """ Dumping intermediary yaml """
@@ -253,7 +220,6 @@ class ProcessDataSource():
     def generate_intermediary_yaml(self):
         """ Generating intermediary yaml """
         self.logger.info("Generating intermediary yaml")
-        self.save_generic_data_object()
         self.apply_design_rules()
         self.set_genesis_node_details()
         self.create_derived_network_data()

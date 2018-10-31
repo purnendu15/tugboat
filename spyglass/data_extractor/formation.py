@@ -18,8 +18,11 @@ import swagger_client
 import urllib3
 
 from spyglass.data_extractor.base import BaseDataSourcePlugin
+
+# TODO(pg710r): Currently comments to avoid pep8 warning
+# will be lifted when spyglass runs with actual formation code
 from spyglass.data_extractor.custom_exceptions import (
-    ApiClientError, ConnectionError, MissingAttributeError, MissingValueError,
+    ApiClientError, ConnectionError, MissingAttributeError,
     TokenGenerationError)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)

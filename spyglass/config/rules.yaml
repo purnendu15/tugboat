@@ -22,7 +22,7 @@ rule_ip_alloc_offset:
   ip_alloc_offset:
     default: 12
     oob: 10
-    gw: 1
+    gateway: 1
 rule_host_profile_interfaces:
   name: host_profile_interfaces
   host_profile_interfaces:

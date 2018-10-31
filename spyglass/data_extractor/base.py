@@ -418,7 +418,7 @@ class BaseDataSourcePlugin(object):
         site_data = {}
         site_data['baremetal'] = self.extract_baremetal_information()
         site_data['site_info'] = self.extract_site_information()
-        site_data['network_data'] = self.extract_network_information()
+        site_data['network'] = self.extract_network_information()
         self.site_data = site_data
         LOG.info("Site data updated successfully")
         return site_data
