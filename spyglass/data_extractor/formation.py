@@ -119,7 +119,8 @@ class FormationPlugin(BaseDataSourcePlugin):
         # to retrieve data, this is a tweak to determine zone name and
         # rack name
         zone = region[:-1]
-        site = zone[:-1]
+        # TODO(pg710r): site name is hardcoded
+        site = zone
 
         # zone = self._get_zone_by_region_name(region)
         # site = self._get_site_by_zone_name(zone)
@@ -304,7 +305,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         vlan_api = swagger_client.VlansApi(self.formation_api_client)
         vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
             zone_id, region_id)
-        print("in get_networks",vlans)
+        print("in get_networks", vlans)
         vlans_list = []
         for vlan_ in vlans:
             tmp_vlan = {}
@@ -337,7 +338,7 @@ class FormationPlugin(BaseDataSourcePlugin):
             vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
                 zone_id, device_id)
 
-            print("in get_ips",vlans)
+            print("in get_ips", vlans)
             ip_[host] = {}
             for vlan_ in vlans:
                 name = vlan_.vlan.name

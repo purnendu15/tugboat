@@ -17,13 +17,13 @@
 #       It specifies the profile name and host type for compute,
 #       controller along with hw type
 ---
-rule1:
+rule_ip_alloc_offset:
   name: ip_alloc_offset
   ip_alloc_offset:
     default: 12
     oob: 10
     gw: 1
-rule2:
+rule_host_profile_interfaces:
   name: host_profile_interfaces
   host_profile_interfaces:
     gv:
@@ -56,7 +56,7 @@ rule2:
         - gp_nic02
         pxe: en04
         p3p2: sriov_nic02
-rule3:
+rule_hardware_profile:
   name: hardware_profile
   hardware_profile:
     nc:

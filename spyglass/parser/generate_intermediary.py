@@ -131,15 +131,14 @@ class ProcessDataSource():
         ips = list(subnet)
         # TODO(pg710r) Include code to derive ingress_vip using rules
         self.data['network']['bgp']['ingress_vip'] = str(ips[1])
-        self.data['network']['bgp']['public_service_cidr'] = self.data['network']['vlan_network_data']['ingress']
+        self.data['network']['bgp']['public_service_cidr'] = self.data[
+            'network']['vlan_network_data']['ingress']
         self.logger.debug("Updated network data:\n{}".format(
             pprint.pformat(self.data['network'])))
 
-
     def apply_design_rules(self):
         self.logger.info("Apply design rules")
-        rules_dir = pkg_resources.resource_filename(
-            'spyglass', 'config/')
+        rules_dir = pkg_resources.resource_filename('spyglass', 'config/')
         rules_file = rules_dir + 'rules.yaml'
         rules_data_raw = self.read_file(rules_file)
         rules_yaml = yaml.safe_load(rules_data_raw)
@@ -171,7 +170,8 @@ class ProcessDataSource():
         # Assign common network profile for each network type
         vlan_network_data = {}
         # Assign the ingress subnet as it will get overwritten
-        vlan_network_data['ingress'] = self.data['network']['vlan_network_data']['ingress']['subnet'][0]
+        vlan_network_data['ingress'] = self.data['network'][
+            'vlan_network_data']['ingress']['subnet'][0]
 
         # Collect Rules
         default_ip_offset = rule_data['default']
@@ -239,7 +239,6 @@ class ProcessDataSource():
         with open(formation_file, 'w') as f:
             f.write(yaml_file)
         f.close()
-
 
     def dump_intermediary_file(self):
         """ Dumping intermediary yaml """

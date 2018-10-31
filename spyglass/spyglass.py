@@ -25,7 +25,7 @@ def generate_manifest_files(intermediary):
     """ Generate manifests """
     if intermediary:
         processor_engine = SiteProcessor(intermediary)
-        #logger.info('Generating manifest files')
+        # logger.info('Generating manifest files')
         processor_engine.render_template()
     else:
         logging.error('Intermediary not found')
@@ -50,10 +50,12 @@ def generate_manifest_files(intermediary):
 @click.option(
     '--generate_intermediary',
     '-g',
+    is_flag=True,
     help='Dump intermediary file from passed excel and excel spec')
 @click.option(
     '--generate_manifests',
     '-m',
+    is_flag=True,
     help='Generate manifests from the generated intermediary file')
 @click.option(
     '--loglevel',
@@ -74,9 +76,9 @@ def main(*args, **kwargs):
     # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
-    formatter = logging.Formatter(
-        '(%(name)s)[%(levelname)s]%(filename)s [%(lineno)d]:(%(funcName)s)\n:%(message)s'
-    )
+    formatter = logging.Formatter('(%(name)s)[%(levelname)s]'
+                                  '%(filename)s [%(lineno)d]:'
+                                  '(%(funcName)s)\n:%(message)s')
     stream_handle.setFormatter(formatter)
     logger.addHandler(stream_handle)
     logger.info("Spyglass start")
@@ -115,7 +117,6 @@ def main(*args, **kwargs):
     data_extractor.extract_data()
     data_extractor.apply_additional_data(additional_config_data)
     logger.info(data_extractor.site_data)
-
     """
     Initialize ProcessDataSource object to process received data
     """
@@ -123,20 +124,21 @@ def main(*args, **kwargs):
     # Parses the raw input received from data source
     process_input_ob.load_extracted_data_from_data_source(
         data_extractor.site_data)
-
-    if generate_manifests:
+    intermediary_yaml = {}
+    intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+    if generate_intermediary:
         logger.info("Generating Intermediary File")
-        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
-        if generate_intermediary:
-            process_input_ob.dump_intermediary_file()
+        process_input_ob.dump_intermediary_file()
+    if generate_manifests:
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
     else:
         logger.info('No suitable options passed')
         logger.info("Usage Instructions:")
-        logger.info("Generate Intermediary:\ntugboat" + "-g -d <additional_config>")
-        logger.info("Generate Manifest & Intermediary" +
-              ":\ntugboat -mg -d <site config>")
+        logger.info(
+            "Generate Intermediary:\ntugboat -g -d <additional_config>")
+        logger.info(
+            "Generate Manifest & Intermediary :\ntugboat -mg -d <site config>")
 
     logger.info("Spyglass Execution Completed")
 

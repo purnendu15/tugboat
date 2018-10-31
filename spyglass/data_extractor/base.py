@@ -391,7 +391,9 @@ class BaseDataSourcePlugin(object):
         # We are interested in only the below networks mentioned in
         # networks_to_scan, so look for these networks from the data
         # returned by plugin
-        networks_to_scan = ['calico', 'overlay', 'pxe', 'storage', 'oam', 'oob', 'ingress']
+        networks_to_scan = [
+            'calico', 'overlay', 'pxe', 'storage', 'oam', 'oob', 'ingress'
+        ]
         network_data['vlan_network_data'] = {}
 
         for net in networks:
