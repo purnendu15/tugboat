@@ -12,27 +12,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import yaml
 import logging
-import pkg_resources
-import netaddr
 import pprint
+import netaddr
+import pkg_resources
+import yaml
 
 
 class ProcessDataSource():
     def __init__(self, sitetype):
         """ Save file_name and exel_spec """
         self.logger = logging.getLogger(__name__)
-        self.initialize_intermediary_yaml()
+        self._initialize_intermediary()
         self.region_name = sitetype
 
     @staticmethod
-    def read_file(file_name):
+    def _read_file(file_name):
         with open(file_name, 'r') as f:
             raw_data = f.read()
         return raw_data
 
-    def initialize_intermediary_yaml(self):
+    def _initialize_intermediary(self):
         self.host_type = {}
         self.data = {
             'network': {},
@@ -47,7 +47,7 @@ class ProcessDataSource():
         self.generic_data_object = {}
         self.vlan_network_data = {}
 
-    def get_network_subnets(self):
+    def _get_network_subnets(self):
         """
         Extract subnet information for private and public networks
         """
@@ -68,7 +68,7 @@ class ProcessDataSource():
                           pprint.pformat(network_subnets))
         return network_subnets
 
-    def set_genesis_node_details(self):
+    def _get_genesis_node_details(self):
         # Returns the genesis node details
         self.logger.info("Getting Genesis Node Details")
         for racks in self.data['baremetal'].keys():
@@ -80,7 +80,7 @@ class ProcessDataSource():
         self.logger.debug("Genesis Node Details:{}".format(
             pprint.pformat(self.genesis_node)))
 
-    def create_derived_network_data(self):
+    def _create_derived_network_data(self):
         """
         Create derived network data with information from xl and static
         configuration and then store them into the dictionary
@@ -98,32 +98,32 @@ class ProcessDataSource():
         self.logger.debug("Updated network data:\n{}".format(
             pprint.pformat(self.data['network'])))
 
-    def apply_design_rules(self):
+    def _apply_design_rules(self):
         self.logger.info("Apply design rules")
         rules_dir = pkg_resources.resource_filename('spyglass', 'config/')
         rules_file = rules_dir + 'rules.yaml'
-        rules_data_raw = self.read_file(rules_file)
+        rules_data_raw = self._read_file(rules_file)
         rules_yaml = yaml.safe_load(rules_data_raw)
         rules_data = {}
         rules_data.update(rules_yaml)
         for rule in rules_data.keys():
             rule_name = rules_data[rule]['name']
-            function_str = "apply_rule_" + rule_name
+            function_str = "_apply_rule_" + rule_name
             rule_data_name = rules_data[rule][rule_name]
             function = getattr(self, function_str)
             function(rule_data_name)
             self.logger.info("Applying rule:{} by calling:{}".format(
                 rule_name, function_str))
 
-    def apply_rule_host_profile_interfaces(self, rule_data):
-        # Nothing to do as of now
+    def _apply_rule_host_profile_interfaces(self, rule_data):
+        # TODO(pg710r)Nothing to do as of now
         pass
 
-    def apply_rule_hardware_profile(self, rule_data):
-        # Nothing to do as of now
+    def _apply_rule_hardware_profile(self, rule_data):
+        # TODO(pg710r)Nothing to do as of now
         pass
 
-    def apply_rule_ip_alloc_offset(self, rule_data):
+    def _apply_rule_ip_alloc_offset(self, rule_data):
         """
         This rule is applied to incoming network data from
         source while creating ip ranges for vlan networks
@@ -138,7 +138,7 @@ class ProcessDataSource():
         gateway_ip_offset = rule_data['gateway']
 
         # Assign private network profile
-        network_subnets = self.get_network_subnets()
+        network_subnets = self._get_network_subnets()
 
         for net_type in network_subnets:
             if net_type == 'oob':
@@ -220,8 +220,8 @@ class ProcessDataSource():
     def generate_intermediary_yaml(self):
         """ Generating intermediary yaml """
         self.logger.info("Generating intermediary yaml")
-        self.apply_design_rules()
-        self.set_genesis_node_details()
-        self.create_derived_network_data()
+        self._apply_design_rules()
+        self._get_genesis_node_details()
+        self._create_derived_network_data()
         self.intermediary_yaml = self.data
         return self.intermediary_yaml

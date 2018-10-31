@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import pkg_resources
-import os
 import logging
+import os
+import pkg_resources
 
 from jinja2 import Environment
 from jinja2 import FileSystemLoader

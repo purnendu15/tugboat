@@ -85,6 +85,7 @@ def main(*args, **kwargs):
 
     plugin_type = kwargs['type']
     plugin_class = None
+
     for entry_point in pkg_resources.iter_entry_points(
             'data_extractor_plugins'):
         if entry_point.name == plugin_type:
