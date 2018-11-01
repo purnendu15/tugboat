@@ -12,9 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import json
 import logging
 import pprint
 import netaddr
+import jsonschema
 import pkg_resources
 import yaml
 
@@ -76,23 +78,28 @@ class ProcessDataSource():
         self.logger.debug("Genesis Node Details:{}".format(
             pprint.pformat(self.genesis_node)))
 
-    def _create_derived_network_data(self):
+    def _validate_extracted_data(self, data):
         """
-        Create derived network data with information from data source
-        configuration and then store them into the dictionary
+        Validates the extracted data from input source. It checks
+        wether the data types and data format are as expected. The
+        function validates this with regext pattern defined for each
+        data type.
         """
-        self.logger.info("Assigning network data")
-
-        # TODO(pg710r) Enhance to support multiple ingress subnet
-        subnet = netaddr.IPNetwork(
-            self.data['network']['vlan_network_data']['ingress']['subnet'][0])
-        ips = list(subnet)
-        # TODO(pg710r) Include code to derive ingress_vip using rules
-        self.data['network']['bgp']['ingress_vip'] = str(ips[1])
-        self.data['network']['bgp']['public_service_cidr'] = self.data[
-            'network']['vlan_network_data']['ingress']['subnet'][0]
-        self.logger.debug("Updated network data:\n{}".format(
-            pprint.pformat(self.data['network'])))
+        self.logger.info('Validating data read from extracted data')
+        schema_dir = pkg_resources.resource_filename('spyglass', 'schemas/')
+        schema_file = schema_dir + "data_schema.json"
+        json_data = json.loads(json.dumps(data))
+        with open(schema_file, 'r') as f:
+            json_schema = json.load(f)
+        try:
+            with open('data2.json', 'w') as outfile:
+                json.dump(data, outfile, sort_keys=True, indent=4)
+            jsonschema.validate(json_data, json_schema)
+        except jsonschema.exceptions.ValidationError as e:
+            self.logger.error(
+                "Validation Failed with following error:{}".format(e.message))
+            exit(1)
+        self.logger.info("Data validation Passed!")
 
     def _apply_design_rules(self):
         """
@@ -212,12 +219,17 @@ class ProcessDataSource():
                           pprint.pformat(vlan_network_data))
 
     def load_extracted_data_from_data_source(self, extracted_data):
+        """
+        Function called from spyglass.py to pass extracted data
+        from input data source
+        """
         self.logger.info("Load extracted data from data source")
+        self._validate_extracted_data(extracted_data)
         self.data = extracted_data
         self.logger.debug("Dump extracted data from data source:\n%s",
                           pprint.pformat(extracted_data))
         extracted_file = "extracted_file.yaml"
-        yaml_file = yaml.dump(extracted_file, default_flow_style=False)
+        yaml_file = yaml.dump(extracted_data, default_flow_style=False)
         with open(extracted_file, 'w') as f:
             f.write(yaml_file)
         f.close()
@@ -239,6 +251,5 @@ class ProcessDataSource():
         self.logger.info("Generating intermediary yaml")
         self._apply_design_rules()
         self._get_genesis_node_details()
-        # self._create_derived_network_data()
         self.intermediary_yaml = self.data
         return self.intermediary_yaml
