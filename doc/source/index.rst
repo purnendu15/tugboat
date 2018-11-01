@@ -20,6 +20,13 @@ Spyglass Documentation
 
 Overview
 --------
+Spyglass is a data extraction tool which can interface with
+different input data sources to generate site manifest YAML files.
+The data sources will provide all the configuration data needed
+for a site deployment. These site manifest YAML files generated
+by spyglass will be saved in a Git repository, from where Pegleg
+can access and aggregate them. This aggregated file can then be
+fed to Shipyard for site deployment / updates.
 
 .. toctree::
    :maxdepth: 2

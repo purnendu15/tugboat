@@ -137,9 +137,9 @@ def main(*args, **kwargs):
         logger.info('No suitable options passed')
         logger.info("Usage Instructions:")
         logger.info(
-            "Generate Intermediary:\ntugboat -g -d <additional_config>")
+            "Generate Intermediary:\nspyglass -g -d <additional_config>")
         logger.info(
-            "Generate Manifest & Intermediary :\ntugboat -mg -d <site config>")
+            "Generate Manifest & Intermediary :\nspyglass -mg -d <site config>")
 
     logger.info("Spyglass Execution Completed")
 
