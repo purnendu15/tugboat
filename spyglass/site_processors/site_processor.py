@@ -20,15 +20,17 @@ from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from .base import BaseProcessor
 
+LOG = logging.getLogger(__name__)
+
 
 class SiteProcessor(BaseProcessor):
     def __init__(self, intermediary_yaml):
-        self.logger = logging.getLogger(__name__)
         self.yaml_data = intermediary_yaml
 
     def render_template(self):
-        """
-        The function renders network config yaml from j2 templates.
+        """ The method  renders network config yaml from j2 templates.
+
+
         Network configs common to all racks (i.e oam, overlay, storage,
         calico) are generated in a single file. Rack specific
         configs( pxe and oob) are generated per rack.
@@ -36,7 +38,7 @@ class SiteProcessor(BaseProcessor):
         template_software_dir = pkg_resources.resource_filename(
             'spyglass', 'templates/')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        self.logger.debug("Template dif abspath:%s", template_dir_abspath)
+        LOG.debug("Template Path:%s", template_dir_abspath)
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
@@ -56,13 +58,14 @@ class SiteProcessor(BaseProcessor):
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-                self.logger.info("Rendering {}".format(template_j2))
                 try:
                     out = open(outfile, "w")
                     template_j2.stream(data=self.yaml_data).dump(out)
-                    self.logger.info('Rendered {}'.format(outfile))
+                    LOG.info("Rendering {}".format(outfile_yaml))
                     out.close()
                 except IOError as ioe:
+                    LOG.error(
+                        "IOError during rendering:{}".format(outfile_yaml))
                     raise SystemExit(
                         "Error when generating {:s}:\n{:s}".format(
                             outfile, ioe.strerror))

@@ -14,14 +14,15 @@
 import logging
 import sys
 
+LOG = logging.getLogger(__name__)
+
 
 class BaseError(Exception):
     def __init__(self, msg):
-        self.logger = logging.getLogger(__name__)
         self.msg = msg
 
     def display_error(self):
-        self.logger.info(self.msg)
+        LOG.info(self.msg)
         sys.exit(1)
 
 

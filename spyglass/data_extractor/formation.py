@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import logging
+import pprint
 import requests
 import swagger_client
 import urllib3
@@ -26,6 +27,7 @@ from spyglass.data_extractor.custom_exceptions import (
     TokenGenerationError)
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 LOG = logging.getLogger(__name__)
 
 
@@ -52,10 +54,12 @@ class FormationPlugin(BaseDataSourcePlugin):
         self.region_name_id_mapping = {}
         self.rack_name_id_mapping = {}
         self.device_name_id_mapping = {}
-        LOG.info("Data extractor plugin of type %s initiated",
-                 self.source_name)
+        LOG.info("Initiated data extractor plugin:{}".format(self.source_name))
 
     def set_config_opts(self, conf):
+        """ Sets the config params passed by CLI"""
+        LOG.info("Plugin params passed:\n{}".format(pprint.pformat(conf)))
+        self._validate_config_options(conf)
         self.formation_api_url = conf['url']
         self.user = conf['user']
         self.password = conf['password']
@@ -64,11 +68,25 @@ class FormationPlugin(BaseDataSourcePlugin):
         self._get_formation_client()
         self._update_site_and_zone(self.region)
 
+    def _validate_config_options(self, conf):
+        """Validate the CLI params passed
+
+        The method checks for missing parameters and terminates
+        Spyglass execution if found so.
+        """
+
+        missing_params = []
+        for key in conf.keys():
+            if conf[key] is None:
+                missing_params.append(key)
+        if len(missing_params) != 0:
+            LOG.error("Missing Plugin Params{}:".format(missing_params))
+            exit()
+
     # Implement helper classes
 
     def _generate_token(self):
         """Generate token for Formation
-
         Formation API does not provide separate resource to generate
         token. This is a workaround to call directly Formation API
         to get token instead of using Formation client.
@@ -308,7 +326,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         vlan_api = swagger_client.VlansApi(self.formation_api_client)
         vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
             zone_id, region_id)
-        print("in get_networks", vlans)
+        LOG.debug("Extracted region network information\n{}".format(vlans))
         vlans_list = []
         for vlan_ in vlans:
             tmp_vlan = {}
@@ -340,8 +358,7 @@ class FormationPlugin(BaseDataSourcePlugin):
             device_id = self._get_device_id_by_name(host)
             vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
                 zone_id, device_id)
-
-            print("in get_ips", vlans)
+            LOG.debug("Received VLAN Network Information\n{}".format(vlans))
             ip_[host] = {}
             for vlan_ in vlans:
                 name = vlan_.vlan.name

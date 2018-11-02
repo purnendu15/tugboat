@@ -13,6 +13,7 @@
 # limitations under the License.
 
 import abc
+import pprint
 import six
 import logging
 
@@ -315,9 +316,9 @@ class BaseDataSourcePlugin(object):
             else:
                 temp_host['type'] = 'compute'
 
-            LOG.info("Update baremetal information for rack %s: host %s" %
-                     (rack_name, host_name))
             baremetal[rack_name][host_name] = temp_host
+        LOG.debug("Baremetal information:\n{}".format(
+            pprint.pformat(baremetal)))
 
         return baremetal
 
@@ -341,7 +342,7 @@ class BaseDataSourcePlugin(object):
           'domain': None
         }
         """
-        LOG.info("Extract location information from plugin")
+        LOG.info("Extract site information from plugin")
         site_info = {}
 
         # Extract location information
@@ -360,6 +361,9 @@ class BaseDataSourcePlugin(object):
 
         domain_data = self.get_domain_name(self.region)
         site_info['domain'] = domain_data
+
+        LOG.debug("Extracted site information:\n{}".format(
+            pprint.pformat(site_info)))
 
         return site_info
 
@@ -403,9 +407,9 @@ class BaseDataSourcePlugin(object):
                 tmp_net['vlan'] = net['vlan']
 
             network_data['vlan_network_data'][net['name']] = tmp_net
-            LOG.info("Update vlan information for network %s: vlan %s" %
-                     (net, tmp_net.get('vlan', None)))
 
+        LOG.debug("Extracted network data:\n{}".format(
+            pprint.pformat(network_data)))
         return network_data
 
     def extract_data(self):
@@ -420,7 +424,6 @@ class BaseDataSourcePlugin(object):
         site_data['site_info'] = self.extract_site_information()
         site_data['network'] = self.extract_network_information()
         self.site_data = site_data
-        LOG.info("Site data updated successfully")
         return site_data
 
     def apply_additional_data(self, extra_data):
@@ -429,8 +432,10 @@ class BaseDataSourcePlugin(object):
         In case plugin doesnot provide some data, user can specify
         the same as part of additional data in form of dict. The user
         provided dict will be merged recursively to site_data.
+        If there is repetition of data then additional data supplied
+        shall take precedence.
         """
-        LOG.info("Update site data with additional user input data")
+        LOG.info("Update site data with additional input")
         tmp_site_data = utils.merge(self.site_data, extra_data)
         self.site_data = tmp_site_data
         return self.site_data

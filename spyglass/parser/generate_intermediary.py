@@ -20,11 +20,12 @@ import jsonschema
 import pkg_resources
 import yaml
 
+LOG = logging.getLogger(__name__)
+
 
 class ProcessDataSource():
     def __init__(self, sitetype):
         # Initialize intermediary and save site type
-        self.logger = logging.getLogger(__name__)
         self._initialize_intermediary()
         self.region_name = sitetype
 
@@ -49,43 +50,41 @@ class ProcessDataSource():
 
     def _get_network_subnets(self):
         # Extract subnet information for networks
-        self.logger.info("Getting rackwise subnet")
+        LOG.info("Extracting network subnets")
         network_subnets = {}
         # self.format_network_data()
         for net_type in self.data['network']['vlan_network_data']:
             # One of the type is ingress and we don't want that here
             if (net_type != 'ingress'):
-                self.logger.info("Network" + "Info:net_type {}: {}".format(
-                    net_type, self.data['network']['vlan_network_data']
-                    [net_type]))
                 network_subnets[net_type] = netaddr.IPNetwork(
                     self.data['network']['vlan_network_data'][net_type]
                     ['subnet'])
 
-        self.logger.debug("rackwise subnets:\n%s",
-                          pprint.pformat(network_subnets))
+        LOG.debug("Network subnets:\n{}".format(
+            pprint.pformat(network_subnets)))
         return network_subnets
 
     def _get_genesis_node_details(self):
         # Returns the genesis node details
-        self.logger.info("Getting Genesis Node Details")
+        LOG.info("Getting Genesis Node Details")
         for racks in self.data['baremetal'].keys():
             rack_hosts = self.data['baremetal'][racks]
             for host in rack_hosts:
                 if rack_hosts[host]['type'] == 'genesis':
                     self.genesis_node = rack_hosts[host]
                     self.genesis_node['name'] = host
-        self.logger.debug("Genesis Node Details:{}".format(
+        LOG.debug("Genesis Node Details:{}".format(
             pprint.pformat(self.genesis_node)))
 
     def _validate_extracted_data(self, data):
-        """
-        Validates the extracted data from input source. It checks
-        wether the data types and data format are as expected. The
-        function validates this with regext pattern defined for each
+        """ Validates the extracted data from input source.
+
+
+        It checks wether the data types and data format are as expected.
+        The method validates this with regex pattern defined for each
         data type.
         """
-        self.logger.info('Validating data read from extracted data')
+        LOG.info('Validating data read from extracted data')
         schema_dir = pkg_resources.resource_filename('spyglass', 'schemas/')
         schema_file = schema_dir + "data_schema.json"
         json_data = json.loads(json.dumps(data))
@@ -96,17 +95,21 @@ class ProcessDataSource():
                 json.dump(data, outfile, sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
-            self.logger.error(
-                "Validation Failed with following error:{}".format(e.message))
+            LOG.error("Validation Failed with following error:{}".format(
+                e.message))
             exit(1)
-        self.logger.info("Data validation Passed!")
+        LOG.info("Data validation Passed!")
 
     def _apply_design_rules(self):
+        """ Applies design rules from rules.yaml
+
+
+        These rules are used to determine ip address allocation ranges,
+        host profile interfaces and also to create hardware profile
+        information. The method calls corresponding rule hander function
+        based on rule name and applies them to appropriate data objects.
         """
-        Applies design rules from rules.yaml to create a subnet address,
-        gateway ip, ranges for dhcp and static ip address
-        """
-        self.logger.info("Apply design rules")
+        LOG.info("Apply design rules")
         rules_dir = pkg_resources.resource_filename('spyglass', 'config/')
         rules_file = rules_dir + 'rules.yaml'
         rules_data_raw = self._read_file(rules_file)
@@ -119,8 +122,7 @@ class ProcessDataSource():
             rule_data_name = rules_data[rule][rule_name]
             function = getattr(self, function_str)
             function(rule_data_name)
-            self.logger.info("Applying rule:{} by calling:{}".format(
-                rule_name, function_str))
+            LOG.info("Applying rule:{}".format(rule_name))
 
     def _apply_rule_host_profile_interfaces(self, rule_data):
         # TODO(pg710r)Nothing to do as of now
@@ -131,11 +133,13 @@ class ProcessDataSource():
         pass
 
     def _apply_rule_ip_alloc_offset(self, rule_data):
-        """
+        """ Offset allocation rules to determine ip address range(s)
+
+
         This rule is applied to incoming network data to determine
         network address, gateway ip and other address ranges
         """
-        self.logger.info("Apply network design rules")
+        LOG.info("Apply network design rules")
         vlan_network_data = {}
 
         # Collect Rules
@@ -149,7 +153,7 @@ class ProcessDataSource():
         dhcp_ip_end_offset = rule_data['dhcp_ip_end']
 
         # Set ingress vip and CIDR for bgp
-        self.logger.info("Applying rules to network bgp data")
+        LOG.info("Applying rule to network bgp data")
         subnet = netaddr.IPNetwork(
             self.data['network']['vlan_network_data']['ingress']['subnet'][0])
         ips = list(subnet)
@@ -157,11 +161,11 @@ class ProcessDataSource():
             ips[ingress_vip_offset])
         self.data['network']['bgp']['public_service_cidr'] = self.data[
             'network']['vlan_network_data']['ingress']['subnet'][0]
-        self.logger.debug("Updated network bgp data:\n{}".format(
+        LOG.debug("Updated network bgp data:\n{}".format(
             pprint.pformat(self.data['network']['bgp'])))
 
-        self.logger.info("Applying rules to vlan network data")
-        # Assign private network profile
+        LOG.info("Applying rule to vlan network data")
+        # Get network subnets
         network_subnets = self._get_network_subnets()
         # Apply rules to vlan networks
         for net_type in network_subnets:
@@ -169,11 +173,9 @@ class ProcessDataSource():
                 ip_offset = oob_ip_offset
             else:
                 ip_offset = default_ip_offset
-            self.logger.info("net_types:{}".format(net_type))
             vlan_network_data[net_type] = {}
             subnet = network_subnets[net_type]
             ips = list(subnet)
-            self.logger.info("net_type:{} subnet:{}".format(net_type, subnet))
 
             vlan_network_data[net_type]['network'] = str(
                 network_subnets[net_type])
@@ -215,19 +217,19 @@ class ProcessDataSource():
             self.data['network']['vlan_network_data'][
                 net_type] = vlan_network_data[net_type]
 
-        self.logger.debug("vlan network data:%s\n",
-                          pprint.pformat(vlan_network_data))
+        LOG.debug("Updated vlan network data:\n{}".format(
+            pprint.pformat(vlan_network_data)))
 
     def load_extracted_data_from_data_source(self, extracted_data):
         """
         Function called from spyglass.py to pass extracted data
         from input data source
         """
-        self.logger.info("Load extracted data from data source")
+        LOG.info("Load extracted data from data source")
         self._validate_extracted_data(extracted_data)
         self.data = extracted_data
-        self.logger.debug("Dump extracted data from data source:\n%s",
-                          pprint.pformat(extracted_data))
+        LOG.debug("Extracted data from plugin data source:\n{}".format(
+            pprint.pformat(extracted_data)))
         extracted_file = "extracted_file.yaml"
         yaml_file = yaml.dump(extracted_data, default_flow_style=False)
         with open(extracted_file, 'w') as f:
@@ -238,7 +240,7 @@ class ProcessDataSource():
 
     def dump_intermediary_file(self):
         """ Dumping intermediary yaml """
-        self.logger.info("Dumping intermediary yaml")
+        LOG.info("Dumping intermediary yaml")
         intermediary_file = "{}_intermediary.yaml".format(
             self.data['region_name'])
         yaml_file = yaml.dump(self.data, default_flow_style=False)
@@ -248,7 +250,7 @@ class ProcessDataSource():
 
     def generate_intermediary_yaml(self):
         """ Generating intermediary yaml """
-        self.logger.info("Generating intermediary yaml")
+        LOG.info("Generating intermediary yaml")
         self._apply_design_rules()
         self._get_genesis_node_details()
         self.intermediary_yaml = self.data
