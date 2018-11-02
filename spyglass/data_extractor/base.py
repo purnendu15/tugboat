@@ -436,6 +436,6 @@ class BaseDataSourcePlugin(object):
         shall take precedence.
         """
         LOG.info("Update site data with additional input")
-        tmp_site_data = utils.merge(self.site_data, extra_data)
+        tmp_site_data = utils.dict_merge(self.site_data, extra_data)
         self.site_data = tmp_site_data
         return self.site_data

@@ -14,19 +14,28 @@
 
 
 # Merge two dictionaries
-def merge(a, b, path=None):
-    """Merge dictionary b into a recursively"""
+def dict_merge(dictA, dictB, path=None):
+    """ Recursively  Merge dictionary dictB  into dictA
+
+
+    DictA represents the data extracted by a  plugin and DictB
+    represents the additional site config dictionary that is passed
+    to CLI. The merge process compares the dictionary keys and if they
+    are same and the values they point to are different , then
+    dictB object's value is copied to dictA. If a key is unique
+    to dictB, then it is copied to dictA. 
+    """
     if path is None:
         path = []
 
-    for key in b:
-        if key in a:
-            if isinstance(a[key], dict) and isinstance(b[key], dict):
-                merge(a[key], b[key], path + [str(key)])
-            elif a[key] == b[key]:
-                pass  # same leaf value
+    for key in dictB:
+        if key in dictA:
+            if isinstance(dictA[key], dict) and isinstance(dictB[key], dict):
+                dict_merge(dictA[key], dictB[key], path + [str(key)])
+            elif dictA[key] == dictB[key]:
+                pass  # values are same, so no processing here
             else:
-                a[key] = b[key]
+                dictA[key] = dictB[key]
         else:
-            a[key] = b[key]
-    return a
+            dictA[key] = dictB[key]
+    return dictA
