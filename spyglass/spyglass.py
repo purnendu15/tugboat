@@ -24,10 +24,10 @@ from spyglass.site_processors.site_processor import SiteProcessor
 LOG = logging.getLogger('spyglass')
 
 
-def generate_manifest_files(intermediary):
+def generate_manifest_files(intermediary, manifest_dir):
     """ Generate manifests """
     if intermediary:
-        processor_engine = SiteProcessor(intermediary)
+        processor_engine = SiteProcessor(intermediary, manifest_dir)
         processor_engine.render_template()
     else:
         LOG.error('Intermediary not found')
@@ -55,10 +55,20 @@ def generate_manifest_files(intermediary):
     is_flag=True,
     help='Dump intermediary file from passed excel and excel spec')
 @click.option(
+    '--intermediary_dir',
+    '-idir',
+    type=click.Path(exists=True),
+    help='The path where intermediary file needs to be generated')
+@click.option(
     '--generate_manifests',
     '-m',
     is_flag=True,
     help='Generate manifests from the generated intermediary file')
+@click.option(
+    '--manifest_dir',
+    '-mdir',
+    type=click.Path(exists=True),
+    help='The path where manifest files needs to be generated')
 @click.option(
     '--loglevel',
     '-l',
@@ -69,7 +79,9 @@ def generate_manifest_files(intermediary):
     INFO:20, WARNING:30, ERROR:40, CRITICAL:50')
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
+    intermediary_dir = kwargs['intermediary_dir']
     generate_manifests = kwargs['generate_manifests']
+    manifest_dir = kwargs['manifest_dir']
     site = kwargs['site']
     loglevel = kwargs['loglevel']
     # Set default log level to INFO
@@ -136,10 +148,10 @@ def main(*args, **kwargs):
         LOG.info("Generating intermediary")
         intermediary_yaml = process_input_ob.generate_intermediary_yaml()
         if generate_intermediary:
-            process_input_ob.dump_intermediary_file()
+            process_input_ob.dump_intermediary_file(intermediary_dir)
         if generate_manifests:
             LOG.info("Generating site Manifests")
-            generate_manifest_files(intermediary_yaml)
+            generate_manifest_files(intermediary_yaml, manifest_dir)
     else:
         LOG.error("Insufficient parameters passed!! Spyglass exited")
         exit()

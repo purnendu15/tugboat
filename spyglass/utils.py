@@ -23,7 +23,7 @@ def dict_merge(dictA, dictB, path=None):
     to CLI. The merge process compares the dictionary keys and if they
     are same and the values they point to are different , then
     dictB object's value is copied to dictA. If a key is unique
-    to dictB, then it is copied to dictA. 
+    to dictB, then it is copied to dictA.
     """
     if path is None:
         path = []

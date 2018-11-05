@@ -91,8 +91,11 @@ class ProcessDataSource():
         with open(schema_file, 'r') as f:
             json_schema = json.load(f)
         try:
+            # Suppressing writing of data2.json. Can use it for debugging
+            """
             with open('data2.json', 'w') as outfile:
                 json.dump(data, outfile, sort_keys=True, indent=4)
+            """
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
             LOG.error("Validation Failed with following error:{}".format(
@@ -238,13 +241,19 @@ class ProcessDataSource():
         # Append region_data supplied from CLI to self.data
         self.data['region_name'] = self.region_name
 
-    def dump_intermediary_file(self):
+    def dump_intermediary_file(self, intermediary_dir):
         """ Dumping intermediary yaml """
         LOG.info("Dumping intermediary yaml")
         intermediary_file = "{}_intermediary.yaml".format(
             self.data['region_name'])
+        # Check of if output dir = intermediary_dir exists
+        if intermediary_dir is not None:
+            outfile = "{}/{}".format(intermediary_dir, intermediary_file)
+        else:
+            outfile = intermediary_file
+        LOG.info("Intermediary file dir:{}".format(outfile))
         yaml_file = yaml.dump(self.data, default_flow_style=False)
-        with open(intermediary_file, 'w') as f:
+        with open(outfile, 'w') as f:
             f.write(yaml_file)
         f.close()
 
