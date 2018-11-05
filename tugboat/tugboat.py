@@ -131,9 +131,9 @@ def main(*args, **kwargs):
         logger.info("Generatng Manifests")
         generate_manifest_files(intermediary_yaml)
 
-    elif generate_intermediary:
+    elif generate_intermediary or generate_manifests:
 
-        """ Generate Intermediary only"""
+        # If either generate_intermediary or generate_manifests 
 
         """ Check if site_config is present. If not return
         error """
@@ -150,17 +150,15 @@ def main(*args, **kwargs):
         process_input_ob.get_parsed_raw_data_from_excel()
         logger.info("Generating Intermediary File")
         intermediary_yaml = process_input_ob.generate_intermediary_yaml()
-        process_input_ob.dump_intermediary_file()
+        if generate_intermediary:
+            process_input_ob.dump_intermediary_file()
+        if generate_manifests:
+            logger.info("Generatng Manifests")
+            generate_manifest_files(intermediary_yaml)
 
     else:
-        print('No suitable options passed')
-        print("Usage Instructions:")
-        print("Generate Intermediary:\ntugboat" +
-              "-g -x <DesignSpec> -s <excel spec>")
-        print("Generate Manifest & Intermediary" +
-              ":\ntugboat -mg -x <DesignSpec> -s <excel spec>")
-        print("Generate Manifest with supplied Intermediary" +
-              ":\ntugboat -m -i  <intemediary_file>")
+        logger.error("No suitable options passed, try tugboat --help for options")
+        logger.error("Tugboat Exited!!")
 
     logger.info("Tugboat Execution Completed")
 
