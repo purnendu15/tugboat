@@ -119,7 +119,6 @@ def main(*args, **kwargs):
         # TODO(nh863p): Do we need to check if the arguments are null
         # or is it handled in click
         plugin_conf = {'url': url, 'user': user, 'password': password}
-        plugin_conf['token'] = 'faketoken'
 
         if additional_config is not None:
             with open(additional_config, 'r') as config:

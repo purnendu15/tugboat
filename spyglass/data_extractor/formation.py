@@ -14,6 +14,7 @@
 
 import logging
 import pprint
+import re
 import requests
 import swagger_client
 import urllib3
@@ -141,7 +142,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         # rack name
         zone = region[:-1]
         # TODO(pg710r): site name is hardcoded
-        site = zone
+        site = zone[:-1]
 
         # zone = self._get_zone_by_region_name(region)
         # site = self._get_site_by_zone_name(zone)
@@ -326,17 +327,36 @@ class FormationPlugin(BaseDataSourcePlugin):
         vlan_api = swagger_client.VlansApi(self.formation_api_client)
         vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
             zone_id, region_id)
+        # Case when vlans list is empty from
+        # zones_zone_id_regions_region_id_vlans_get
+        if len(vlans) is 0:
+            # get device-id from the first host and get the network details
+            hosts = self.get_hosts(self.region)
+            host = hosts[0]['name']
+            device_id = self._get_device_id_by_name(host)
+            vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
+                zone_id, device_id)
+
         LOG.debug("Extracted region network information\n{}".format(vlans))
         vlans_list = []
         for vlan_ in vlans:
-            tmp_vlan = {}
-            tmp_vlan['name'] = vlan_.vlan.name
-            tmp_vlan['vlan'] = vlan_.vlan.vlan_id
-            tmp_vlan['subnet'] = vlan_.vlan.subnet_range
-            tmp_vlan['gateway'] = vlan_.ipv4_gateway
-            tmp_vlan['subnet_level'] = vlan_.vlan.subnet_level
-            vlans_list.append(tmp_vlan)
+            if len(vlan_.vlan.ipv4) is not 0:
+                tmp_vlan = {}
+                tmp_vlan['name'] = self._get_network_name_from_vlan_name(
+                    vlan_.vlan.name)
+                tmp_vlan['vlan'] = vlan_.vlan.vlan_id
+                tmp_vlan['subnet'] = vlan_.vlan.subnet_range
+                tmp_vlan['gateway'] = vlan_.ipv4_gateway
+                tmp_vlan['subnet_level'] = vlan_.vlan.subnet_level
+                vlans_list.append(tmp_vlan)
 
+        # TODO(pg710r): hack to put dummy values for pxe
+        tmp_vlan = {}
+        tmp_vlan['name'] = 'pxe'
+        tmp_vlan['vlan'] = 43
+        tmp_vlan['subnet'] = '172.30.4.0/25'
+        tmp_vlan['gateway'] = '172.30.4.1'
+        vlans_list.append(tmp_vlan)
         return vlans_list
 
     def get_ips(self, region, host=None):
@@ -361,14 +381,52 @@ class FormationPlugin(BaseDataSourcePlugin):
             LOG.debug("Received VLAN Network Information\n{}".format(vlans))
             ip_[host] = {}
             for vlan_ in vlans:
-                name = vlan_.vlan.name
-                ipv4 = vlan_.vlan.ipv4[0].ip
-                # TODD(pg710r) This code needs to extended to support ipv4
-                # and ipv6
-                # ip_[host][name] = {'ipv4': ipv4}
-                ip_[host][name] = ipv4
+                # TODO(pg710r) We need to handle the case when incoming ipv4
+                # list is empty
+                if len(vlan_.vlan.ipv4) is not 0:
+                    name = self._get_network_name_from_vlan_name(
+                        vlan_.vlan.name)
+                    ipv4 = vlan_.vlan.ipv4[0].ip
+                    LOG.debug("vlan:{},name:{},ip:{},vlan_name:{}".format(
+                        vlan_.vlan.vlan_id, name, ipv4, vlan_.vlan.name))
+                    # TODD(pg710r) This code needs to extended to support ipv4
+                    # and ipv6
+                    # ip_[host][name] = {'ipv4': ipv4}
+                    ip_[host][name] = ipv4
 
         return ip_
+
+    def _get_network_name_from_vlan_name(self, vlan_name):
+        """ network names are ksn, oam, oob, overlay, storage, pxe
+
+        The following mapping rules apply:
+            vlan_name contains "ksn"  the network name is "calico"
+            vlan_name contains "storage" the network name is "storage"
+            vlan_name contains "server"  the network name is "oam"
+            vlan_name contains "ovs"  the network name is "overlay"
+            vlan_name contains "ILO" the network name is "oob"
+            TODO(pg710r): need to find out for pxe
+        """
+        network_names = ['ksn', 'storage', 'server', 'ovs', 'ILO', 'pxe']
+        for name in network_names:
+            # Make a pattern that would ignore case.
+            # if name is 'ksn' pattern name is '(?i)(ksn)'
+            name_pattern = "(?i)({})".format(name)
+            if re.search(name_pattern, vlan_name):
+                if name is 'ksn':
+                    return 'calico'
+                if name is 'storage':
+                    return 'storage'
+                if name is 'server':
+                    return 'oam'
+                if name is 'ovs':
+                    return 'overlay'
+                if name is 'ILO':
+                    return 'oob'
+                if name is 'pxe':
+                    return 'pxe'
+        # if nothing matches
+        return ("")
 
     def get_dns_servers(self, region):
         try:
