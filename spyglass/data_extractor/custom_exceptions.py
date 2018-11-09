@@ -11,7 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import logging
 import sys
+
+LOG = logging.getLogger(__name__)
 
 
 class BaseError(Exception):
@@ -19,7 +22,7 @@ class BaseError(Exception):
         self.msg = msg
 
     def display_error(self):
-        print(self.msg)
+        LOG.info(self.msg)
         sys.exit(1)
 
 

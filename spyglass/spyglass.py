@@ -12,10 +12,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import click
 import logging
+import pprint
 import pkg_resources
+import click
 import yaml
+
+from spyglass.parser.generate_intermediary import ProcessDataSource
+from spyglass.site_processors.site_processor import SiteProcessor
+
+LOG = logging.getLogger('spyglass')
+
+
+def generate_manifest_files(intermediary, manifest_dir):
+    """ Generate manifests """
+    if intermediary:
+        processor_engine = SiteProcessor(intermediary, manifest_dir)
+        processor_engine.render_template()
+    else:
+        LOG.error('Intermediary not found')
 
 
 @click.command()
@@ -37,11 +52,23 @@ import yaml
 @click.option(
     '--generate_intermediary',
     '-g',
+    is_flag=True,
     help='Dump intermediary file from passed excel and excel spec')
+@click.option(
+    '--intermediary_dir',
+    '-idir',
+    type=click.Path(exists=True),
+    help='The path where intermediary file needs to be generated')
 @click.option(
     '--generate_manifests',
     '-m',
+    is_flag=True,
     help='Generate manifests from the generated intermediary file')
+@click.option(
+    '--manifest_dir',
+    '-mdir',
+    type=click.Path(exists=True),
+    help='The path where manifest files needs to be generated')
 @click.option(
     '--loglevel',
     '-l',
@@ -52,30 +79,33 @@ import yaml
     INFO:20, WARNING:30, ERROR:40, CRITICAL:50')
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
+    intermediary_dir = kwargs['intermediary_dir']
     generate_manifests = kwargs['generate_manifests']
+    manifest_dir = kwargs['manifest_dir']
     site = kwargs['site']
     loglevel = kwargs['loglevel']
-    logger = logging.getLogger('spyglass')
     # Set default log level to INFO
-    logger.setLevel(loglevel)
+    LOG.setLevel(loglevel)
     # set console logging. Change to file by changing to FileHandler
     stream_handle = logging.StreamHandler()
     # Set logging format
-    formatter = logging.Formatter('(%(name)s)[%(levelname)s]%(filename)s' +
-                                  '[%(lineno)d]:(%(funcName)s)\n:%(message)s')
+    formatter = logging.Formatter(
+        '(%(name)s): %(asctime)s %(levelname)s %(message)s')
     stream_handle.setFormatter(formatter)
-    logger.addHandler(stream_handle)
-    logger.info("Spyglass start")
+    LOG.addHandler(stream_handle)
+    LOG.info("Spyglass start")
 
     plugin_type = kwargs['type']
     plugin_class = None
+
     for entry_point in pkg_resources.iter_entry_points(
             'data_extractor_plugins'):
         if entry_point.name == plugin_type:
             plugin_class = entry_point.load()
 
     if plugin_class is None:
-        logger.error("Plugin class not loaded")
+        LOG.error(
+            "Unsupported Plugin type. Plugin type:{}".format(plugin_type))
         exit()
 
     plugin_conf = {}
@@ -95,13 +125,37 @@ def main(*args, **kwargs):
                 raw_data = config.read()
                 additional_config_data = yaml.safe_load(raw_data)
 
+    LOG.debug("Additional config data:\n{}".format(
+        pprint.pformat(additional_config_data)))
     data_extractor = plugin_class(site)
     data_extractor.set_config_opts(plugin_conf)
     data_extractor.extract_data()
+    LOG.info(
+        "Apply additional configuration from:{}".format(additional_config))
     data_extractor.apply_additional_data(additional_config_data)
-    print(data_extractor.site_data)
+    LOG.debug(pprint.pformat(data_extractor.site_data))
 
-    logger.info("Spyglass Execution Completed")
+    if generate_intermediary or generate_manifests:
+        """
+        Initialize ProcessDataSource object to process received data
+        """
+        process_input_ob = ProcessDataSource(site)
+        # Parses the raw input received from data source
+        process_input_ob.load_extracted_data_from_data_source(
+            data_extractor.site_data)
+        intermediary_yaml = {}
+        LOG.info("Generating intermediary")
+        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+        if generate_intermediary:
+            process_input_ob.dump_intermediary_file(intermediary_dir)
+        if generate_manifests:
+            LOG.info("Generating site Manifests")
+            generate_manifest_files(intermediary_yaml, manifest_dir)
+    else:
+        LOG.error("Insufficient parameters passed!! Spyglass exited")
+        exit()
+
+    LOG.info("Spyglass Execution Completed")
 
 
 if __name__ == '__main__':

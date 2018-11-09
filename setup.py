@@ -35,9 +35,8 @@ setup(
         'console_scripts': [
             'spyglass=spyglass.spyglass:main',
         ],
-        'data_extractor_plugins': [
-            'formation=spyglass.data_extractor.formation:FormationPlugin'
-        ]
+        'data_extractor_plugins':
+        ['formation=spyglass.data_extractor.formation:FormationPlugin']
     },
     include_package_data=True,
     package_data={

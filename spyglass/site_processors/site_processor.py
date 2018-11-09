@@ -12,31 +12,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import logging
 import pkg_resources
 import os
-import logging
-
 from jinja2 import Environment
 from jinja2 import FileSystemLoader
 from .base import BaseProcessor
 
+LOG = logging.getLogger(__name__)
+
 
 class SiteProcessor(BaseProcessor):
-    def __init__(self, intermediary_yaml):
-        self.logger = logging.getLogger(__name__)
+    def __init__(self, intermediary_yaml, manifest_dir):
         self.yaml_data = intermediary_yaml
+        self.manifest_dir = manifest_dir
 
     def render_template(self):
-        """
-        The function renders network config yaml from j2 templates.
+        """ The method  renders network config yaml from j2 templates.
+
+
         Network configs common to all racks (i.e oam, overlay, storage,
         calico) are generated in a single file. Rack specific
         configs( pxe and oob) are generated per rack.
         """
+        # Check of manifest_dir exists
+        if self.manifest_dir is not None:
+            site_manifest_dir = self.manifest_dir + '/pegleg_manifests/site/'
+        else:
+            site_manifest_dir = 'pegleg_manifests/site/'
+        LOG.info("Site manifest output dir:{}".format(site_manifest_dir))
+
         template_software_dir = pkg_resources.resource_filename(
-            'tugboat', 'templates/')
+            'spyglass', 'templates/')
         template_dir_abspath = os.path.dirname(template_software_dir)
-        self.logger.debug("Template dif abspath:%s", template_dir_abspath)
+        LOG.debug("Template Path:%s", template_dir_abspath)
 
         for dirpath, dirs, files in os.walk(template_dir_abspath):
             for filename in files:
@@ -48,21 +57,23 @@ class SiteProcessor(BaseProcessor):
                     'get_role_wise_nodes'] = self.get_role_wise_nodes
                 templatefile = os.path.join(dirpath, filename)
                 outdirs = dirpath.split('templates')[1]
-                outfile_path = 'pegleg_manifests/site/{}{}'.format(
-                    self.yaml_data['region_name'], outdirs)
+
+                outfile_path = '{}{}{}'.format(
+                    site_manifest_dir, self.yaml_data['region_name'], outdirs)
                 outfile_yaml = templatefile.split('.j2')[0].split('/')[-1]
                 outfile = outfile_path + '/' + outfile_yaml
                 outfile_dir = os.path.dirname(outfile)
                 if not os.path.exists(outfile_dir):
                     os.makedirs(outfile_dir)
                 template_j2 = j2_env.get_template(filename)
-                self.logger.info("Rendering {}".format(template_j2))
                 try:
                     out = open(outfile, "w")
                     template_j2.stream(data=self.yaml_data).dump(out)
-                    self.logger.info('Rendered {}'.format(outfile))
+                    LOG.info("Rendering {}".format(outfile_yaml))
                     out.close()
                 except IOError as ioe:
+                    LOG.error(
+                        "IOError during rendering:{}".format(outfile_yaml))
                     raise SystemExit(
                         "Error when generating {:s}:\n{:s}".format(
                             outfile, ioe.strerror))

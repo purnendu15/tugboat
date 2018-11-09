@@ -21,9 +21,90 @@ Getting Started
 What is Spyglass?
 ----------------
 
-TODO
+Spyglass is a data extraction tool which can interface with
+different input data sources to generate site manifest YAML files.
+The data sources will provide all the configuration data needed
+for a site deployment. These site manifest YAML files generated
+by spyglass will be saved in a Git repository, from where Pegleg
+can access and aggregate them. This aggregated file can then be
+fed to Shipyard for site deployment / updates.
+
+Architecture
+------------
+
+::
+
+        +-----------+           +-------------+
+        |           |           |  +-------+  |
+        |           |   +------>|  |Generic|  |
+    +-----------+   |   |       |  |Object |  |
+    |Tugboat(Xl)| I |   |       |  +-------+  |
+    |Plugin     | N |   |       |     |       |
+    +-----------+ T |   |       |     |       |
+        |         E |   |       |  +------+   |
+   +------------+ R |   |       |  |Parser|   +------> Intermediary YAML
+   |Remote Data | F |---+       |  +------+   |
+   |SourcePlugin| A |           |     |       |
+   +------------+ C |           |     |(Intermediary YAML)
+        |         E |           |     |       |
+        |           |           |     |       |
+        |         H |           |     v       |
+        |         A |           |  +---------+|(templates)    +------------+
+        |         N |           |  |Site     |+<--------------|Repository  |
+        |         D |           |  |Processor||-------------->|Adapter     |
+        |         L |           |  +---------+|(Generated     +------------+
+        |         E |           |      ^      | Site Manifests)
+        |         R |           |  +---|-----+|
+        |           |           |  |  J2     ||
+        |           |           |  |Templates||
+        |           |           |  +---------+|
+        +-----------+           +-------------+
+
+--
 
 Basic Usage
 -----------
 
-TODO
+Before using Spyglass you must:
+
+
+1. Clone the Tugboat repository:
+
+   .. code-block:: console
+
+    git clone https://github.com/att-comdev/tugboat/tree/spyglass
+
+2. Install the required packages in spyglass/:
+
+   .. code-block:: console
+
+     pip3 install -r tugboat/requirements.txt
+
+
+CLI Options
+-----------
+
+Usage: spyglass [OPTIONS]
+
+Options:
+  -s, --site TEXT                Specify the site for which manifests to be
+                                 generated
+  -t, --type TEXT                Specify the plugin type formation or tugboat
+  -f, --formation_url TEXT       Specify the formation url
+  -u, --formation_user TEXT      Specify the formation user id
+  -p, --formation_password TEXT  Specify the formation user password
+  -d, --additional_config PATH   Site specific configuraton details
+  -g, --generate_intermediary    Dump intermediary file from passed excel and
+                                 excel spec
+  -m, --generate_manifests       Generate manifests from the generated
+                                 intermediary file
+  -l, --loglevel INTEGER         Loglevel NOTSET:0 ,DEBUG:10,     INFO:20,
+                                 WARNING:30, ERROR:40, CRITICAL:50  [default:
+                                 20]
+  --help                         Show this message and exit.
+
+
+1. Running Spyglass with  Remote Data Source
+
+spyglass -mg --type formation -f <URL> -u <user_id> -p <password> -d <site_config> -s <sitetype>
+
