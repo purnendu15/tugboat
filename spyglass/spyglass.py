@@ -24,7 +24,7 @@ from spyglass.site_processors.site_processor import SiteProcessor
 LOG = logging.getLogger('spyglass')
 
 
-def generate_manifest_files(intermediary, manifest_dir):
+def generate_manifest_files(intermediary, manifest_dir=None):
     """ Generate manifests """
     if intermediary:
         processor_engine = SiteProcessor(intermediary, manifest_dir)
@@ -42,6 +42,12 @@ def generate_manifest_files(intermediary, manifest_dir):
     '--type', '-t', help='Specify the plugin type formation or tugboat')
 @click.option('--formation_url', '-f', help='Specify the formation url')
 @click.option('--formation_user', '-u', help='Specify the formation user id')
+@click.option(
+    '--intermediary',
+    '-i',
+    type=click.Path(exists=True),
+    help='Path to intermediary file, \
+    to be passed with generate_manifests')
 @click.option(
     '--formation_password', '-p', help='Specify the formation user password')
 @click.option(
@@ -82,6 +88,7 @@ def main(*args, **kwargs):
     intermediary_dir = kwargs['intermediary_dir']
     generate_manifests = kwargs['generate_manifests']
     manifest_dir = kwargs['manifest_dir']
+    intermediary = kwargs['intermediary']
     site = kwargs['site']
     loglevel = kwargs['loglevel']
     # Set default log level to INFO
@@ -95,64 +102,86 @@ def main(*args, **kwargs):
     LOG.addHandler(stream_handle)
     LOG.info("Spyglass start")
 
-    plugin_type = kwargs['type']
-    plugin_class = None
+    data_extractor = {}
+    data_extractor['site_data'] = {}
 
-    for entry_point in pkg_resources.iter_entry_points(
-            'data_extractor_plugins'):
-        if entry_point.name == plugin_type:
-            plugin_class = entry_point.load()
+    # When intermediary file is specified, Spyglass will generated the
+    # manifest without any plugin data source
+    if (intermediary is None):
+        plugin_type = kwargs['type']
+        plugin_class = None
 
-    if plugin_class is None:
-        LOG.error(
-            "Unsupported Plugin type. Plugin type:{}".format(plugin_type))
-        exit()
+        for entry_point in pkg_resources.iter_entry_points(
+                'data_extractor_plugins'):
+            if entry_point.name == plugin_type:
+                plugin_class = entry_point.load()
 
-    plugin_conf = {}
-    additional_config_data = {}
-    if plugin_type == 'formation':
-        url = kwargs['formation_url']
-        user = kwargs['formation_user']
-        password = kwargs['formation_password']
-        additional_config = kwargs['additional_config']
+        if plugin_class is None:
+            LOG.error(
+                "Unsupported Plugin type. Plugin type:{}".format(plugin_type))
+            exit()
 
-        # TODO(nh863p): Do we need to check if the arguments are null
-        # or is it handled in click
-        plugin_conf = {'url': url, 'user': user, 'password': password}
+        plugin_conf = {}
+        additional_config_data = {}
+        if plugin_type == 'formation':
+            url = kwargs['formation_url']
+            user = kwargs['formation_user']
+            password = kwargs['formation_password']
+            additional_config = kwargs['additional_config']
 
-        if additional_config is not None:
-            with open(additional_config, 'r') as config:
-                raw_data = config.read()
-                additional_config_data = yaml.safe_load(raw_data)
+            # TODO(nh863p): Do we need to check if the arguments are null
+            # or is it handled in click
+            plugin_conf = {'url': url, 'user': user, 'password': password}
 
-    LOG.debug("Additional config data:\n{}".format(
-        pprint.pformat(additional_config_data)))
-    data_extractor = plugin_class(site)
-    data_extractor.set_config_opts(plugin_conf)
-    data_extractor.extract_data()
-    LOG.info(
-        "Apply additional configuration from:{}".format(additional_config))
-    data_extractor.apply_additional_data(additional_config_data)
-    LOG.debug(pprint.pformat(data_extractor.site_data))
+            if additional_config is not None:
+                with open(additional_config, 'r') as config:
+                    raw_data = config.read()
+                    additional_config_data = yaml.safe_load(raw_data)
 
-    if generate_intermediary or generate_manifests:
+        LOG.debug("Additional config data:\n{}".format(
+            pprint.pformat(additional_config_data)))
+        data_extractor = plugin_class(site)
+        data_extractor.set_config_opts(plugin_conf)
+        data_extractor.extract_data()
+        LOG.info(
+            "Apply additional configuration from:{}".format(additional_config))
+        data_extractor.apply_additional_data(additional_config_data)
+        LOG.debug(pprint.pformat(data_extractor.site_data))
+
+        if generate_intermediary or generate_manifests:
+            """
+            Initialize ProcessDataSource object to process received data
+            """
+            process_input_ob = ProcessDataSource(site)
+            # Parses the raw input received from data source
+            process_input_ob.load_extracted_data_from_data_source(
+                data_extractor.site_data)
+            intermediary_yaml = {}
+            LOG.info("Generating intermediary")
+            intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+            if generate_intermediary:
+                process_input_ob.dump_intermediary_file(intermediary_dir)
+            if generate_manifests:
+                LOG.info("Generating site Manifests")
+                generate_manifest_files(intermediary_yaml, manifest_dir)
+        else:
+            LOG.error("Insufficient parameters passed!! Spyglass exited")
+            exit()
+    elif generate_manifests and intermediary:
         """
-        Initialize ProcessDataSource object to process received data
+        Generating manifest with the supplied intermediary
+        In this case supplied design spec and excel-spec
+        is not required
         """
-        process_input_ob = ProcessDataSource(site)
-        # Parses the raw input received from data source
-        process_input_ob.load_extracted_data_from_data_source(
-            data_extractor.site_data)
-        intermediary_yaml = {}
-        LOG.info("Generating intermediary")
-        intermediary_yaml = process_input_ob.generate_intermediary_yaml()
-        if generate_intermediary:
-            process_input_ob.dump_intermediary_file(intermediary_dir)
-        if generate_manifests:
-            LOG.info("Generating site Manifests")
-            generate_manifest_files(intermediary_yaml, manifest_dir)
+        LOG.info("Loading intermediary")
+        with open(intermediary, 'r') as intermediary_file:
+            raw_data = intermediary_file.read()
+            yaml_data = yaml.safe_load(raw_data)
+            intermediary_yaml = yaml_data
+        LOG.info("Generatng Manifests")
+        generate_manifest_files(intermediary_yaml, manifest_dir)
     else:
-        LOG.error("Insufficient parameters passed!! Spyglass exited")
+        LOG.error("Invalid CLI parameters passed!! Spyglass exited")
         exit()
 
     LOG.info("Spyglass Execution Completed")

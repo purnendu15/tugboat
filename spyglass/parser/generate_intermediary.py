@@ -93,7 +93,7 @@ class ProcessDataSource():
         # Converting baremetal dict to list.
         baremetal_list = []
         for rack in temp_data['baremetal'].keys():
-            temp = [{k:v} for k,v in  temp_data['baremetal'][rack].items()]
+            temp = [{k: v} for k, v in temp_data['baremetal'][rack].items()]
             baremetal_list = baremetal_list + temp
 
         temp_data['baremetal'] = baremetal_list
@@ -293,4 +293,3 @@ class ProcessDataSource():
         self.intermediary_yaml = self.data
         # TODO(pg710r):self._modify_intermediary()
         return self.intermediary_yaml
-

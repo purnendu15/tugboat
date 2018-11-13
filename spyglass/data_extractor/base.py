@@ -281,19 +281,17 @@ class BaseDataSourcePlugin(object):
             if host['host_profile'] is None:
                 temp_host['host_profile'] = "#CHANGE_ME"
             else:
-                temp_host['host_profile'] =  host['host_profile']
+                temp_host['host_profile'] = host['host_profile']
 
             # Get Host IPs from plugin
             temp_host_ips = self.get_ips(self.region, host_name)
 
             # Fill network IP for this host
             temp_host['ip'] = {}
-            temp_host['ip']['oob'] = temp_host_ips[host_name].get(
-                'oob', "")
+            temp_host['ip']['oob'] = temp_host_ips[host_name].get('oob', "")
             temp_host['ip']['calico'] = temp_host_ips[host_name].get(
                 'calico', "")
-            temp_host['ip']['oam'] = temp_host_ips[host_name].get(
-                'oam', "")
+            temp_host['ip']['oam'] = temp_host_ips[host_name].get('oam', "")
             temp_host['ip']['storage'] = temp_host_ips[host_name].get(
                 'storage', "")
             temp_host['ip']['overlay'] = temp_host_ips[host_name].get(
