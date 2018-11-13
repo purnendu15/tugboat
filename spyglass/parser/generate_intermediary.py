@@ -12,10 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import copy
 import json
 import logging
 import pprint
 import netaddr
+import sys
 import jsonschema
 import pkg_resources
 import yaml
@@ -85,22 +87,42 @@ class ProcessDataSource():
         data type.
         """
         LOG.info('Validating data read from extracted data')
+        temp_data = {}
+        # Peforming a deep copy
+        temp_data = copy.deepcopy(data)
+        # Converting baremetal dict to list.
+        baremetal_list = []
+        for rack in temp_data['baremetal'].keys():
+            temp = [{k: v} for k, v in temp_data['baremetal'][rack].items()]
+            baremetal_list = baremetal_list + temp
+
+        temp_data['baremetal'] = baremetal_list
         schema_dir = pkg_resources.resource_filename('spyglass', 'schemas/')
         schema_file = schema_dir + "data_schema.json"
-        json_data = json.loads(json.dumps(data))
+        json_data = json.loads(json.dumps(temp_data))
         with open(schema_file, 'r') as f:
             json_schema = json.load(f)
         try:
             # Suppressing writing of data2.json. Can use it for debugging
-            """
             with open('data2.json', 'w') as outfile:
-                json.dump(data, outfile, sort_keys=True, indent=4)
-            """
+                json.dump(temp_data, outfile, sort_keys=True, indent=4)
             jsonschema.validate(json_data, json_schema)
         except jsonschema.exceptions.ValidationError as e:
-            LOG.error("Validation Failed with following error:{}".format(
-                e.message))
-            exit(1)
+            LOG.error("Validation Error")
+            LOG.error("Message:{}".format(e.message))
+            LOG.error("Validator_path:{}".format(e.path))
+            LOG.error("Validator_pattern:{}".format(e.validator_value))
+            LOG.error("Validator:{}".format(e.validator))
+            sys.exit()
+        except jsonschema.exceptions.SchemaError as e:
+            LOG.error("Schema Validation Error!!")
+            LOG.error("Message:{}".format(e.message))
+            LOG.error("Schema:{}".format(e.schema))
+            LOG.error("Validator_value:{}".format(e.validator_value))
+            LOG.error("Validator:{}".format(e.validator))
+            LOG.error("path:{}".format(e.path))
+            sys.exit()
+
         LOG.info("Data validation Passed!")
 
     def _apply_design_rules(self):
@@ -228,6 +250,12 @@ class ProcessDataSource():
         Function called from spyglass.py to pass extracted data
         from input data source
         """
+        # TBR(pg710r): for internal testing
+        """
+        raw_data = self._read_file('extracted_data.yaml')
+        extracted_data = yaml.safe_load(raw_data)
+        """
+
         LOG.info("Load extracted data from data source")
         self._validate_extracted_data(extracted_data)
         self.data = extracted_data
@@ -263,4 +291,5 @@ class ProcessDataSource():
         self._apply_design_rules()
         self._get_genesis_node_details()
         self.intermediary_yaml = self.data
+        # TODO(pg710r):self._modify_intermediary()
         return self.intermediary_yaml

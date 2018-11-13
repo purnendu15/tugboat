@@ -134,8 +134,6 @@ class BaseDataSourcePlugin(object):
                      }
                  ]
         """
-        # TODO(nh863p): Can we fix the network names here so that plugin
-        # will return exactly with same network names?
 
         # TODO(nh863p): Expand the return type if they are rack level subnets
         # TODO(nh863p): Is ingress information can be provided here?
@@ -267,7 +265,6 @@ class BaseDataSourcePlugin(object):
         LOG.info("Extract baremetal information from plugin")
         baremetal = {}
         is_genesis = False
-
         hosts = self.get_hosts(self.region)
 
         # For each host list fill host profile and network IPs
@@ -281,22 +278,27 @@ class BaseDataSourcePlugin(object):
             # Prepare temp dict for each host and append it to baremetal
             # at a rack level
             temp_host = {}
-            temp_host['host_profile'] = host['host_profile']
+            if host['host_profile'] is None:
+                temp_host['host_profile'] = "#CHANGE_ME"
+            else:
+                temp_host['host_profile'] = host['host_profile']
 
             # Get Host IPs from plugin
             temp_host_ips = self.get_ips(self.region, host_name)
 
             # Fill network IP for this host
             temp_host['ip'] = {}
-            temp_host['ip']['oob'] = temp_host_ips[host_name].get('oob', {})
+            temp_host['ip']['oob'] = temp_host_ips[host_name].get('oob', "")
             temp_host['ip']['calico'] = temp_host_ips[host_name].get(
-                'calico', {})
-            temp_host['ip']['oam'] = temp_host_ips[host_name].get('oam', {})
+                'calico', "")
+            temp_host['ip']['oam'] = temp_host_ips[host_name].get('oam', "")
             temp_host['ip']['storage'] = temp_host_ips[host_name].get(
-                'storage', {})
+                'storage', "")
             temp_host['ip']['overlay'] = temp_host_ips[host_name].get(
-                'overlay', {})
-            temp_host['ip']['pxe'] = temp_host_ips[host_name].get('pxe', {})
+                'overlay', "")
+            # TODO(pg710r): Testing only.
+            temp_host['ip']['pxe'] = temp_host_ips[host_name].get(
+                'pxe', "#CHANGE_ME")
 
             # TODO(nh863p): Can this logic goes into dervied plugin class
             # How to determine genesis node??
