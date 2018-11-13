@@ -353,7 +353,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         # TODO(pg710r): hack to put dummy values for pxe
         tmp_vlan = {}
         tmp_vlan['name'] = 'pxe'
-        tmp_vlan['vlan'] = 43
+        tmp_vlan['vlan'] = '43'
         tmp_vlan['subnet'] = '172.30.4.0/25'
         tmp_vlan['gateway'] = '172.30.4.1'
         vlans_list.append(tmp_vlan)
