@@ -55,7 +55,7 @@ def save():
     out = request.json.get('yaml_data')
     with open(app.config['YAML_FILE_OBJ'], 'w') as file_obj:
         yaml.dump(out, file_obj, default_flow_style=False)
-    return "Data saved successfully."
+    return "Data saved successfully!"
 
 @app.route('/saveExit', methods=['POST'])
 def save_exit():
@@ -66,7 +66,7 @@ def save_exit():
     func = request.environ.get('werkzeug.server.shutdown')
     if func:
         func()
-    return "Saved successfull, Shuttig down app! You may close the tab."
+    return "Saved successfully, Shutting down app! You may close the tab!"
 
 @app.errorhandler(404)
 def page_not_found(e):
