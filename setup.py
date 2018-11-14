@@ -39,12 +39,8 @@ setup(
             'yaml-editor=utils.editor.editor:main',
         ],
         'data_extractor_plugins':
-        ['formation=spyglass.data_extractor.formation:FormationPlugin']
-    },
-    include_package_data=True,
-    package_data={
-        'templates': [
-            'templates/baremetal/*.j2',
-        ],
+        ['formation=spyglass.data_extractor.formation:FormationPlugin',
+        'tugboat=spyglass.data_extractor.tugboat:TugboatPlugin',
+        ]
     },
 )
