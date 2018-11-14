@@ -34,7 +34,7 @@ Bootstrap(app)
 @app.route('/', methods=['GET', 'POST'])
 def index():
     """Renders index page to edit provided yaml file."""
-    with open(app.config['YAML_FILE_OBJ']) as file_obj:
+    with open(app.config['YAML_FILE']) as file_obj:
         data = yaml.load(file_obj, Loader=yaml.Loader)
     return render_template('yaml.html',
                            data=json.dumps(data),
@@ -43,7 +43,7 @@ def index():
 @app.route('/tree', methods=['GET', 'POST'])
 def tree():
     """Renders tree view page to edit provided yaml file."""
-    with open(app.config['YAML_FILE_OBJ']) as file_obj:
+    with open(app.config['YAML_FILE']) as file_obj:
         data = yaml.load(file_obj, Loader=yaml.Loader)
     return render_template('treeyaml.html',
                            data=data, datastr=json.dumps(data),
@@ -53,7 +53,7 @@ def tree():
 def save():
     """Save current progress on file."""
     out = request.json.get('yaml_data')
-    with open(app.config['YAML_FILE_OBJ'], 'w') as file_obj:
+    with open(app.config['YAML_FILE'], 'w') as file_obj:
         yaml.dump(out, file_obj, default_flow_style=False)
     return "Data saved successfully!"
 
@@ -61,7 +61,7 @@ def save():
 def save_exit():
     """Save current progress on file and shuts down the server."""
     out = request.json.get('yaml_data')
-    with open(app.config['YAML_FILE_OBJ'], 'w') as file_obj:
+    with open(app.config['YAML_FILE'], 'w') as file_obj:
         yaml.dump(out, file_obj, default_flow_style=False)
     func = request.environ.get('werkzeug.server.shutdown')
     if func:
@@ -86,7 +86,7 @@ def run(*args, **kwargs):
     '--file',
     '-f',
     required=True,
-    type=click.Path(exists=True),
+    type=click.File(),
     multiple=False,
     help="Path with file name to the intermediary yaml file."
 )
@@ -109,7 +109,7 @@ def run(*args, **kwargs):
 def main(*args, **kwargs):
     print("Please go to http://{0}:{1}/ to edit your yaml file.".format(
         socket.gethostbyname(socket.gethostname()), kwargs['port']))
-    app.config['YAML_FILE_OBJ'] = kwargs['file']
+    app.config['YAML_FILE'] = kwargs['file'].name
     app.config['STRING_TO_CHANGE'] = kwargs['string']
     run(kwargs)
 
