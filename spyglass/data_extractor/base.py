@@ -47,6 +47,19 @@ class BaseDataSourcePlugin(object):
         return
 
     @abc.abstractmethod
+    def get_plugin_conf(self, kwargs):
+        """ Validate and returns the plugin config parameters.
+        If validation fails, Spyglass exits.
+
+        :param char pointer: Spyglass CLI parameters.
+
+        :returns plugin conf if successfully validated.
+
+        Each plugin implements their own validaton mechanism.
+        """
+        return {}
+
+    @abc.abstractmethod
     def get_racks(self, region):
         """Return list of racks in the region
 
