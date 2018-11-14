@@ -21,8 +21,6 @@ import urllib3
 
 from spyglass.data_extractor.base import BaseDataSourcePlugin
 
-# TODO(pg710r): Currently comments to avoid pep8 warning
-# will be lifted when spyglass runs with actual formation code
 from spyglass.data_extractor.custom_exceptions import (
     ApiClientError, ConnectionError, MissingAttributeError,
     TokenGenerationError)
@@ -34,7 +32,15 @@ LOG = logging.getLogger(__name__)
 
 class FormationPlugin(BaseDataSourcePlugin):
     def __init__(self, region):
-        super().__init__(region)
+        # Save site name is valid
+        try:
+            assert region is not None
+            super().__init__(region)
+        except AssertionError:
+            LOG.error("Site: None! Spyglass exited!")
+            LOG.info("Check spyglass --help for details")
+            exit()
+
         self.source_type = 'rest'
         self.source_name = 'formation'
 
@@ -68,6 +74,25 @@ class FormationPlugin(BaseDataSourcePlugin):
 
         self._get_formation_client()
         self._update_site_and_zone(self.region)
+
+    def get_plugin_conf(self, kwargs):
+        """ Validates the plugin param and return if success"""
+        try:
+            assert (kwargs['formation_url']
+                    ) is not None, "formation_url is Not Specified"
+            url = kwargs['formation_url']
+            assert (kwargs['formation_user']
+                    ) is not None, "formation_user is Not Specified"
+            user = kwargs['formation_user']
+            assert (kwargs['formation_password']
+                    ) is not None, "formation_password is Not Specified"
+            password = kwargs['formation_password']
+        except AssertionError:
+            LOG.error("Insufficient plugin parameter! Spyglass exited!")
+            raise
+            exit()
+        plugin_conf = {'url': url, 'user': user, 'password': password}
+        return plugin_conf
 
     def _validate_config_options(self, conf):
         """Validate the CLI params passed
