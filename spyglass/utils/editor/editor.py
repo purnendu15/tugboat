@@ -17,6 +17,7 @@ import click
 import json
 import os
 import socket
+import sys
 import yaml
 
 from flask import Flask, request, render_template
@@ -24,7 +25,7 @@ from flask_bootstrap import Bootstrap
 
 
 app_path  = os.path.dirname(os.path.abspath(__file__))
-
+print(app_path, os.getcwd())
 app = Flask('Yaml Editor!',
             template_folder=os.path.join(app_path, 'templates'),
             static_folder=os.path.join(app_path, 'static'))
@@ -38,15 +39,6 @@ def index():
         data = yaml.load(file_obj, Loader=yaml.Loader)
     return render_template('yaml.html',
                            data=json.dumps(data),
-                           change_str=app.config['STRING_TO_CHANGE'])
-
-@app.route('/tree', methods=['GET', 'POST'])
-def tree():
-    """Renders tree view page to edit provided yaml file."""
-    with open(app.config['YAML_FILE']) as file_obj:
-        data = yaml.load(file_obj, Loader=yaml.Loader)
-    return render_template('treeyaml.html',
-                           data=data, datastr=json.dumps(data),
                            change_str=app.config['STRING_TO_CHANGE'])
 
 @app.route('/save', methods=['POST'])
@@ -107,6 +99,11 @@ def run(*args, **kwargs):
     help="Text which is required to be changed on yaml file."
 )
 def main(*args, **kwargs):
+    try:
+        yaml.load(kwargs['file'], Loader=yaml.Loader)
+    except Exception:
+        print('Please provide a valid yaml file.')
+        sys.exit(2)
     print("Please go to http://{0}:{1}/ to edit your yaml file.".format(
         socket.gethostbyname(socket.gethostname()), kwargs['port']))
     app.config['YAML_FILE'] = kwargs['file'].name

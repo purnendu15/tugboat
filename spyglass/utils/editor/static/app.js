@@ -72,29 +72,6 @@ function getSimpleData() {
 }
 
 /**
- * Collects and validates data from tree structure.
- * @returns  {String}  Stringified JSON data.
- */
-function getTreeData(treeRoot, data={}) {
-    $(treeRoot.children).each(function(index, val) {
-        switch(val.getAttribute('val')) {
-            case 'string':
-                data[val.getAttribute('key')] = val.lastChild.value
-                break;
-            case 'map':
-                data[val.getAttribute('key')] = getTreeData(
-                    val.lastChild)
-                break;
-            case 'iter':
-                console.log(val.children)
-                data[val.getAttribute('key')] = Array()
-                break;
-        }
-    });
-    return data
-}
-
-/**
  * Function to save edit progress.
  */
 function saveSimple() {
@@ -112,18 +89,4 @@ function saveExitSimple() {
     if (data) {
         saveAndExit(data)
     }
-}
-
-/**
- * Function to save edit progress from tree structure.
- */
-function saveTree() {
-    save(getTreeData(document.getElementById('tree'), ))
-}
-
-/**
- * Function to save edit progress from tree structure and shut down web server.
- */
-function saveExitTree() {
-    saveAndExit(getTreeData(document.getElementById('tree')))
 }

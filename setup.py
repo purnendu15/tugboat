@@ -43,4 +43,5 @@ setup(
         'tugboat=spyglass.data_extractor.tugboat:TugboatPlugin',
         ]
     },
+    include_package_data=True,
 )
