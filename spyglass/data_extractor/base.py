@@ -17,7 +17,7 @@ import pprint
 import six
 import logging
 
-from spyglass import utils
+from spyglass.utils import utils
 
 LOG = logging.getLogger(__name__)
 
