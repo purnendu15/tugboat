@@ -24,7 +24,7 @@ from flask import Flask, request, render_template
 from flask_bootstrap import Bootstrap
 
 
-app_path  = os.path.dirname(os.path.abspath(__file__))
+app_path = os.path.dirname(os.path.abspath(__file__))
 print(app_path, os.getcwd())
 app = Flask('Yaml Editor!',
             template_folder=os.path.join(app_path, 'templates'),
@@ -41,6 +41,7 @@ def index():
                            data=json.dumps(data),
                            change_str=app.config['STRING_TO_CHANGE'])
 
+
 @app.route('/save', methods=['POST'])
 def save():
     """Save current progress on file."""
@@ -48,6 +49,7 @@ def save():
     with open(app.config['YAML_FILE'], 'w') as file_obj:
         yaml.dump(out, file_obj, default_flow_style=False)
     return "Data saved successfully!"
+
 
 @app.route('/saveExit', methods=['POST'])
 def save_exit():
@@ -60,10 +62,12 @@ def save_exit():
         func()
     return "Saved successfully, Shutting down app! You may close the tab!"
 
+
 @app.errorhandler(404)
 def page_not_found(e):
     """Serves 404 error."""
     return '<h1>404: Page not Found!</h1>'
+
 
 def run(*args, **kwargs):
     """Starts the server."""
@@ -110,6 +114,7 @@ def main(*args, **kwargs):
     app.config['STRING_TO_CHANGE'] = kwargs['string']
     run(kwargs)
 
-if __name__=='__main__':
+
+if __name__ == '__main__':
     """Invoked when used as a script."""
     main()
