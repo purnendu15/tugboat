@@ -15,11 +15,14 @@
 import copy
 import json
 import logging
-import pprint
-import netaddr
-import sys
-import jsonschema
+import os
 import pkg_resources
+import pprint
+import sys
+import tempfile
+
+import jsonschema
+import netaddr
 import yaml
 
 LOG = logging.getLogger(__name__)
@@ -293,3 +296,18 @@ class ProcessDataSource():
         self.intermediary_yaml = self.data
         # TODO(pg710r):self._modify_intermediary()
         return self.intermediary_yaml
+
+    def edit_intermediary_yaml(self):
+        """ Edit generated data using on browser """
+        LOG.info(
+            "edit_intermediary_yaml: Invoking web server for yaml editing")
+        intermediary_yaml = {}
+        tmp_file = ''
+        with tempfile.NamedTemporaryFile(
+                mode='w', delete=False) as file_obj:
+            tmp_file = file_obj.name
+            yaml.dump(self.data, file_obj, default_flow_style=False)
+        os.system('yaml-editor -f {0}'.format(tmp_file))
+        with open(tmp_file, 'r') as file_obj:
+            intermediary_yaml = yaml.load(file_obj, Loader=yaml.Loader)
+        return intermediary_yaml
