@@ -313,13 +313,19 @@ class FormationPlugin(BaseDataSourcePlugin):
         control_hosts = device_api.zones_zone_id_control_nodes_get(zone_id)
         compute_hosts = device_api.zones_zone_id_devices_get(
             zone_id, type='KVM')
-
         hosts_list = []
+        genesis_set = False
         for host in control_hosts:
             self.device_name_id_mapping[host.aic_standard_name] = host.id
+            # The first control node is designated as genesis node
+            if genesis_set is False:
+                node_type = 'genesis'
+                genesis_set = True
+            else:
+                node_type = 'genesis'
             hosts_list.append({
                 'name': host.aic_standard_name,
-                'type': 'controller',
+                'type': node_type,
                 'rack_name': host.rack_name,
                 'host_profile': host.host_profile_name
             })
@@ -352,8 +358,9 @@ class FormationPlugin(BaseDataSourcePlugin):
         vlan_api = swagger_client.VlansApi(self.formation_api_client)
         vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
             zone_id, region_id)
-        # Case when vlans list is empty from
-        # zones_zone_id_regions_region_id_vlans_get
+        # TWEAK(pg710r):Case when vlans list is empty from
+        # zones_zone_id_regions_region_id_vlans_get. Ideally this should not
+        # be the case
         if len(vlans) is 0:
             # get device-id from the first host and get the network details
             hosts = self.get_hosts(self.region)
@@ -375,13 +382,6 @@ class FormationPlugin(BaseDataSourcePlugin):
                 tmp_vlan['subnet_level'] = vlan_.vlan.subnet_level
                 vlans_list.append(tmp_vlan)
 
-        # TODO(pg710r): hack to put dummy values for pxe
-        tmp_vlan = {}
-        tmp_vlan['name'] = 'pxe'
-        tmp_vlan['vlan'] = '43'
-        tmp_vlan['subnet'] = '172.30.4.0/25'
-        tmp_vlan['gateway'] = '172.30.4.1'
-        vlans_list.append(tmp_vlan)
         return vlans_list
 
     def get_ips(self, region, host=None):

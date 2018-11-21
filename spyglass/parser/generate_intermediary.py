@@ -257,7 +257,6 @@ class ProcessDataSource():
         """
 
         LOG.info("Load extracted data from data source")
-        self._validate_extracted_data(extracted_data)
         self.data = extracted_data
         LOG.debug("Extracted data from plugin data source:\n{}".format(
             pprint.pformat(extracted_data)))
@@ -266,6 +265,7 @@ class ProcessDataSource():
         with open(extracted_file, 'w') as f:
             f.write(yaml_file)
         f.close()
+        self._validate_extracted_data(extracted_data)
         # Append region_data supplied from CLI to self.data
         self.data['region_name'] = self.region_name
 

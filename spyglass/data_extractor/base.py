@@ -277,7 +277,6 @@ class BaseDataSourcePlugin(object):
         """
         LOG.info("Extract baremetal information from plugin")
         baremetal = {}
-        is_genesis = False
         hosts = self.get_hosts(self.region)
 
         # For each host list fill host profile and network IPs
@@ -301,40 +300,23 @@ class BaseDataSourcePlugin(object):
 
             # Fill network IP for this host
             temp_host['ip'] = {}
-            temp_host['ip']['oob'] = temp_host_ips[host_name].get('oob', "")
+            temp_host['ip']['oob'] = temp_host_ips[host_name].get(
+                'oob', "#CHANGE_ME")
             temp_host['ip']['calico'] = temp_host_ips[host_name].get(
-                'calico', "")
-            temp_host['ip']['oam'] = temp_host_ips[host_name].get('oam', "")
+                'calico', "#CHANGE_ME")
+            temp_host['ip']['oam'] = temp_host_ips[host_name].get(
+                'oam', "#CHANGE_ME")
             temp_host['ip']['storage'] = temp_host_ips[host_name].get(
-                'storage', "")
+                'storage', "#CHANGE_ME")
             temp_host['ip']['overlay'] = temp_host_ips[host_name].get(
-                'overlay', "")
-            # TODO(pg710r): Testing only.
+                'overlay', "#CHANGE_ME")
             temp_host['ip']['pxe'] = temp_host_ips[host_name].get(
                 'pxe', "#CHANGE_ME")
-
-            # TODO(nh863p): Can this logic goes into dervied plugin class
-            # How to determine genesis node??
-
-            # TODO(nh863p): If below logic is based on host profile name, then
-            # it should be part of design rule???
-            # Filling rack_type( compute/controller/genesis)
-            # "cp" host profile is controller
-            # "ns" host profile is compute
-            if (temp_host['host_profile'] == 'cp'):
-                # The controller node is designates as genesis"
-                if is_genesis is False:
-                    is_genesis = True
-                    temp_host['type'] = 'genesis'
-                else:
-                    temp_host['type'] = 'controller'
-            else:
-                temp_host['type'] = 'compute'
+            temp_host['type'] = host.get('type', "#CHANGE_ME")
 
             baremetal[rack_name][host_name] = temp_host
         LOG.debug("Baremetal information:\n{}".format(
             pprint.pformat(baremetal)))
-
         return baremetal
 
     def extract_site_information(self):
