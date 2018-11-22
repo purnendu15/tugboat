@@ -36,7 +36,7 @@ Bootstrap(app)
 def index():
     """Renders index page to edit provided yaml file."""
     with open(app.config['YAML_FILE']) as file_obj:
-        data = yaml.load(file_obj, Loader=yaml.Loader)
+        data = yaml.safe_load(file_obj)
     return render_template('yaml.html',
                            data=json.dumps(data),
                            change_str=app.config['STRING_TO_CHANGE'])
@@ -47,7 +47,7 @@ def save():
     """Save current progress on file."""
     out = request.json.get('yaml_data')
     with open(app.config['YAML_FILE'], 'w') as file_obj:
-        yaml.dump(out, file_obj, default_flow_style=False)
+        yaml.safe_dump(out, file_obj, default_flow_style=False)
     return "Data saved successfully!"
 
 
@@ -56,7 +56,7 @@ def save_exit():
     """Save current progress on file and shuts down the server."""
     out = request.json.get('yaml_data')
     with open(app.config['YAML_FILE'], 'w') as file_obj:
-        yaml.dump(out, file_obj, default_flow_style=False)
+        yaml.safe_dump(out, file_obj, default_flow_style=False)
     func = request.environ.get('werkzeug.server.shutdown')
     if func:
         func()

@@ -302,12 +302,9 @@ class ProcessDataSource():
         LOG.info(
             "edit_intermediary_yaml: Invoking web server for yaml editing")
         intermediary_yaml = {}
-        tmp_file = ''
-        with tempfile.NamedTemporaryFile(
-                mode='w', delete=False) as file_obj:
-            tmp_file = file_obj.name
-            yaml.dump(self.data, file_obj, default_flow_style=False)
-        os.system('yaml-editor -f {0}'.format(tmp_file))
-        with open(tmp_file, 'r') as file_obj:
-            intermediary_yaml = yaml.load(file_obj, Loader=yaml.Loader)
+        with tempfile.NamedTemporaryFile(mode='r+') as file_obj:
+            yaml.safe_dump(self.data, file_obj, default_flow_style=False)
+            os.system('yaml-editor -f {0}'.format(file_obj.name))
+            file_obj.seek(0)
+            intermediary_yaml = yaml.safe_load(file_obj)
         return intermediary_yaml
