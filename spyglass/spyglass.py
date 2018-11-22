@@ -76,6 +76,18 @@ def generate_manifest_files(intermediary, manifest_dir=None):
     type=click.Path(exists=True),
     help='The path where manifest files needs to be generated')
 @click.option(
+    '--excel',
+    '-x',
+    multiple=True,
+    type=click.Path(exists=True),
+    help=
+    'Path to engineering excel file, to be passed with generate_intermediary')
+@click.option(
+    '--excel_spec',
+    '-e',
+    type=click.Path(exists=True),
+    help='Path to excel spec, to be passed with generate_intermediary')
+@click.option(
     '--loglevel',
     '-l',
     default=20,

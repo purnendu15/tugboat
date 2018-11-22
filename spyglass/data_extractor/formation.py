@@ -76,7 +76,7 @@ class FormationPlugin(BaseDataSourcePlugin):
         self._update_site_and_zone(self.region)
 
     def get_plugin_conf(self, kwargs):
-        """ Validates the plugin param and return if success"""
+        """ Validates the plugin param from CLI and return if correct"""
         try:
             assert (kwargs['formation_url']
                     ) is not None, "formation_url is Not Specified"

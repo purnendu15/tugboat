@@ -278,6 +278,8 @@ class BaseDataSourcePlugin(object):
         LOG.info("Extract baremetal information from plugin")
         baremetal = {}
         hosts = self.get_hosts(self.region)
+        import pdb
+        pdb.set_trace()
 
         # For each host list fill host profile and network IPs
         for host in hosts:
