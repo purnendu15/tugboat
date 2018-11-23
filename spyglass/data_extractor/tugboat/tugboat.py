@@ -12,11 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import itertools
 import logging
 import pprint
+import pkg_resources
 import re
+import yaml
 from spyglass.data_extractor.base import BaseDataSourcePlugin
 from spyglass.data_extractor.tugboat.excel_parser import ExcelParser
+
 LOG = logging.getLogger(__name__)
 
 
@@ -32,18 +36,10 @@ class TugboatPlugin(BaseDataSourcePlugin):
 
         # Site related data
         self.region = region
-        self.region_zone_map = {}
-        self.site_name_id_mapping = {}
-        self.zone_name_id_mapping = {}
-        self.region_name_id_mapping = {}
-        self.rack_name_id_mapping = {}
-        self.device_name_id_mapping = {}
 
         # Raw data from excel
         self.parsed_xl_data = None
 
-        # TODO(pg710r) currently hardcoder. will be removed later
-        self.sitetype = '5ec'
         LOG.info("Initiated data extractor plugin:{}".format(self.source_name))
 
     def set_config_opts(self, conf):
@@ -78,20 +74,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
     def _extract_raw_data_from_excel(self):
         """ Extracts raw information from excel file based on excel spec"""
         self.parsed_xl_data = self.excel_obj.get_data()
-        self.ipmi_data = self.parsed_xl_data['ipmi_data'][0]
-        self.hostnames = self.parsed_xl_data['ipmi_data'][1]
-        import pdb
-        pdb.set_trace()
-        """
-        self.private_network_data = self._get_private_network_data(
-            self.parsed_xl_data['network_data'])
-        self.public_network_data = self._get_public_network_data(
-            self.parsed_xl_data['network_data'])
-        self.dns_ntp_ldap_data = self._get_dns_ntp_ldap_data(
-            self.parsed_xl_data['network_data'])
-        self.location_data = self._get_location_data(
-            self.parsed_xl_data['location_data'])
-        """
 
     def get_plugin_conf(self, kwargs):
         """ Validates the plugin param from CLI and return if correct
@@ -102,11 +84,11 @@ class TugboatPlugin(BaseDataSourcePlugin):
         written as an additional safeguard.
         """
         try:
-            assert (len(kwargs['excel']) !=
-                    0), "Engineering Specification file not specified"
+            assert (len(
+                kwargs['excel'])), "Engineering Spec file not specified"
             excel_file_info = kwargs['excel']
             assert (kwargs['excel_spec']
-                    ) is not None, "Excel Specification file not specified"
+                    ) is not None, "Excel Spec file not specified"
             excel_spec_info = kwargs['excel_spec']
         except AssertionError:
             LOG.error(
@@ -118,18 +100,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
             'excel_spec': excel_spec_info
         }
         return plugin_conf
-
-    def get_zones(self, site=None):
-        # TODO(pg710r): Code will be added later
-        pass
-
-    def get_regions(self, zone):
-        # TODO(pg710r): Code will be added later
-        pass
-
-    def get_racks(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
 
     def get_hosts(self, region, rack=None):
         """Return list of hosts in the region
@@ -150,6 +120,7 @@ class TugboatPlugin(BaseDataSourcePlugin):
                  ]
         """
         LOG.info("Get Host Information")
+        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
         rackwise_hosts = self._get_rackwise_hosts()
         host_list = []
         for rack in rackwise_hosts.keys():
@@ -160,8 +131,7 @@ class TugboatPlugin(BaseDataSourcePlugin):
                     'name':
                     host,
                     'host_profile':
-                    self.ipmi_data[host]['host_profile']
-                    #'type': self.host_type[host]
+                    ipmi_data[host]['host_profile']
                 })
         return host_list
 
@@ -169,7 +139,8 @@ class TugboatPlugin(BaseDataSourcePlugin):
         """ Format rack name """
         LOG.info("Getting rack data")
         racks = {}
-        for host in self.hostnames:
+        hostnames = self.parsed_xl_data['ipmi_data'][1]
+        for host in hostnames:
             rack = self._get_rack(host)
             racks[rack] = rack.replace('r', 'rack')
         return racks
@@ -179,7 +150,7 @@ class TugboatPlugin(BaseDataSourcePlugin):
         Get rack id  from the rack string extracted
         from xl
         """
-        rack_pattern = '\w.*(r\d+)\w.*'
+        rack_pattern = r'\w.*(r\d+)\w.*'
         rack = re.findall(rack_pattern, host)[0]
         if not self.region:
             self.region = host.split(rack)[0]
@@ -188,11 +159,12 @@ class TugboatPlugin(BaseDataSourcePlugin):
     def _get_rackwise_hosts(self):
         """ Mapping hosts with rack ids """
         rackwise_hosts = {}
+        hostnames = self.parsed_xl_data['ipmi_data'][1]
         racks = self._get_rack_data()
         for rack in racks:
             if rack not in rackwise_hosts:
                 rackwise_hosts[racks[rack]] = []
-            for host in self.hostnames:
+            for host in hostnames:
                 if rack in host:
                     rackwise_hosts[racks[rack]].append(host)
         LOG.debug("rackwise hosts:\n%s", pprint.pformat(rackwise_hosts))
@@ -206,10 +178,11 @@ class TugboatPlugin(BaseDataSourcePlugin):
         """ loop through IPMI data and determine hosttype """
         is_genesis = False
         sitetype = self.sitetype
-        ctrl_profile_type = \
-        self.rules_data['hardware_profile'][sitetype]['profile_name']['ctrl']
-        for host in sorted(self.ipmi_data.keys()):
-            if (self.ipmi_data[host]['host_profile'] == ctrl_profile_type):
+        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
+        ctrl_profile_type = self.rules_data['hardware_profile'][sitetype][
+            'profile_name']['ctrl']
+        for host in sorted(ipmi_data.keys()):
+            if (ipmi_data[host]['host_profile'] == ctrl_profile_type):
                 if not is_genesis:
                     self.host_type[host] = 'genesis'
                     is_genesis = True
@@ -219,8 +192,46 @@ class TugboatPlugin(BaseDataSourcePlugin):
                 self.host_type[host] = 'compute'
 
     def get_networks(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
+
+        vlan_list = []
+        # Network data extracted from xl is formatted to have a predictable
+        # data type. For e.g VlAN 45 extracted from xl is formatted as 45
+        vlan_pattern = r'\d+'
+        private_net = self.parsed_xl_data['network_data']['private']
+        public_net = self.parsed_xl_data['network_data']['public']
+        # Extract network information from private and public network data
+        for net_type, net_val in itertools.chain(private_net.items(),
+                                                 public_net.items()):
+            tmp_vlan = {}
+            # Ingress is special network that has no vlan, only a subnet string
+            # So treatment for ingress is different
+            LOG.info(net_type)
+            LOG.info(net_val)
+            if net_type is not 'ingress':
+                # standardize the network name as net_type may ne different.
+                # For e.g insteas of pxe it may be PXE or instead of calico
+                # it may be ksn. Valid network names are pxe, calico, oob, oam,
+                # overlay, storage, ingress
+                tmp_vlan['name'] = self._get_network_name_from_vlan_name(
+                    net_type)
+
+                # extract vlan tag. It was extracted from xl file as 'VlAN 45'
+                # The code below extracts the numeric data fron net_val['vlan']
+                if net_val.get('vlan', "") is not "":
+                    value = re.findall(vlan_pattern, net_val['vlan'])
+                    tmp_vlan['vlan'] = value[0]
+                else:
+                    tmp_vlan['vlan'] = ""
+
+                tmp_vlan['subnet'] = net_val.get('subnet', "")
+                tmp_vlan['gateway'] = net_val.get('gateway', "")
+            else:
+                tmp_vlan['name'] = 'ingress'
+                tmp_vlan['subnet'] = net_val
+            vlan_list.append(tmp_vlan)
+        LOG.debug("vlan list extracted from tugboat:\n{}".format(
+            pprint.pformat(vlan_list)))
+        return vlan_list
 
     def get_ips(self, region, host=None):
         """Return list of IPs on the host
@@ -236,32 +247,192 @@ class TugboatPlugin(BaseDataSourcePlugin):
         """
 
         ip_ = {}
+        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
         ip_[host] = {
-            'oob': self.ipmi_data[host].get('ipmi_address', ''),
-            'oam': self.ipmi_data[host].get('oam', ''),
-            'calico': self.ipmi_data[host].get('calico', ''),
-            'overlay': self.ipmi_data[host].get('overlay', ''),
-            'pxe': self.ipmi_data[host].get('pxe', ''),
-            'storage': self.ipmi_data[host].get('storage', '')
+            'oob': ipmi_data[host].get('ipmi_address', ''),
+            'oam': ipmi_data[host].get('oam', ''),
+            'calico': ipmi_data[host].get('calico', ''),
+            'overlay': ipmi_data[host].get('overlay', ''),
+            'pxe': ipmi_data[host].get('pxe', ''),
+            'storage': ipmi_data[host].get('storage', '')
         }
         return ip_
 
-    def get_dns_servers(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
+    def get_ldap_information(self, region):
+        """ Extract ldap information from excel and pass it"""
+
+        ldap_raw_data = self.parsed_xl_data['site_info']['ldap']
+        ldap_info = {}
+        # raw url is 'url: ldap://example.com' so we are converting to
+        # 'ldap://example.com'
+        ldap_info['url'] = ldap_raw_data['url'].split(' ')[1]
+        ldap_info['common_name'] = ldap_raw_data['common_name']
+        ldap_info['domain'] = ldap_raw_data['url'].split('.')[1]
+        ldap_info['subdomain'] = ldap_raw_data['subdomain']
+
+        return ldap_info
+
+    def _get_formatted_server_list(self, server_list):
+        """ Format dns and ntp server list as comma separated string """
+
+        # dns/ntp server info from excel is of the format
+        # 'xxx.xxx.xxx.xxx, (aaa.bbb.ccc.com)'
+        # The function returns a list of comma separated dns ip addresses
+        servers = []
+        for data in server_list:
+            if '(' not in data:
+                servers.append(data)
+        formatted_server_list = ','.join(servers)
+        return formatted_server_list
 
     def get_ntp_servers(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
+        """ Returns a comma separated list of ntp ip addresses"""
 
-    def get_ldap_information(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
+        ntp_server_list = self._get_formatted_server_list(
+            self.parsed_xl_data['site_info']['ntp'])
+        return ntp_server_list
 
-    def get_location_information(self, region):
-        # TODO(pg710r): Code will be added later
-        pass
+    def get_dns_servers(self, region):
+        """ Returns a comma separated list of dns ip addresses"""
+        dns_server_list = self._get_formatted_server_list(
+            self.parsed_xl_data['site_info']['dns'])
+        return dns_server_list
 
     def get_domain_name(self, region):
-        # TODO(pg710r): Code will be added later
+        """ Returns domain name extracted from excel file"""
+
+        return self.parsed_xl_data['site_info']['domain']
+
+    def _get_private_network_data(self, raw_data):
+        """
+        Get private network data from information extracted
+        by ExcelParser(i.e raw data)
+        """
+        network_data = {}
+        # Private Network Types are : pxe, storage, calico, overlay
+        private_network_types = {
+            'pxe': 'pxe',
+            'storage': 'storage',
+            'calico': 'calico',
+            'overlay': 'overlay'
+        }
+        for net_type in private_network_types:
+            for key in raw_data['private']:
+                if net_type.lower() in key.lower():
+                    network_data[private_network_types[net_type]] = raw_data[
+                        'private'][key]
+        LOG.debug("Private Network Data:\n%s", pprint.pformat(network_data))
+        return network_data
+
+    def _get_public_network_data(self, raw_data):
+        """
+        Get public network data from information extracted
+        by ExcelParser(i.e raw data)
+        """
+        network_data = raw_data['public']
+        LOG.debug("Public Network Data:\n%s", pprint.pformat(network_data))
+        return network_data
+
+    def _get_dns_ntp_ldap_data(self, raw_data):
+        """
+        Get dns, ntp and ldap data from  information extracted
+        by ExcelParser(i.e raw data)
+        """
+        network_data = raw_data['dns_ntp_ldap']
+        network_data['dns'] = " ".join(network_data['dns'])
+        network_data['ntp'] = " ".join(network_data['ntp'])
+        LOG.debug("DNS, NTP, LDAP data:\n%s", pprint.pformat(network_data))
+        return network_data
+
+    def get_location_information(self, region):
+        """
+        Prepare location data from information extracted
+        by ExcelParser(i.e raw data)
+        """
+        location_data = self.parsed_xl_data['site_info']['location']
+
+        corridor_pattern = r'\d+'
+        corridor_number = re.findall(corridor_pattern,
+                                     location_data['corridor'])[0]
+        name = location_data.get('name', '')
+        state = location_data.get('state', '')
+        country = location_data.get('country', '')
+        physical_location_id = location_data.get('physical_location', '')
+
+        return {
+            'name': name,
+            'physical_location_id': physical_location_id,
+            'state': state,
+            'country': country,
+            'corridor': 'c{}'.format(corridor_number),
+        }
+
+    def collect_design_rules(self, site_config):
+        """ The function applies global and site specific design rules to
+        a common design rule
+        """
+        """ Load and save global tugboat design rules.yaml """
+        global_config_dir = pkg_resources.resource_filename(
+            'tugboat', 'config/')
+        global_config_file = global_config_dir + 'global_config.yaml'
+        global_config_data = self.read_file(global_config_file)
+        global_config_yaml = yaml.safe_load(global_config_data)
+        """ Load site specific design rules """
+        site_config_data = self.read_file(site_config)
+        site_config_yaml = yaml.safe_load(site_config_data)
+        """ combine global and site design rules """
+        rules_data = {}
+        rules_data.update(global_config_yaml)
+        rules_data.update(site_config_yaml)
+
+        self.rules_data = rules_data
+
+        self.HOST_TYPES = self.rules_data['host_types']
+        self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
+        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
+        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
+        self.sitetype = self.rules_data['sitetype']
+
+    def _get_network_name_from_vlan_name(self, vlan_name):
+        """ network names are ksn, oam, oob, overlay, storage, pxe
+
+
+        This is a utility function to determine the vlan acceptable
+        vlan from the name extracted from excel file
+
+        The following mapping rules apply:
+            vlan_name contains "ksn or calico"  the network name is "calico"
+            vlan_name contains "storage" the network name is "storage"
+            vlan_name contains "server"  the network name is "oam"
+            vlan_name contains "ovs"  the network name is "overlay"
+            vlan_name contains "oob" the network name is "oob"
+            vlan_name contains "pxe" the network name is "pxe"
+        """
+        network_names = [
+            'ksn|calico', 'storage', 'oam|server', 'ovs|overlay', 'oob', 'pxe'
+        ]
+        for name in network_names:
+            # Make a pattern that would ignore case.
+            # if name is 'ksn' pattern name is '(?i)(ksn)'
+            name_pattern = "(?i)({})".format(name)
+            if re.search(name_pattern, vlan_name):
+                if name is 'ksn|calico':
+                    return 'calico'
+                if name is 'storage':
+                    return 'storage'
+                if name is 'oam|server':
+                    return 'oam'
+                if name is 'ovs|overlay':
+                    return 'overlay'
+                if name is 'oob':
+                    return 'oob'
+                if name is 'pxe':
+                    return 'pxe'
+        # if nothing matches
+        LOG.error(
+            "Unable to recognize VLAN name extracted from Plugin data source")
+        return ("")
+
+    def get_racks(self, region):
+        # TODO(pg710r)
         pass

@@ -278,8 +278,6 @@ class BaseDataSourcePlugin(object):
         LOG.info("Extract baremetal information from plugin")
         baremetal = {}
         hosts = self.get_hosts(self.region)
-        import pdb
-        pdb.set_trace()
 
         # For each host list fill host profile and network IPs
         for host in hosts:
@@ -398,12 +396,11 @@ class BaseDataSourcePlugin(object):
             'calico', 'overlay', 'pxe', 'storage', 'oam', 'oob', 'ingress'
         ]
         network_data['vlan_network_data'] = {}
-
         for net in networks:
             tmp_net = {}
             if net['name'] in networks_to_scan:
-                tmp_net['subnet'] = net['subnet']
-                tmp_net['vlan'] = net['vlan']
+                tmp_net['subnet'] = net.get('subnet', '')
+                tmp_net['vlan'] = net.get('vlan', '')
 
             network_data['vlan_network_data'][net['name']] = tmp_net
 
@@ -420,9 +417,10 @@ class BaseDataSourcePlugin(object):
         LOG.info("Extract data from plugin")
         site_data = {}
         site_data['baremetal'] = self.extract_baremetal_information()
-        site_data['site_info'] = self.extract_site_information()
         site_data['network'] = self.extract_network_information()
+        site_data['site_info'] = self.extract_site_information()
         self.site_data = site_data
+
         return site_data
 
     def apply_additional_data(self, extra_data):

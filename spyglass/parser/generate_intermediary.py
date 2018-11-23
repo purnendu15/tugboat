@@ -49,18 +49,22 @@ class ProcessDataSource():
         self.sitetype = None
         self.genesis_node = None
         self.region_name = None
+        self.network_subnets = None
 
     def _get_network_subnets(self):
-        # Extract subnet information for networks
+        """ Extract subnet information for networks.
+
+
+        In some networks, there are multiple subnets, in that case
+        we assign only the first subnet """
         LOG.info("Extracting network subnets")
         network_subnets = {}
-        # self.format_network_data()
         for net_type in self.data['network']['vlan_network_data']:
             # One of the type is ingress and we don't want that here
             if (net_type != 'ingress'):
                 network_subnets[net_type] = netaddr.IPNetwork(
                     self.data['network']['vlan_network_data'][net_type]
-                    ['subnet'])
+                    ['subnet'][0])
 
         LOG.debug("Network subnets:\n{}".format(
             pprint.pformat(network_subnets)))
@@ -158,6 +162,41 @@ class ProcessDataSource():
         pass
 
     def _apply_rule_ip_alloc_offset(self, rule_data):
+        """ Apply  offset rules to update baremetal host ip's and vlan network
+        data """
+
+        # Get network subnets
+        self.network_subnets = self._get_network_subnets()
+
+        self._update_vlan_net_data(rule_data)
+        self._update_baremetal_host_ip_data(rule_data)
+
+    def _update_baremetal_host_ip_data(self, rule_data):
+        """ Update baremetal host ip's for applicable networks.
+
+
+        The applicable networks are oob, oam, ksn, storage and overlay.
+        These IPs are assigned based on network subnets ranges.
+        If a particular ip exists it is overridden."""
+
+        # Ger defult ip offset
+        default_ip_offset = rule_data['default']
+
+        host_idx = 0
+        LOG.info("Looping through baremetal hosts")
+        for racks in self.data['baremetal'].keys():
+            rack_hosts = self.data['baremetal'][racks]
+            for host in rack_hosts:
+                host_networks = rack_hosts[host]['ip']
+                for net in host_networks:
+                    ips = list(self.network_subnets[net])
+                    host_networks[net] = str(ips[host_idx + default_ip_offset])
+                host_idx = host_idx + 1
+
+        LOG.debug("Updated baremetal host:{}".format(
+            pprint.pformat(self.data['baremetal'])))
+
+    def _update_vlan_net_data(self, rule_data):
         """ Offset allocation rules to determine ip address range(s)
 
 
@@ -165,7 +204,6 @@ class ProcessDataSource():
         network address, gateway ip and other address ranges
         """
         LOG.info("Apply network design rules")
-        vlan_network_data = {}
 
         # Collect Rules
         default_ip_offset = rule_data['default']
@@ -190,26 +228,23 @@ class ProcessDataSource():
             pprint.pformat(self.data['network']['bgp'])))
 
         LOG.info("Applying rule to vlan network data")
-        # Get network subnets
-        network_subnets = self._get_network_subnets()
         # Apply rules to vlan networks
-        for net_type in network_subnets:
+        for net_type in self.network_subnets:
             if net_type == 'oob':
                 ip_offset = oob_ip_offset
             else:
                 ip_offset = default_ip_offset
-            vlan_network_data[net_type] = {}
-            subnet = network_subnets[net_type]
+
+            subnet = self.network_subnets[net_type]
             ips = list(subnet)
 
-            vlan_network_data[net_type]['network'] = str(
-                network_subnets[net_type])
+            self.data['network']['vlan_network_data'][net_type][
+                'gateway'] = str(ips[gateway_ip_offset])
 
-            vlan_network_data[net_type]['gateway'] = str(
-                ips[gateway_ip_offset])
-
-            vlan_network_data[net_type]['reserved_start'] = str(ips[1])
-            vlan_network_data[net_type]['reserved_end'] = str(ips[ip_offset])
+            self.data['network']['vlan_network_data'][net_type][
+                'reserved_start'] = str(ips[1])
+            self.data['network']['vlan_network_data'][net_type][
+                'reserved_end'] = str(ips[ip_offset])
 
             static_start = str(ips[ip_offset + 1])
             static_end = str(ips[static_ip_end_offset])
@@ -220,30 +255,32 @@ class ProcessDataSource():
                 dhcp_start = str(ips[mid])
                 dhcp_end = str(ips[dhcp_ip_end_offset])
 
-                vlan_network_data[net_type]['dhcp_start'] = dhcp_start
-                vlan_network_data[net_type]['dhcp_end'] = dhcp_end
+                self.data['network']['vlan_network_data'][net_type][
+                    'dhcp_start'] = dhcp_start
+                self.data['network']['vlan_network_data'][net_type][
+                    'dhcp_end'] = dhcp_end
 
-            vlan_network_data[net_type]['static_start'] = static_start
-            vlan_network_data[net_type]['static_end'] = static_end
+            self.data['network']['vlan_network_data'][net_type][
+                'static_start'] = static_start
+            self.data['network']['vlan_network_data'][net_type][
+                'static_end'] = static_end
 
             # There is no vlan for oob network
             if (net_type != 'oob'):
-                vlan_network_data[net_type]['vlan'] = self.data['network'][
-                    'vlan_network_data'][net_type]['vlan']
+                self.data['network']['vlan_network_data'][net_type][
+                    'vlan'] = self.data['network']['vlan_network_data'][
+                        net_type]['vlan']
 
             # OAM have default routes. Only for cruiser. TBD
             if (net_type == 'oam'):
                 routes = ["0.0.0.0/0"]
             else:
                 routes = []
-            vlan_network_data[net_type]['routes'] = routes
-
-            # Update network data to self.data
-            self.data['network']['vlan_network_data'][
-                net_type] = vlan_network_data[net_type]
+            self.data['network']['vlan_network_data'][net_type][
+                'routes'] = routes
 
         LOG.debug("Updated vlan network data:\n{}".format(
-            pprint.pformat(vlan_network_data)))
+            pprint.pformat(self.data['network']['vlan_network_data'])))
 
     def load_extracted_data_from_data_source(self, extracted_data):
         """
@@ -265,7 +302,8 @@ class ProcessDataSource():
         with open(extracted_file, 'w') as f:
             f.write(yaml_file)
         f.close()
-        self._validate_extracted_data(extracted_data)
+        # TODO(pg710r): validation stopped temporarily
+        # self._validate_extracted_data(extracted_data)
         # Append region_data supplied from CLI to self.data
         self.data['region_name'] = self.region_name
 
