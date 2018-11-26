@@ -158,8 +158,31 @@ class ProcessDataSource():
         pass
 
     def _apply_rule_hardware_profile(self, rule_data):
-        # TODO(pg710r)Nothing to do as of now
-        pass
+        """ Apply rules to define host type from hardware profile info.
+
+
+        Host profile will define host types as "controller, compute or
+        genesis". The rule_data has pre-defined information to define
+        compute or controller based on host_profile. For defining 'genesis'
+        the first controller host is defined as genesis."""
+        is_genesis = False
+        hardware_profile = rule_data[self.region_name]
+        # Getting individual racks. The racks are sorted to ensure that the
+        # first controller of the first rack is assigned as 'genesis' node.
+        for rack in sorted(self.data['baremetal'].keys()):
+            # Getting individual hosts in each rack. Sorting of the hosts are
+            # done to determine the genesis node.
+            for host in sorted(self.data['baremetal'][rack].keys()):
+                host_info = self.data['baremetal'][rack][host]
+                if (host_info['host_profile'] == hardware_profile[
+                        'profile_name']['ctrl']):
+                    if not is_genesis:
+                        host_info['type'] = 'genesis'
+                        is_genesis = True
+                    else:
+                        host_info['type'] = 'controller'
+                else:
+                    host_info['type'] = 'compute'
 
     def _apply_rule_ip_alloc_offset(self, rule_data):
         """ Apply  offset rules to update baremetal host ip's and vlan network
