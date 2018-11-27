@@ -15,9 +15,7 @@
 import itertools
 import logging
 import pprint
-import pkg_resources
 import re
-import yaml
 from spyglass.data_extractor.base import BaseDataSourcePlugin
 from spyglass.data_extractor.tugboat.excel_parser import ExcelParser
 
@@ -62,19 +60,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
         self._extract_raw_data_from_excel()
         return
 
-    def _get_excel_obj(self):
-        """ Creation of an ExcelParser object to store site information.
-
-        The information is obtained based on a excel spec yaml file.
-        This spec contains row, column and sheet information of
-        the excel file from where site specific data can be extracted.
-        """
-        self.excel_obj = ExcelParser(self.excel_path, self.excel_spec)
-
-    def _extract_raw_data_from_excel(self):
-        """ Extracts raw information from excel file based on excel spec"""
-        self.parsed_xl_data = self.excel_obj.get_data()
-
     def get_plugin_conf(self, kwargs):
         """ Validates the plugin param from CLI and return if correct
 
@@ -90,10 +75,8 @@ class TugboatPlugin(BaseDataSourcePlugin):
             assert (kwargs['excel_spec']
                     ) is not None, "Excel Spec file not specified"
             excel_spec_info = kwargs['excel_spec']
-        except AssertionError:
-            LOG.error(
-                "Insufficient plugin parameter for Tugboat! Spyglass exited!")
-            raise
+        except AssertionError as e:
+            LOG.error("{}:Spyglass exited!".format(e))
             exit()
         plugin_conf = {
             'excel_path': excel_file_info,
@@ -135,64 +118,8 @@ class TugboatPlugin(BaseDataSourcePlugin):
                 })
         return host_list
 
-    def _get_rack_data(self):
-        """ Format rack name """
-        LOG.info("Getting rack data")
-        racks = {}
-        hostnames = self.parsed_xl_data['ipmi_data'][1]
-        for host in hostnames:
-            rack = self._get_rack(host)
-            racks[rack] = rack.replace('r', 'rack')
-        return racks
-
-    def _get_rack(self, host):
-        """
-        Get rack id  from the rack string extracted
-        from xl
-        """
-        rack_pattern = r'\w.*(r\d+)\w.*'
-        rack = re.findall(rack_pattern, host)[0]
-        if not self.region:
-            self.region = host.split(rack)[0]
-        return rack
-
-    def _get_rackwise_hosts(self):
-        """ Mapping hosts with rack ids """
-        rackwise_hosts = {}
-        hostnames = self.parsed_xl_data['ipmi_data'][1]
-        racks = self._get_rack_data()
-        for rack in racks:
-            if rack not in rackwise_hosts:
-                rackwise_hosts[racks[rack]] = []
-            for host in hostnames:
-                if rack in host:
-                    rackwise_hosts[racks[rack]].append(host)
-        LOG.debug("rackwise hosts:\n%s", pprint.pformat(rackwise_hosts))
-        return rackwise_hosts
-
-    def _categorize_hosts(self):
-        """
-        Categorize host as genesis, controller and compute based on
-        the hostname string extracted from xl
-        """
-        """ loop through IPMI data and determine hosttype """
-        is_genesis = False
-        sitetype = self.sitetype
-        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
-        ctrl_profile_type = self.rules_data['hardware_profile'][sitetype][
-            'profile_name']['ctrl']
-        for host in sorted(ipmi_data.keys()):
-            if (ipmi_data[host]['host_profile'] == ctrl_profile_type):
-                if not is_genesis:
-                    self.host_type[host] = 'genesis'
-                    is_genesis = True
-                else:
-                    self.host_type[host] = 'controller'
-            else:
-                self.host_type[host] = 'compute'
-
     def get_networks(self, region):
-
+        """ Extracts vlan network info from raw network data from excel"""
         vlan_list = []
         # Network data extracted from xl is formatted to have a predictable
         # data type. For e.g VlAN 45 extracted from xl is formatted as 45
@@ -205,8 +132,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
             tmp_vlan = {}
             # Ingress is special network that has no vlan, only a subnet string
             # So treatment for ingress is different
-            LOG.info(net_type)
-            LOG.info(net_val)
             if net_type is not 'ingress':
                 # standardize the network name as net_type may ne different.
                 # For e.g insteas of pxe it may be PXE or instead of calico
@@ -259,31 +184,22 @@ class TugboatPlugin(BaseDataSourcePlugin):
         return ip_
 
     def get_ldap_information(self, region):
-        """ Extract ldap information from excel and pass it"""
+        """ Extract ldap information from excel"""
 
         ldap_raw_data = self.parsed_xl_data['site_info']['ldap']
         ldap_info = {}
         # raw url is 'url: ldap://example.com' so we are converting to
         # 'ldap://example.com'
-        ldap_info['url'] = ldap_raw_data['url'].split(' ')[1]
-        ldap_info['common_name'] = ldap_raw_data['common_name']
-        ldap_info['domain'] = ldap_raw_data['url'].split('.')[1]
-        ldap_info['subdomain'] = ldap_raw_data['subdomain']
+        url = ldap_raw_data.get('url', '')
+        try:
+            ldap_info['url'] = url.split(' ')[1]
+            ldap_info['domain'] = url.split('.')[1]
+        except IndexError as e:
+            LOG.error("url.split:{}".format(e))
+        ldap_info['common_name'] = ldap_raw_data.get('common_name', '')
+        ldap_info['subdomain'] = ldap_raw_data.get('subdomain', '')
 
         return ldap_info
-
-    def _get_formatted_server_list(self, server_list):
-        """ Format dns and ntp server list as comma separated string """
-
-        # dns/ntp server info from excel is of the format
-        # 'xxx.xxx.xxx.xxx, (aaa.bbb.ccc.com)'
-        # The function returns a list of comma separated dns ip addresses
-        servers = []
-        for data in server_list:
-            if '(' not in data:
-                servers.append(data)
-        formatted_server_list = ','.join(servers)
-        return formatted_server_list
 
     def get_ntp_servers(self, region):
         """ Returns a comma separated list of ntp ip addresses"""
@@ -302,47 +218,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
         """ Returns domain name extracted from excel file"""
 
         return self.parsed_xl_data['site_info']['domain']
-
-    def _get_private_network_data(self, raw_data):
-        """
-        Get private network data from information extracted
-        by ExcelParser(i.e raw data)
-        """
-        network_data = {}
-        # Private Network Types are : pxe, storage, calico, overlay
-        private_network_types = {
-            'pxe': 'pxe',
-            'storage': 'storage',
-            'calico': 'calico',
-            'overlay': 'overlay'
-        }
-        for net_type in private_network_types:
-            for key in raw_data['private']:
-                if net_type.lower() in key.lower():
-                    network_data[private_network_types[net_type]] = raw_data[
-                        'private'][key]
-        LOG.debug("Private Network Data:\n%s", pprint.pformat(network_data))
-        return network_data
-
-    def _get_public_network_data(self, raw_data):
-        """
-        Get public network data from information extracted
-        by ExcelParser(i.e raw data)
-        """
-        network_data = raw_data['public']
-        LOG.debug("Public Network Data:\n%s", pprint.pformat(network_data))
-        return network_data
-
-    def _get_dns_ntp_ldap_data(self, raw_data):
-        """
-        Get dns, ntp and ldap data from  information extracted
-        by ExcelParser(i.e raw data)
-        """
-        network_data = raw_data['dns_ntp_ldap']
-        network_data['dns'] = " ".join(network_data['dns'])
-        network_data['ntp'] = " ".join(network_data['ntp'])
-        LOG.debug("DNS, NTP, LDAP data:\n%s", pprint.pformat(network_data))
-        return network_data
 
     def get_location_information(self, region):
         """
@@ -367,31 +242,23 @@ class TugboatPlugin(BaseDataSourcePlugin):
             'corridor': 'c{}'.format(corridor_number),
         }
 
-    def collect_design_rules(self, site_config):
-        """ The function applies global and site specific design rules to
-        a common design rule
+    def get_racks(self, region):
+        # This function is not required since the excel plugin
+        # already provide rack information.
+        pass
+
+    def _get_excel_obj(self):
+        """ Creation of an ExcelParser object to store site information.
+
+        The information is obtained based on a excel spec yaml file.
+        This spec contains row, column and sheet information of
+        the excel file from where site specific data can be extracted.
         """
-        """ Load and save global tugboat design rules.yaml """
-        global_config_dir = pkg_resources.resource_filename(
-            'tugboat', 'config/')
-        global_config_file = global_config_dir + 'global_config.yaml'
-        global_config_data = self.read_file(global_config_file)
-        global_config_yaml = yaml.safe_load(global_config_data)
-        """ Load site specific design rules """
-        site_config_data = self.read_file(site_config)
-        site_config_yaml = yaml.safe_load(site_config_data)
-        """ combine global and site design rules """
-        rules_data = {}
-        rules_data.update(global_config_yaml)
-        rules_data.update(site_config_yaml)
+        self.excel_obj = ExcelParser(self.excel_path, self.excel_spec)
 
-        self.rules_data = rules_data
-
-        self.HOST_TYPES = self.rules_data['host_types']
-        self.PRIVATE_NETWORK_TYPES = self.rules_data['private_network_types']
-        self.IPS_TO_LEAVE = self.rules_data['ips_to_leave']
-        self.OOB_IPS_TO_LEAVE = self.rules_data['oob_ips_to_leave']
-        self.sitetype = self.rules_data['sitetype']
+    def _extract_raw_data_from_excel(self):
+        """ Extracts raw information from excel file based on excel spec"""
+        self.parsed_xl_data = self.excel_obj.get_data()
 
     def _get_network_name_from_vlan_name(self, vlan_name):
         """ network names are ksn, oam, oob, overlay, storage, pxe
@@ -433,6 +300,92 @@ class TugboatPlugin(BaseDataSourcePlugin):
             "Unable to recognize VLAN name extracted from Plugin data source")
         return ("")
 
-    def get_racks(self, region):
-        # TODO(pg710r)
-        pass
+    def _get_private_network_data(self, raw_data):
+        """
+        Get private network data from information extracted
+        by ExcelParser(i.e raw data)
+        """
+        network_data = {}
+        # Private Network Types are : pxe, storage, calico, overlay
+        private_network_types = {
+            'pxe': 'pxe',
+            'storage': 'storage',
+            'calico': 'calico',
+            'overlay': 'overlay'
+        }
+        for net_type in private_network_types:
+            for key in raw_data['private']:
+                if net_type.lower() in key.lower():
+                    network_data[private_network_types[net_type]] = raw_data[
+                        'private'][key]
+        LOG.debug("Private Network Data:\n%s", pprint.pformat(network_data))
+        return network_data
+
+    def _get_formatted_server_list(self, server_list):
+        """ Format dns and ntp server list as comma separated string """
+
+        # dns/ntp server info from excel is of the format
+        # 'xxx.xxx.xxx.xxx, (aaa.bbb.ccc.com)'
+        # The function returns a list of comma separated dns ip addresses
+        servers = []
+        for data in server_list:
+            if '(' not in data:
+                servers.append(data)
+        formatted_server_list = ','.join(servers)
+        return formatted_server_list
+
+    def _categorize_hosts(self):
+        """
+        Categorize host as genesis, controller and compute based on
+        the hostname string extracted from xl
+        """
+        """ loop through IPMI data and determine hosttype """
+        is_genesis = False
+        sitetype = self.sitetype
+        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
+        ctrl_profile_type = self.rules_data['hardware_profile'][sitetype][
+            'profile_name']['ctrl']
+        for host in sorted(ipmi_data.keys()):
+            if (ipmi_data[host]['host_profile'] == ctrl_profile_type):
+                if not is_genesis:
+                    self.host_type[host] = 'genesis'
+                    is_genesis = True
+                else:
+                    self.host_type[host] = 'controller'
+            else:
+                self.host_type[host] = 'compute'
+
+    def _get_rack(self, host):
+        """
+        Get rack id  from the rack string extracted
+        from xl
+        """
+        rack_pattern = r'\w.*(r\d+)\w.*'
+        rack = re.findall(rack_pattern, host)[0]
+        if not self.region:
+            self.region = host.split(rack)[0]
+        return rack
+
+    def _get_rackwise_hosts(self):
+        """ Mapping hosts with rack ids """
+        rackwise_hosts = {}
+        hostnames = self.parsed_xl_data['ipmi_data'][1]
+        racks = self._get_rack_data()
+        for rack in racks:
+            if rack not in rackwise_hosts:
+                rackwise_hosts[racks[rack]] = []
+            for host in hostnames:
+                if rack in host:
+                    rackwise_hosts[racks[rack]].append(host)
+        LOG.debug("rackwise hosts:\n%s", pprint.pformat(rackwise_hosts))
+        return rackwise_hosts
+
+    def _get_rack_data(self):
+        """ Format rack name """
+        LOG.info("Getting rack data")
+        racks = {}
+        hostnames = self.parsed_xl_data['ipmi_data'][1]
+        for host in hostnames:
+            rack = self._get_rack(host)
+            racks[rack] = rack.replace('r', 'rack')
+        return racks

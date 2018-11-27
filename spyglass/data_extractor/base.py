@@ -432,7 +432,7 @@ class BaseDataSourcePlugin(object):
         If there is repetition of data then additional data supplied
         shall take precedence.
         """
-        LOG.info("Update site data with additional input")
+        LOG.info("Merging site data with additional configuration")
         tmp_site_data = utils.dict_merge(self.site_data, extra_data)
         self.site_data = tmp_site_data
         return self.site_data

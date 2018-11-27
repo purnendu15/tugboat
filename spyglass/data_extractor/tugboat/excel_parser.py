@@ -12,11 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import json
-import jsonschema
 import logging
 import pprint
-import pkg_resources
 import re
 import sys
 import yaml
@@ -60,8 +57,6 @@ class ExcelParser():
         ipmi_header = self.excel_specs['specs'][spec]['ipmi_address_header']
         ipmi_column = self.excel_specs['specs'][spec]['ipmi_address_col']
         header_value = ws.cell(row=header_row, column=ipmi_column).value
-        import pdb
-        pdb.set_trace()
         return bool(self.compare(ipmi_header, header_value))
 
     def find_correct_spec(self):
@@ -126,9 +121,10 @@ class ExcelParser():
                 'type': type,
             }
             row += 1
-        LOG.debug("ipmi data extracted from excel:\n%s",
-                  [pprint.pformat(ipmi_data),
-                   pprint.pformat(hosts)])
+        LOG.debug("ipmi data extracted from excel:\n{}".format(
+            pprint.pformat(ipmi_data)))
+        LOG.debug("host data extracted from excel:\n{}".format(
+            pprint.pformat(hosts)))
         return [ipmi_data, hosts]
 
     def get_private_vlan_data(self, ws):
@@ -333,26 +329,8 @@ class ExcelParser():
                                          column=column).value,
         }
 
-    def validate_data(self, data):
-        LOG.info('Validating data read from sheet')
-        schema_dir = pkg_resources.resource_filename('tugboat', 'schemas/')
-        schema_file = schema_dir + "data_schema.json"
-        json_data = json.loads(json.dumps(data))
-        with open(schema_file, 'r') as f:
-            json_schema = json.load(f)
-        try:
-            with open('data2.json', 'w') as outfile:
-                json.dump(data, outfile, sort_keys=True, indent=4)
-            jsonschema.validate(json_data, json_schema)
-        except jsonschema.exceptions.ValidationError as e:
-            LOG.error(
-                "Validation Failed:\n{}\n Please check excel spec(row,col)".
-                format(e.message))
-            sys.exit(1)
-        LOG.info("Data validation\
-                         OK!")
-
     def validate_sheet_names_with_spec(self):
+        """ Checks is sheet name in spec file matches with excel file"""
         spec = list(self.excel_specs['specs'].keys())[0]
         spec_item = self.excel_specs['specs'][spec]
         sheet_name_list = []
@@ -383,7 +361,7 @@ class ExcelParser():
             LOG.critical(rerror)
             sys.exit("Tugboat exited!!")
 
-        LOG.info("Sheet name in excel spec validated with")
+        LOG.info("Sheet names in excel spec validated")
 
     def get_data(self):
         """ Create a dict with combined data """
@@ -403,10 +381,10 @@ class ExcelParser():
         LOG.debug(
             "Location data extracted from\
                           excel:\n%s", pprint.pformat(data))
-        # TODO(pg710r) self.validate_data(data)
         return data
 
     def combine_excel_design_specs(self, filenames):
+        """ Combines multiple excel file to a single design spec"""
         design_spec = Workbook()
         for exel_file in filenames:
             loaded_workbook = load_workbook(exel_file, data_only=True)

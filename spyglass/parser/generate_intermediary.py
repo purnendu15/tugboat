@@ -71,26 +71,25 @@ class ProcessDataSource():
         return network_subnets
 
     def _get_genesis_node_details(self):
-        # Returns the genesis node details
-        LOG.info("Getting Genesis Node Details")
+        # Get genesis host node details from the hosts based on host type
         for racks in self.data['baremetal'].keys():
             rack_hosts = self.data['baremetal'][racks]
             for host in rack_hosts:
                 if rack_hosts[host]['type'] == 'genesis':
                     self.genesis_node = rack_hosts[host]
                     self.genesis_node['name'] = host
-        LOG.debug("Genesis Node Details:{}".format(
+        LOG.debug("Genesis Node Details:\n{}".format(
             pprint.pformat(self.genesis_node)))
 
-    def _validate_extracted_data(self, data):
-        """ Validates the extracted data from input source.
+    def _validate_intermediary_data(self, data):
+        """ Validates the intermediary data before generating manifests.
 
 
         It checks wether the data types and data format are as expected.
         The method validates this with regex pattern defined for each
         data type.
         """
-        LOG.info('Validating data read from extracted data')
+        LOG.info('Validating Intermediary data')
         temp_data = {}
         # Peforming a deep copy
         temp_data = copy.deepcopy(data)
@@ -154,7 +153,10 @@ class ProcessDataSource():
             LOG.info("Applying rule:{}".format(rule_name))
 
     def _apply_rule_host_profile_interfaces(self, rule_data):
-        # TODO(pg710r)Nothing to do as of now
+        # TODO(pg710r)Nothing to do as of now since host profile
+        # information is already present in plugin data.
+        # This function shall be defined if plugin data source
+        # doesn't provide host profile information.
         pass
 
     def _apply_rule_hardware_profile(self, rule_data):
@@ -166,7 +168,7 @@ class ProcessDataSource():
         compute or controller based on host_profile. For defining 'genesis'
         the first controller host is defined as genesis."""
         is_genesis = False
-        hardware_profile = rule_data[self.region_name]
+        hardware_profile = rule_data[self.data['site_info']['sitetype']]
         # Getting individual racks. The racks are sorted to ensure that the
         # first controller of the first rack is assigned as 'genesis' node.
         for rack in sorted(self.data['baremetal'].keys()):
@@ -206,7 +208,7 @@ class ProcessDataSource():
         default_ip_offset = rule_data['default']
 
         host_idx = 0
-        LOG.info("Looping through baremetal hosts")
+        LOG.info("Update baremetal host ip's")
         for racks in self.data['baremetal'].keys():
             rack_hosts = self.data['baremetal'][racks]
             for host in rack_hosts:
@@ -216,7 +218,7 @@ class ProcessDataSource():
                     host_networks[net] = str(ips[host_idx + default_ip_offset])
                 host_idx = host_idx + 1
 
-        LOG.debug("Updated baremetal host:{}".format(
+        LOG.debug("Updated baremetal host:\n{}".format(
             pprint.pformat(self.data['baremetal'])))
 
     def _update_vlan_net_data(self, rule_data):
@@ -239,7 +241,7 @@ class ProcessDataSource():
         dhcp_ip_end_offset = rule_data['dhcp_ip_end']
 
         # Set ingress vip and CIDR for bgp
-        LOG.info("Applying rule to network bgp data")
+        LOG.info("Apply network design rules:bgp")
         subnet = netaddr.IPNetwork(
             self.data['network']['vlan_network_data']['ingress']['subnet'][0])
         ips = list(subnet)
@@ -250,7 +252,7 @@ class ProcessDataSource():
         LOG.debug("Updated network bgp data:\n{}".format(
             pprint.pformat(self.data['network']['bgp'])))
 
-        LOG.info("Applying rule to vlan network data")
+        LOG.info("Apply network design rules:vlan")
         # Apply rules to vlan networks
         for net_type in self.network_subnets:
             if net_type == 'oob':
@@ -316,23 +318,22 @@ class ProcessDataSource():
         extracted_data = yaml.safe_load(raw_data)
         """
 
-        LOG.info("Load extracted data from data source")
+        LOG.info("Loading plugin data source")
         self.data = extracted_data
-        LOG.debug("Extracted data from plugin data source:\n{}".format(
+        LOG.debug("Extracted data from plugin:\n{}".format(
             pprint.pformat(extracted_data)))
         extracted_file = "extracted_file.yaml"
         yaml_file = yaml.dump(extracted_data, default_flow_style=False)
         with open(extracted_file, 'w') as f:
             f.write(yaml_file)
         f.close()
-        # TODO(pg710r): validation stopped temporarily
-        # self._validate_extracted_data(extracted_data)
+
         # Append region_data supplied from CLI to self.data
         self.data['region_name'] = self.region_name
 
     def dump_intermediary_file(self, intermediary_dir):
-        """ Dumping intermediary yaml """
-        LOG.info("Dumping intermediary yaml")
+        """ Writing intermediary yaml """
+        LOG.info("Writing intermediary yaml")
         intermediary_file = "{}_intermediary.yaml".format(
             self.data['region_name'])
         # Check of if output dir = intermediary_dir exists
@@ -340,7 +341,7 @@ class ProcessDataSource():
             outfile = "{}/{}".format(intermediary_dir, intermediary_file)
         else:
             outfile = intermediary_file
-        LOG.info("Intermediary file dir:{}".format(outfile))
+        LOG.info("Intermediary file:{}".format(outfile))
         yaml_file = yaml.dump(self.data, default_flow_style=False)
         with open(outfile, 'w') as f:
             f.write(yaml_file)
@@ -348,9 +349,9 @@ class ProcessDataSource():
 
     def generate_intermediary_yaml(self):
         """ Generating intermediary yaml """
-        LOG.info("Generating intermediary yaml")
+        LOG.info("Start: Generate Intermediary")
         self._apply_design_rules()
         self._get_genesis_node_details()
+        self._validate_intermediary_data(self.data)
         self.intermediary_yaml = self.data
-        # TODO(pg710r):self._modify_intermediary()
         return self.intermediary_yaml

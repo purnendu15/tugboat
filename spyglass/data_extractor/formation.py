@@ -63,6 +63,8 @@ class FormationPlugin(BaseDataSourcePlugin):
         self.device_name_id_mapping = {}
         LOG.info("Initiated data extractor plugin:{}".format(self.source_name))
 
+    # Implement Abstract functions
+
     def set_config_opts(self, conf):
         """ Sets the config params passed by CLI"""
         LOG.info("Plugin params passed:\n{}".format(pprint.pformat(conf)))
@@ -94,10 +96,210 @@ class FormationPlugin(BaseDataSourcePlugin):
         plugin_conf = {'url': url, 'user': user, 'password': password}
         return plugin_conf
 
-    def _validate_config_options(self, conf):
-        """Validate the CLI params passed
+    def get_zones(self, site=None):
+        zone_api = swagger_client.ZonesApi(self.formation_api_client)
 
-        The method checks for missing parameters and terminates
+        if site is None:
+            zones = zone_api.zones_get()
+        else:
+            site_id = self._get_site_id_by_name(site)
+            zones = zone_api.sites_site_id_zones_get(site_id)
+
+        zones_list = []
+        for zone in zones:
+            zone_name = zone.name
+            self.zone_name_id_mapping[zone_name] = zone.id
+            zones_list.append(zone_name)
+
+        return zones_list
+
+    def get_regions(self, zone):
+        zone_id = self._get_zone_id_by_name(zone)
+        region_api = swagger_client.RegionApi(self.formation_api_client)
+        regions = region_api.zones_zone_id_regions_get(zone_id)
+        regions_list = []
+        for region in regions:
+            region_name = region.name
+            self.region_name_id_mapping[region_name] = region.id
+            regions_list.append(region_name)
+
+        return regions_list
+
+    def get_racks(self, region):
+        zone = self.region_zone_map[region]['zone']
+        return self._get_racks(zone, rack_type='compute')
+
+    def get_hosts(self, region, rack=None):
+        zone = self.region_zone_map[region]['zone']
+        zone_id = self._get_zone_id_by_name(zone)
+        device_api = swagger_client.DevicesApi(self.formation_api_client)
+        control_hosts = device_api.zones_zone_id_control_nodes_get(zone_id)
+        compute_hosts = device_api.zones_zone_id_devices_get(
+            zone_id, type='KVM')
+        hosts_list = []
+        genesis_set = False
+        for host in control_hosts:
+            self.device_name_id_mapping[host.aic_standard_name] = host.id
+            # The first control node is designated as genesis node
+            if genesis_set is False:
+                node_type = 'genesis'
+                genesis_set = True
+            else:
+                node_type = 'genesis'
+            hosts_list.append({
+                'name': host.aic_standard_name,
+                'type': node_type,
+                'rack_name': host.rack_name,
+                'host_profile': host.host_profile_name
+            })
+
+        for host in compute_hosts:
+            self.device_name_id_mapping[host.aic_standard_name] = host.id
+            hosts_list.append({
+                'name': host.aic_standard_name,
+                'type': 'compute',
+                'rack_name': host.rack_name,
+                'host_profile': host.host_profile_name
+            })
+        return hosts_list
+
+    def get_networks(self, region):
+        zone = self.region_zone_map[region]['zone']
+        zone_id = self._get_zone_id_by_name(zone)
+        region_id = self._get_region_id_by_name(region)
+        vlan_api = swagger_client.VlansApi(self.formation_api_client)
+        vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
+            zone_id, region_id)
+        # TWEAK(pg710r):Case when vlans list is empty from
+        # zones_zone_id_regions_region_id_vlans_get. Ideally this should not
+        # be the case
+        if len(vlans) is 0:
+            # get device-id from the first host and get the network details
+            hosts = self.get_hosts(self.region)
+            host = hosts[0]['name']
+            device_id = self._get_device_id_by_name(host)
+            vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
+                zone_id, device_id)
+
+        LOG.debug("Extracted region network information\n{}".format(vlans))
+        vlans_list = []
+        for vlan_ in vlans:
+            if len(vlan_.vlan.ipv4) is not 0:
+                tmp_vlan = {}
+                tmp_vlan['name'] = self._get_network_name_from_vlan_name(
+                    vlan_.vlan.name)
+                tmp_vlan['vlan'] = vlan_.vlan.vlan_id
+                tmp_vlan['subnet'] = vlan_.vlan.subnet_range
+                tmp_vlan['gateway'] = vlan_.ipv4_gateway
+                tmp_vlan['subnet_level'] = vlan_.vlan.subnet_level
+                vlans_list.append(tmp_vlan)
+        return vlans_list
+
+    def get_ips(self, region, host=None):
+        zone = self.region_zone_map[region]['zone']
+        zone_id = self._get_zone_id_by_name(zone)
+
+        if host:
+            hosts = [host]
+        else:
+            hosts = []
+            hosts_dict = self.get_hosts(zone)
+            for host in hosts_dict:
+                hosts.append(host['name'])
+
+        vlan_api = swagger_client.VlansApi(self.formation_api_client)
+        ip_ = {}
+
+        for host in hosts:
+            device_id = self._get_device_id_by_name(host)
+            vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
+                zone_id, device_id)
+            LOG.debug("Received VLAN Network Information\n{}".format(vlans))
+            ip_[host] = {}
+            for vlan_ in vlans:
+                # The plugin currently supports IPv4
+                if len(vlan_.vlan.ipv4) is not 0:
+                    name = self._get_network_name_from_vlan_name(
+                        vlan_.vlan.name)
+                    ipv4 = vlan_.vlan.ipv4[0].ip
+                    LOG.debug("vlan:{},name:{},ip:{},vlan_name:{}".format(
+                        vlan_.vlan.vlan_id, name, ipv4, vlan_.vlan.name))
+                    # TODD(pg710r) This code needs to extended to support ipv4
+                    # and ipv6
+                    ip_[host][name] = ipv4
+
+        return ip_
+
+    def get_dns_servers(self, region):
+        try:
+            zone = self.region_zone_map[region]['zone']
+            zone_id = self._get_zone_id_by_name(zone)
+            zone_api = swagger_client.ZonesApi(self.formation_api_client)
+            zone_ = zone_api.zones_zone_id_get(zone_id)
+        except swagger_client.rest.ApiException as e:
+            raise ApiClientError(e.msg)
+
+        if not zone_.ipv4_dns:
+            LOG.warn("No dns server")
+            return []
+
+        dns_list = []
+        for dns in zone_.ipv4_dns:
+            dns_list.append(dns.ip)
+
+        return dns_list
+
+    def get_ntp_servers(self, region):
+        # These information are not available with the formation endpoint
+        # These will be supplied as site config parameters
+        return []
+
+    def get_ldap_information(self, region):
+        # These information are not available with the formation endpoint
+        # These will be supplied as site config parameters
+        return {}
+
+    def get_location_information(self, region):
+        """ get location information for a zone and return """
+        site = self.region_zone_map[region]['site']
+        site_id = self._get_site_id_by_name(site)
+        site_api = swagger_client.SitesApi(self.formation_api_client)
+        site_info = site_api.sites_site_id_get(site_id)
+
+        try:
+            return {
+                # 'corridor': site_info.corridor,
+                'name': site_info.city,
+                'state': site_info.state,
+                'country': site_info.country,
+                'physical_location_id': site_info.clli,
+            }
+        except AttributeError as e:
+            raise MissingAttributeError('Missing {} information in {}'.format(
+                e, site_info.city))
+
+    def get_domain_name(self, region):
+        try:
+            zone = self.region_zone_map[region]['zone']
+            zone_id = self._get_zone_id_by_name(zone)
+            zone_api = swagger_client.ZonesApi(self.formation_api_client)
+            zone_ = zone_api.zones_zone_id_get(zone_id)
+        except swagger_client.rest.ApiException as e:
+            raise ApiClientError(e.msg)
+
+        if not zone_.dns:
+            LOG.warn('Got None while running get domain name')
+            return None
+
+        return zone_.dns
+
+    # Implement helper classes
+    # Functions that will be used internally within this plugin
+
+    def _validate_config_options(self, conf):
+        """Validate Spyglass CLI params that are related to this plugin
+
+        The method checks for missing parameters for this plugin and terminates
         Spyglass execution if found so.
         """
 
@@ -109,10 +311,10 @@ class FormationPlugin(BaseDataSourcePlugin):
             LOG.error("Missing Plugin Params{}:".format(missing_params))
             exit()
 
-    # Implement helper classes
-
     def _generate_token(self):
-        """Generate token for Formation
+        """Generate token for a session with Formation endpoint
+
+
         Formation API does not provide separate resource to generate
         token. This is a workaround to call directly Formation API
         to get token instead of using Formation client.
@@ -150,6 +352,7 @@ class FormationPlugin(BaseDataSourcePlugin):
     def _get_formation_client(self):
         """Create formation client object
 
+
         Formation uses X-Auth-Token for authentication and should be in
         format "user|token".
         Generate the token and add it formation config object.
@@ -162,20 +365,15 @@ class FormationPlugin(BaseDataSourcePlugin):
     def _update_site_and_zone(self, region):
         """Get Zone name and Site name from region"""
 
-        # TODO(nh863p): Since the test environments taking lot of time
-        # to retrieve data, this is a tweak to determine zone name and
-        # rack name
-        zone = region[:-1]
-        # TODO(pg710r): site name is hardcoded
-        site = zone[:-1]
+        try:
+            zone = self._get_zone_by_region_name(region)
+            assert(zone is not None), "zone can't be None"
+        except AssertionError as e:
+            LOG.error("zone:None:{}".format(e))
 
-        # zone = self._get_zone_by_region_name(region)
-        # site = self._get_site_by_zone_name(zone)
-
-        # TODO(nh863p):  Raise exception if zone is None???
+        site = self._get_site_by_zone_name(zone)
 
         self.region_zone_map[region] = {}
-        self.region_zone_map[region]['zone'] = zone
         self.region_zone_map[region]['site'] = site
 
     def _get_zone_by_region_name(self, region_name):
@@ -268,159 +466,6 @@ class FormationPlugin(BaseDataSourcePlugin):
 
         return racks_list
 
-    # Functions that will be used internally within this plugin
-
-    def get_zones(self, site=None):
-        zone_api = swagger_client.ZonesApi(self.formation_api_client)
-
-        if site is None:
-            zones = zone_api.zones_get()
-        else:
-            site_id = self._get_site_id_by_name(site)
-            zones = zone_api.sites_site_id_zones_get(site_id)
-
-        zones_list = []
-        for zone in zones:
-            zone_name = zone.name
-            self.zone_name_id_mapping[zone_name] = zone.id
-            zones_list.append(zone_name)
-
-        return zones_list
-
-    def get_regions(self, zone):
-        zone_id = self._get_zone_id_by_name(zone)
-        region_api = swagger_client.RegionApi(self.formation_api_client)
-        regions = region_api.zones_zone_id_regions_get(zone_id)
-        regions_list = []
-        for region in regions:
-            region_name = region.name
-            self.region_name_id_mapping[region_name] = region.id
-            regions_list.append(region_name)
-
-        return regions_list
-
-    # Implement Abstract functions
-
-    def get_racks(self, region):
-        zone = self.region_zone_map[region]['zone']
-        return self._get_racks(zone, rack_type='compute')
-
-    def get_hosts(self, region, rack=None):
-        # TODO(nh863p): Update the code to get rack wise hosts
-        zone = self.region_zone_map[region]['zone']
-        zone_id = self._get_zone_id_by_name(zone)
-        device_api = swagger_client.DevicesApi(self.formation_api_client)
-        control_hosts = device_api.zones_zone_id_control_nodes_get(zone_id)
-        compute_hosts = device_api.zones_zone_id_devices_get(
-            zone_id, type='KVM')
-        hosts_list = []
-        genesis_set = False
-        for host in control_hosts:
-            self.device_name_id_mapping[host.aic_standard_name] = host.id
-            # The first control node is designated as genesis node
-            if genesis_set is False:
-                node_type = 'genesis'
-                genesis_set = True
-            else:
-                node_type = 'genesis'
-            hosts_list.append({
-                'name': host.aic_standard_name,
-                'type': node_type,
-                'rack_name': host.rack_name,
-                'host_profile': host.host_profile_name
-            })
-
-        for host in compute_hosts:
-            self.device_name_id_mapping[host.aic_standard_name] = host.id
-            hosts_list.append({
-                'name': host.aic_standard_name,
-                'type': 'compute',
-                'rack_name': host.rack_name,
-                'host_profile': host.host_profile_name
-            })
-        """
-        for host in itertools.chain(control_hosts, compute_hosts):
-            self.device_name_id_mapping[host.aic_standard_name] = host.id
-            hosts_list.append({
-            'name': host.aic_standard_name,
-            'type': host.categories[0],
-            'rack_name': host.rack_name,
-            'host_profile': host.host_profile_name
-            })
-        """
-
-        return hosts_list
-
-    def get_networks(self, region):
-        zone = self.region_zone_map[region]['zone']
-        zone_id = self._get_zone_id_by_name(zone)
-        region_id = self._get_region_id_by_name(region)
-        vlan_api = swagger_client.VlansApi(self.formation_api_client)
-        vlans = vlan_api.zones_zone_id_regions_region_id_vlans_get(
-            zone_id, region_id)
-        # TWEAK(pg710r):Case when vlans list is empty from
-        # zones_zone_id_regions_region_id_vlans_get. Ideally this should not
-        # be the case
-        if len(vlans) is 0:
-            # get device-id from the first host and get the network details
-            hosts = self.get_hosts(self.region)
-            host = hosts[0]['name']
-            device_id = self._get_device_id_by_name(host)
-            vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
-                zone_id, device_id)
-
-        LOG.debug("Extracted region network information\n{}".format(vlans))
-        vlans_list = []
-        for vlan_ in vlans:
-            if len(vlan_.vlan.ipv4) is not 0:
-                tmp_vlan = {}
-                tmp_vlan['name'] = self._get_network_name_from_vlan_name(
-                    vlan_.vlan.name)
-                tmp_vlan['vlan'] = vlan_.vlan.vlan_id
-                tmp_vlan['subnet'] = vlan_.vlan.subnet_range
-                tmp_vlan['gateway'] = vlan_.ipv4_gateway
-                tmp_vlan['subnet_level'] = vlan_.vlan.subnet_level
-                vlans_list.append(tmp_vlan)
-
-        return vlans_list
-
-    def get_ips(self, region, host=None):
-        zone = self.region_zone_map[region]['zone']
-        zone_id = self._get_zone_id_by_name(zone)
-
-        if host:
-            hosts = [host]
-        else:
-            hosts = []
-            hosts_dict = self.get_hosts(zone)
-            for host in hosts_dict:
-                hosts.append(host['name'])
-
-        vlan_api = swagger_client.VlansApi(self.formation_api_client)
-        ip_ = {}
-
-        for host in hosts:
-            device_id = self._get_device_id_by_name(host)
-            vlans = vlan_api.zones_zone_id_devices_device_id_vlans_get(
-                zone_id, device_id)
-            LOG.debug("Received VLAN Network Information\n{}".format(vlans))
-            ip_[host] = {}
-            for vlan_ in vlans:
-                # TODO(pg710r) We need to handle the case when incoming ipv4
-                # list is empty
-                if len(vlan_.vlan.ipv4) is not 0:
-                    name = self._get_network_name_from_vlan_name(
-                        vlan_.vlan.name)
-                    ipv4 = vlan_.vlan.ipv4[0].ip
-                    LOG.debug("vlan:{},name:{},ip:{},vlan_name:{}".format(
-                        vlan_.vlan.vlan_id, name, ipv4, vlan_.vlan.name))
-                    # TODD(pg710r) This code needs to extended to support ipv4
-                    # and ipv6
-                    # ip_[host][name] = {'ipv4': ipv4}
-                    ip_[host][name] = ipv4
-
-        return ip_
-
     def _get_network_name_from_vlan_name(self, vlan_name):
         """ network names are ksn, oam, oob, overlay, storage, pxe
 
@@ -430,7 +475,7 @@ class FormationPlugin(BaseDataSourcePlugin):
             vlan_name contains "server"  the network name is "oam"
             vlan_name contains "ovs"  the network name is "overlay"
             vlan_name contains "ILO" the network name is "oob"
-            TODO(pg710r): need to find out for pxe
+            vlan_name contains "pxe" the network name is "pxe"
         """
         network_names = ['ksn', 'storage', 'server', 'ovs', 'ILO', 'pxe']
         for name in network_names:
@@ -452,62 +497,3 @@ class FormationPlugin(BaseDataSourcePlugin):
                     return 'pxe'
         # if nothing matches
         return ("")
-
-    def get_dns_servers(self, region):
-        try:
-            zone = self.region_zone_map[region]['zone']
-            zone_id = self._get_zone_id_by_name(zone)
-            zone_api = swagger_client.ZonesApi(self.formation_api_client)
-            zone_ = zone_api.zones_zone_id_get(zone_id)
-        except swagger_client.rest.ApiException as e:
-            raise ApiClientError(e.msg)
-
-        if not zone_.ipv4_dns:
-            LOG.warn("No dns server")
-            return []
-
-        dns_list = []
-        for dns in zone_.ipv4_dns:
-            dns_list.append(dns.ip)
-
-        return dns_list
-
-    def get_ntp_servers(self, region):
-        return []
-
-    def get_ldap_information(self, region):
-        return {}
-
-    def get_location_information(self, region):
-        """ get location information for a zone and return """
-        site = self.region_zone_map[region]['site']
-        site_id = self._get_site_id_by_name(site)
-        site_api = swagger_client.SitesApi(self.formation_api_client)
-        site_info = site_api.sites_site_id_get(site_id)
-
-        try:
-            return {
-                # 'corridor': site_info.corridor,
-                'name': site_info.city,
-                'state': site_info.state,
-                'country': site_info.country,
-                'physical_location_id': site_info.clli,
-            }
-        except AttributeError as e:
-            raise MissingAttributeError('Missing {} information in {}'.format(
-                e, site_info.city))
-
-    def get_domain_name(self, region):
-        try:
-            zone = self.region_zone_map[region]['zone']
-            zone_id = self._get_zone_id_by_name(zone)
-            zone_api = swagger_client.ZonesApi(self.formation_api_client)
-            zone_ = zone_api.zones_zone_id_get(zone_id)
-        except swagger_client.rest.ApiException as e:
-            raise ApiClientError(e.msg)
-
-        if not zone_.dns:
-            LOG.warn('Got None while running get domain name')
-            return None
-
-        return zone_.dns

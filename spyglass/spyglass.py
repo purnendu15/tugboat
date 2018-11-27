@@ -113,7 +113,7 @@ def main(*args, **kwargs):
     stream_handle.setFormatter(formatter)
     LOG.addHandler(stream_handle)
     LOG.info("Spyglass start")
-    LOG.debug("CLI Parameters passed:\n{}".format(kwargs))
+    LOG.info("CLI Parameters passed:\n{}".format(kwargs))
 
     # When intermediary file is specified, Spyglass will generate the
     # manifest without extracting any data from plugin data source
@@ -140,14 +140,13 @@ def main(*args, **kwargs):
                 raw_data = config.read()
                 additional_config_data = yaml.safe_load(raw_data)
 
-        LOG.debug("Additional config data:\n{}".format(
+        LOG.debug("Additional site config data passed:\n{}".format(
             pprint.pformat(additional_config_data)))
         data_extractor.set_config_opts(plugin_conf)
         data_extractor.extract_data()
         LOG.info(
             "Apply additional configuration from:{}".format(additional_config))
         data_extractor.apply_additional_data(additional_config_data)
-        LOG.debug(pprint.pformat(data_extractor.site_data))
         """
         Initialize ProcessDataSource object to process received data
         """
