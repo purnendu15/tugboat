@@ -399,8 +399,8 @@ class BaseDataSourcePlugin(object):
         for net in networks:
             tmp_net = {}
             if net['name'] in networks_to_scan:
-                tmp_net['subnet'] = net.get('subnet', '')
-                tmp_net['vlan'] = net.get('vlan', '')
+                tmp_net['subnet'] = net.get('subnet', '#CHANGE_ME')
+                tmp_net['vlan'] = net.get('vlan', '#CHANGE_ME')
 
             network_data['vlan_network_data'][net['name']] = tmp_net
 

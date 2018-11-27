@@ -146,10 +146,10 @@ class TugboatPlugin(BaseDataSourcePlugin):
                     value = re.findall(vlan_pattern, net_val['vlan'])
                     tmp_vlan['vlan'] = value[0]
                 else:
-                    tmp_vlan['vlan'] = ""
+                    tmp_vlan['vlan'] = "#CHANGE_ME"
 
-                tmp_vlan['subnet'] = net_val.get('subnet', "")
-                tmp_vlan['gateway'] = net_val.get('gateway', "")
+                tmp_vlan['subnet'] = net_val.get('subnet', "#CHANGE_ME")
+                tmp_vlan['gateway'] = net_val.get('gateway', "#CHANGE_ME")
             else:
                 tmp_vlan['name'] = 'ingress'
                 tmp_vlan['subnet'] = net_val
@@ -174,12 +174,12 @@ class TugboatPlugin(BaseDataSourcePlugin):
         ip_ = {}
         ipmi_data = self.parsed_xl_data['ipmi_data'][0]
         ip_[host] = {
-            'oob': ipmi_data[host].get('ipmi_address', ''),
-            'oam': ipmi_data[host].get('oam', ''),
-            'calico': ipmi_data[host].get('calico', ''),
-            'overlay': ipmi_data[host].get('overlay', ''),
-            'pxe': ipmi_data[host].get('pxe', ''),
-            'storage': ipmi_data[host].get('storage', '')
+            'oob': ipmi_data[host].get('ipmi_address', '#CHANGE_ME'),
+            'oam': ipmi_data[host].get('oam', '#CHANGE_ME'),
+            'calico': ipmi_data[host].get('calico', '#CHANGE_ME'),
+            'overlay': ipmi_data[host].get('overlay', '#CHANGE_ME'),
+            'pxe': ipmi_data[host].get('pxe', '#CHANGE_ME'),
+            'storage': ipmi_data[host].get('storage', '#CHANGE_ME')
         }
         return ip_
 
@@ -190,14 +190,14 @@ class TugboatPlugin(BaseDataSourcePlugin):
         ldap_info = {}
         # raw url is 'url: ldap://example.com' so we are converting to
         # 'ldap://example.com'
-        url = ldap_raw_data.get('url', '')
+        url = ldap_raw_data.get('url', '#CHANGE_ME')
         try:
             ldap_info['url'] = url.split(' ')[1]
             ldap_info['domain'] = url.split('.')[1]
         except IndexError as e:
             LOG.error("url.split:{}".format(e))
-        ldap_info['common_name'] = ldap_raw_data.get('common_name', '')
-        ldap_info['subdomain'] = ldap_raw_data.get('subdomain', '')
+        ldap_info['common_name'] = ldap_raw_data.get('common_name', '#CHANGE_ME')
+        ldap_info['subdomain'] = ldap_raw_data.get('subdomain', '#CHANGE_ME')
 
         return ldap_info
 
@@ -229,9 +229,9 @@ class TugboatPlugin(BaseDataSourcePlugin):
         corridor_pattern = r'\d+'
         corridor_number = re.findall(corridor_pattern,
                                      location_data['corridor'])[0]
-        name = location_data.get('name', '')
-        state = location_data.get('state', '')
-        country = location_data.get('country', '')
+        name = location_data.get('name', '#CHANGE_ME')
+        state = location_data.get('state', '#CHANGE_ME')
+        country = location_data.get('country', '#CHANGE_ME')
         physical_location_id = location_data.get('physical_location', '')
 
         return {
