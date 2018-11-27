@@ -4,15 +4,15 @@
 ---
 site_info:
   ldap:
-    common_name: Test_Users
-    url: ldap://example.com
-    subdomain: testitservices
+    common_name: test
+    url: ldap://ldap.example.com
+    subdomain: test
   ntp:
     servers: 10.10.10.10,20.20.20.20,30.30.30.30
-  sitetype: dummy
-  domain: SAMPLE.example.com
+  sitetype: foundry
+  domain: atlantafoundry.com
   dns:
-    servers: 10.10.10.10,20.20.20.20,30.30.30.30
+    servers: 8.8.8.8,8.8.4.4,208.67.222.222
 network:
   vlan_network_data:
     ingress:

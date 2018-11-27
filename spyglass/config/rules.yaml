@@ -27,72 +27,12 @@ rule_ip_alloc_offset:
     ingress_vip: 1
     static_ip_end: -2
     dhcp_ip_end: -2
-rule_host_profile_interfaces:
-  name: host_profile_interfaces
-  host_profile_interfaces:
-    gv:
-      networks:
-        p1p1: sriov_nic01
-        bond1:
-        - gp_nic01
-        - gp_nic02
-        p3p2: sriov_nic02
-    nsb:
-      networks:
-        p1p1: sriov_nic01
-        bond1:
-        - gp_nic01
-        - gp_nic02
-        pxe: en04
-        p3p2: sriov_nic02
-    cp:
-      networks:
-        p1p1: sriov_nic01
-        bond1:
-        - gp_nic01
-        - gp_nic02
-        p3p2: sriov_nic02
-    ns:
-      networks:
-        p1p1: sriov_nic01
-        bond1:
-        - gp_nic01
-        - gp_nic02
-        pxe: en04
-        p3p2: sriov_nic02
 rule_hardware_profile:
   name: hardware_profile
   hardware_profile:
-    dummy:
+    foundry:
       profile_name:
-        compute: cmp
-        ctrl: ctr
-      host_type:
-        compute: nc-cmp
-        ctrl: nc-ctr
-      hw_type: dell_r740_purley_nc
-    nc:
-      profile_name:
-        compute: nsb
-        ctrl: cp
-      host_type:
-        compute: nc-ns-r740
-        ctrl: nc-cp
-      hw_type: dell_r740_purley_nc
-    5ec:
-      profile_name:
-        compute: nsb
-        ctrl: cp
-      host_type:
-        compute: 5ec-ns-r640
-        ctrl: 5ec-cp
-      hw_type: dell_r640_purley_5ec
-    cruiser:
-      profile_name:
-        compute: nsb
-        ctrl: cp
-      host_type:
-        compute: nc-ns-r740
-        ctrl: nc-cp
-      hw_type: dell_r740_purley_nc
+        compute: dp-r720
+        ctrl: cp-r720
+      hw_type: dell_r720
 ...
