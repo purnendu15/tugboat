@@ -104,16 +104,15 @@ class ExcelParser():
                 previous_server_gateway = ipmi_gateway
             else:
                 ipmi_gateway = previous_server_gateway
-            tmp_host_profile = ws.cell(row=row, column=host_profile_col).value
+            host_profile = ws.cell(row=row, column=host_profile_col).value
             try:
-                if tmp_host_profile is None:
+                if host_profile is None:
                     raise RuntimeError("No value read from {} ".format(
                         self.file_name) + "sheet:{} row:{}, col:{}".format(
                             self.spec, row, host_profile_col))
             except RuntimeError as rerror:
                 LOG.critical(rerror)
                 sys.exit("Tugboat exited!!")
-            host_profile = tmp_host_profile.split('-')[1]
             ipmi_data[hostname] = {
                 'ipmi_address': ipmi_address,
                 'ipmi_gateway': ipmi_gateway,
