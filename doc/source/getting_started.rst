@@ -124,3 +124,9 @@ spyglass -mg --type formation -f <URL> -u <user_id> -p <password> -d <site_confi
 
 spyglass -mg --type tugboat -x <Excel File> -e <Excel Spec> -d <Site Config> -s <Region>
 
+for example:
+spyglass -mg -t tugboat -x SiteDesignSpec_v0.1.xlsx -e excel_spec_upstream.yaml -d site_config.yaml -s airship-seaworthy
+Where 'excel_spec_upstream.yaml', 'SiteDesignSpec_v0.1.xlsx' and
+'site_config.yaml' are sample excel specificaton and file from
+spyglass/sample folder.
+
