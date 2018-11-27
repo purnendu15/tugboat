@@ -13,8 +13,9 @@
 # limitations under the License.
 
 import logging
-import pprint
 import pkg_resources
+import pprint
+
 import click
 import yaml
 
@@ -66,6 +67,11 @@ def generate_manifest_files(intermediary, manifest_dir=None):
     type=click.Path(exists=True),
     help='The path where intermediary file needs to be generated')
 @click.option(
+    '--edit_intermediary/--no_edit_intermediary',
+    '-e/-nedit',
+    default=True,
+    help='Flag to let user edit intermediary')
+@click.option(
     '--generate_manifests',
     '-m',
     is_flag=True,
@@ -86,6 +92,7 @@ def generate_manifest_files(intermediary, manifest_dir=None):
 def main(*args, **kwargs):
     generate_intermediary = kwargs['generate_intermediary']
     intermediary_dir = kwargs['intermediary_dir']
+    edit_intermediary = kwargs['edit_intermediary']
     generate_manifests = kwargs['generate_manifests']
     manifest_dir = kwargs['manifest_dir']
     intermediary = kwargs['intermediary']
@@ -146,6 +153,8 @@ def main(*args, **kwargs):
         intermediary_yaml = {}
         LOG.info("Generating intermediary")
         intermediary_yaml = process_input_ob.generate_intermediary_yaml()
+        if edit_intermediary:
+            process_input_ob.edit_intermediary_yaml()
         if generate_intermediary:
             process_input_ob.dump_intermediary_file(intermediary_dir)
         if generate_manifests:
