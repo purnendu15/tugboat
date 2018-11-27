@@ -145,7 +145,7 @@ class FormationPlugin(BaseDataSourcePlugin):
                 node_type = 'genesis'
                 genesis_set = True
             else:
-                node_type = 'genesis'
+                node_type = 'controller'
             hosts_list.append({
                 'name': host.aic_standard_name,
                 'type': node_type,
