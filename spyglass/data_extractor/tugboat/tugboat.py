@@ -196,7 +196,8 @@ class TugboatPlugin(BaseDataSourcePlugin):
             ldap_info['domain'] = url.split('.')[1]
         except IndexError as e:
             LOG.error("url.split:{}".format(e))
-        ldap_info['common_name'] = ldap_raw_data.get('common_name', '#CHANGE_ME')
+        ldap_info['common_name'] = ldap_raw_data.get('common_name',
+                                                     '#CHANGE_ME')
         ldap_info['subdomain'] = ldap_raw_data.get('subdomain', '#CHANGE_ME')
 
         return ldap_info

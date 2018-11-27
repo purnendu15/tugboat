@@ -400,7 +400,7 @@ class BaseDataSourcePlugin(object):
             tmp_net = {}
             if net['name'] in networks_to_scan:
                 tmp_net['subnet'] = net.get('subnet', '#CHANGE_ME')
-                if ((net['name'] != 'ingress') and  (net['name'] != 'oob')):
+                if ((net['name'] != 'ingress') and (net['name'] != 'oob')):
                     tmp_net['vlan'] = net.get('vlan', '#CHANGE_ME')
 
             network_data['vlan_network_data'][net['name']] = tmp_net
