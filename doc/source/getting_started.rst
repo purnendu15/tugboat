@@ -68,13 +68,13 @@ Basic Usage
 Before using Spyglass you must:
 
 
-1. Clone the Tugboat repository:
+1. Clone the Spyglass repository:
 
    .. code-block:: console
 
     git clone https://github.com/att-comdev/tugboat/tree/spyglass
 
-2. Install the required packages in spyglass/:
+2. Install the required packages in spyglass:
 
    .. code-block:: console
 
@@ -87,24 +87,40 @@ CLI Options
 Usage: spyglass [OPTIONS]
 
 Options:
-  -s, --site TEXT                Specify the site for which manifests to be
-                                 generated
-  -t, --type TEXT                Specify the plugin type formation or tugboat
-  -f, --formation_url TEXT       Specify the formation url
-  -u, --formation_user TEXT      Specify the formation user id
-  -p, --formation_password TEXT  Specify the formation user password
-  -d, --additional_config PATH   Site specific configuraton details
-  -g, --generate_intermediary    Dump intermediary file from passed excel and
-                                 excel spec
-  -m, --generate_manifests       Generate manifests from the generated
-                                 intermediary file
-  -l, --loglevel INTEGER         Loglevel NOTSET:0 ,DEBUG:10,     INFO:20,
-                                 WARNING:30, ERROR:40, CRITICAL:50  [default:
-                                 20]
-  --help                         Show this message and exit.
+  -s, --site TEXT                 Specify the site for which manifests to be
+                                  generated
+  -t, --type TEXT                 Specify the plugin type formation or tugboat
+  -f, --formation_url TEXT        Specify the formation url
+  -u, --formation_user TEXT       Specify the formation user id
+  -p, --formation_password TEXT   Specify the formation user password
+  -i, --intermediary PATH         Intermediary file path  generate manifests,
+                                  use -m also with this option
+  -d, --additional_config PATH    Site specific configuraton details
+  -g, --generate_intermediary     Dump intermediary file from passed excel and
+                                  excel spec
+  -idir, --intermediary_dir PATH  The path where intermediary file needs to be
+                                  generated
+  -e, --edit_intermediary / -nedit, --no_edit_intermediary
+                                  Flag to let user edit intermediary
+  -m, --generate_manifests        Generate manifests from the generated
+                                  intermediary file
+  -mdir, --manifest_dir PATH      The path where manifest files needs to be
+                                  generated
+  -x, --excel PATH                Path to engineering excel file, to be passed
+                                  with generate_intermediary
+  -e, --excel_spec PATH           Path to excel spec, to be passed with
+                                  generate_intermediary
+  -l, --loglevel INTEGER          Loglevel NOTSET:0 ,DEBUG:10,     INFO:20,
+                                  WARNING:30, ERROR:40, CRITICAL:50  [default:
+                                  20]
+  --help                          Show this message and exit.
 
 
-1. Running Spyglass with  Remote Data Source
+1. Running Spyglass with  Remote Data Source Plugin
 
 spyglass -mg --type formation -f <URL> -u <user_id> -p <password> -d <site_config> -s <sitetype>
+
+2. Running Spyglass with Excel Plugin
+
+spyglass -mg --type tugboat -x <Excel File> -e <Excel Spec> -d <Site Config> -s <Region>
 
