@@ -69,7 +69,7 @@ def generate_manifest_files(intermediary, manifest_dir=None):
 @click.option(
     '--edit_intermediary/--no_edit_intermediary',
     '-e/-nedit',
-    default=True,
+    default=False,
     help='Flag to let user edit intermediary')
 @click.option(
     '--generate_manifests',
