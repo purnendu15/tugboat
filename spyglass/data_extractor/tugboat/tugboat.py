@@ -300,27 +300,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
             "Unable to recognize VLAN name extracted from Plugin data source")
         return ("")
 
-    def _get_private_network_data(self, raw_data):
-        """
-        Get private network data from information extracted
-        by ExcelParser(i.e raw data)
-        """
-        network_data = {}
-        # Private Network Types are : pxe, storage, calico, overlay
-        private_network_types = {
-            'pxe': 'pxe',
-            'storage': 'storage',
-            'calico': 'calico',
-            'overlay': 'overlay'
-        }
-        for net_type in private_network_types:
-            for key in raw_data['private']:
-                if net_type.lower() in key.lower():
-                    network_data[private_network_types[net_type]] = raw_data[
-                        'private'][key]
-        LOG.debug("Private Network Data:\n%s", pprint.pformat(network_data))
-        return network_data
-
     def _get_formatted_server_list(self, server_list):
         """ Format dns and ntp server list as comma separated string """
 
@@ -333,27 +312,6 @@ class TugboatPlugin(BaseDataSourcePlugin):
                 servers.append(data)
         formatted_server_list = ','.join(servers)
         return formatted_server_list
-
-    def _categorize_hosts(self):
-        """
-        Categorize host as genesis, controller and compute based on
-        the hostname string extracted from xl
-        """
-        """ loop through IPMI data and determine hosttype """
-        is_genesis = False
-        sitetype = self.sitetype
-        ipmi_data = self.parsed_xl_data['ipmi_data'][0]
-        ctrl_profile_type = self.rules_data['hardware_profile'][sitetype][
-            'profile_name']['ctrl']
-        for host in sorted(ipmi_data.keys()):
-            if (ipmi_data[host]['host_profile'] == ctrl_profile_type):
-                if not is_genesis:
-                    self.host_type[host] = 'genesis'
-                    is_genesis = True
-                else:
-                    self.host_type[host] = 'controller'
-            else:
-                self.host_type[host] = 'compute'
 
     def _get_rack(self, host):
         """
