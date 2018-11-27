@@ -63,6 +63,14 @@ rule_host_profile_interfaces:
 rule_hardware_profile:
   name: hardware_profile
   hardware_profile:
+    dummy:
+      profile_name:
+        compute: cmp
+        ctrl: ctr
+      host_type:
+        compute: nc-cmp
+        ctrl: nc-ctr
+      hw_type: dell_r740_purley_nc
     nc:
       profile_name:
         compute: nsb
